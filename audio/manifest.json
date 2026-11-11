@@ -1,0 +1,396 @@
+{
+ "version": "stage9-1",
+ "sounds": {
+  "shot": {
+   "bank": "combat",
+   "files": [
+    "shot-0",
+    "shot-1",
+    "shot-2",
+    "shot-3"
+   ]
+  },
+  "shotgun": {
+   "bank": "combat",
+   "files": [
+    "shotgun-0",
+    "shotgun-1",
+    "shotgun-2",
+    "shotgun-3"
+   ]
+  },
+  "turret": {
+   "bank": "combat",
+   "files": [
+    "turret-0",
+    "turret-1",
+    "turret-2"
+   ]
+  },
+  "axe": {
+   "bank": "combat",
+   "files": [
+    "axe-0",
+    "axe-1",
+    "axe-2"
+   ]
+  },
+  "saw_throw": {
+   "bank": "combat",
+   "files": [
+    "saw_throw-0",
+    "saw_throw-1",
+    "saw_throw-2"
+   ]
+  },
+  "saw_hit": {
+   "bank": "combat",
+   "files": [
+    "saw_hit-0",
+    "saw_hit-1",
+    "saw_hit-2",
+    "saw_hit-3"
+   ]
+  },
+  "saw_catch": {
+   "bank": "combat",
+   "files": [
+    "saw_catch-0",
+    "saw_catch-1"
+   ]
+  },
+  "crescent": {
+   "bank": "combat",
+   "files": [
+    "crescent-0",
+    "crescent-1",
+    "crescent-2"
+   ]
+  },
+  "moth": {
+   "bank": "combat",
+   "files": [
+    "moth-0",
+    "moth-1",
+    "moth-2"
+   ]
+  },
+  "poison": {
+   "bank": "combat",
+   "files": [
+    "poison-0",
+    "poison-1"
+   ]
+  },
+  "laser": {
+   "bank": "combat",
+   "files": [
+    "laser-0",
+    "laser-1",
+    "laser-2"
+   ]
+  },
+  "frost": {
+   "bank": "combat",
+   "files": [
+    "frost-0",
+    "frost-1",
+    "frost-2"
+   ]
+  },
+  "lightning": {
+   "bank": "combat",
+   "files": [
+    "lightning-0",
+    "lightning-1",
+    "lightning-2"
+   ]
+  },
+  "flame": {
+   "bank": "combat",
+   "files": [
+    "flame-0",
+    "flame-1",
+    "flame-2",
+    "flame-3"
+   ]
+  },
+  "deploy": {
+   "bank": "combat",
+   "files": [
+    "deploy-0",
+    "deploy-1"
+   ]
+  },
+  "turret_break": {
+   "bank": "combat",
+   "files": [
+    "turret_break-0",
+    "turret_break-1"
+   ]
+  },
+  "explosion": {
+   "bank": "combat",
+   "files": [
+    "explosion-0",
+    "explosion-1",
+    "explosion-2"
+   ]
+  },
+  "hit_flesh": {
+   "bank": "core",
+   "files": [
+    "hit_flesh-0",
+    "hit_flesh-1",
+    "hit_flesh-2",
+    "hit_flesh-3"
+   ]
+  },
+  "hit_metal": {
+   "bank": "core",
+   "files": [
+    "hit_metal-0",
+    "hit_metal-1",
+    "hit_metal-2",
+    "hit_metal-3"
+   ]
+  },
+  "hit_stone": {
+   "bank": "core",
+   "files": [
+    "hit_stone-0",
+    "hit_stone-1",
+    "hit_stone-2",
+    "hit_stone-3"
+   ]
+  },
+  "crit": {
+   "bank": "core",
+   "files": [
+    "crit-0",
+    "crit-1",
+    "crit-2"
+   ]
+  },
+  "death_flesh": {
+   "bank": "core",
+   "files": [
+    "death_flesh-0",
+    "death_flesh-1",
+    "death_flesh-2",
+    "death_flesh-3"
+   ]
+  },
+  "death_metal": {
+   "bank": "core",
+   "files": [
+    "death_metal-0",
+    "death_metal-1",
+    "death_metal-2"
+   ]
+  },
+  "death_stone": {
+   "bank": "core",
+   "files": [
+    "death_stone-0",
+    "death_stone-1",
+    "death_stone-2"
+   ]
+  },
+  "hurt": {
+   "bank": "core",
+   "files": [
+    "hurt-0",
+    "hurt-1",
+    "hurt-2"
+   ]
+  },
+  "elite": {
+   "bank": "core",
+   "files": [
+    "elite-0",
+    "elite-1",
+    "elite-2"
+   ]
+  },
+  "pickup": {
+   "bank": "core",
+   "files": [
+    "pickup-0",
+    "pickup-1",
+    "pickup-2",
+    "pickup-3"
+   ]
+  },
+  "pickup_xp": {
+   "bank": "core",
+   "files": [
+    "pickup_xp-0",
+    "pickup_xp-1",
+    "pickup_xp-2"
+   ]
+  },
+  "click": {
+   "bank": "core",
+   "files": [
+    "click-0",
+    "click-1",
+    "click-2"
+   ]
+  },
+  "hover": {
+   "bank": "core",
+   "files": [
+    "hover-0",
+    "hover-1"
+   ]
+  },
+  "buy": {
+   "bank": "core",
+   "files": [
+    "buy-0",
+    "buy-1"
+   ]
+  },
+  "level": {
+   "bank": "core",
+   "files": [
+    "level-0",
+    "level-1"
+   ]
+  },
+  "upgrade": {
+   "bank": "core",
+   "files": [
+    "upgrade-0",
+    "upgrade-1"
+   ]
+  },
+  "acquire": {
+   "bank": "core",
+   "files": [
+    "acquire-0",
+    "acquire-1"
+   ]
+  },
+  "mutate": {
+   "bank": "core",
+   "files": [
+    "mutate-0",
+    "mutate-1"
+   ]
+  },
+  "ability": {
+   "bank": "combat",
+   "files": [
+    "ability-0",
+    "ability-1"
+   ]
+  },
+  "dash_0": {
+   "bank": "combat",
+   "files": [
+    "dash_0-0",
+    "dash_0-1"
+   ]
+  },
+  "dash_1": {
+   "bank": "combat",
+   "files": [
+    "dash_1-0",
+    "dash_1-1"
+   ]
+  },
+  "dash_2": {
+   "bank": "combat",
+   "files": [
+    "dash_2-0",
+    "dash_2-1"
+   ]
+  },
+  "dash_3": {
+   "bank": "combat",
+   "files": [
+    "dash_3-0",
+    "dash_3-1"
+   ]
+  },
+  "dash_4": {
+   "bank": "combat",
+   "files": [
+    "dash_4-0",
+    "dash_4-1"
+   ]
+  },
+  "dash_5": {
+   "bank": "combat",
+   "files": [
+    "dash_5-0",
+    "dash_5-1"
+   ]
+  },
+  "boss_roar": {
+   "bank": "boss",
+   "files": [
+    "boss_roar-0",
+    "boss_roar-1",
+    "boss_roar-2"
+   ]
+  },
+  "boss_warn": {
+   "bank": "boss",
+   "files": [
+    "boss_warn-0",
+    "boss_warn-1"
+   ]
+  },
+  "boss_slam": {
+   "bank": "boss",
+   "files": [
+    "boss_slam-0",
+    "boss_slam-1",
+    "boss_slam-2"
+   ]
+  },
+  "boss_ring": {
+   "bank": "boss",
+   "files": [
+    "boss_ring-0",
+    "boss_ring-1"
+   ]
+  },
+  "boss_laser": {
+   "bank": "boss",
+   "files": [
+    "boss_laser-0",
+    "boss_laser-1"
+   ]
+  },
+  "boss_charge": {
+   "bank": "boss",
+   "files": [
+    "boss_charge-0",
+    "boss_charge-1"
+   ]
+  },
+  "boss_summon": {
+   "bank": "boss",
+   "files": [
+    "boss_summon-0",
+    "boss_summon-1"
+   ]
+  },
+  "boss_death": {
+   "bank": "boss",
+   "files": [
+    "boss_death-0"
+   ]
+  }
+ },
+ "ambience": {
+  "amb_0": "amb_0",
+  "amb_1": "amb_1",
+  "amb_2": "amb_2",
+  "amb_3": "amb_3"
+ }
+}

@@ -1,4 +1,4 @@
-const CACHE = "nachtschrott-stage8-1";
+const CACHE = "nachtschrott-stage9-1";
 self.addEventListener("install", (event) =>
   event.waitUntil(
     caches
@@ -11,6 +11,7 @@ self.addEventListener("install", (event) =>
           "./icon.svg",
           "./icon-192.png",
           "./icon-512.png",
+          "./licenses/pixelfx-LICENSE.txt",
         ]),
       )
       .then(() => self.skipWaiting()),
@@ -36,8 +37,12 @@ self.addEventListener("fetch", (event) => {
     new URL(event.request.url).origin !== location.origin
   )
     return;
+  // HTML is always network-first and bypasses the HTTP cache, so a new deploy wins when online.
+  const isPage =
+    event.request.mode === "navigate" ||
+    /\/(index\.html)?$/.test(new URL(event.request.url).pathname);
   event.respondWith(
-    fetch(event.request)
+    (isPage ? fetch(event.request.url, { cache: "no-store", credentials: "same-origin" }) : fetch(event.request))
       .then((response) => {
         if (response.ok) {
           const copy = response.clone();
