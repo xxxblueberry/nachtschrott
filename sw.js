@@ -1,4 +1,4 @@
-const CACHE = "nachtschrott-stage6-2";
+const CACHE = "nachtschrott-stage7-1";
 self.addEventListener("install", (event) =>
   event.waitUntil(
     caches
