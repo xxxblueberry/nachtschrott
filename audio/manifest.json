@@ -1,5 +1,5 @@
 {
- "version": "stage10-1",
+ "version": "stage11-1",
  "sounds": {
   "shot": {
    "bank": "combat",
@@ -88,6 +88,29 @@
     "laser-0",
     "laser-1",
     "laser-2"
+   ]
+  },
+  "fork_fire": {
+   "bank": "combat",
+   "files": [
+    "fork_fire-0",
+    "fork_fire-1",
+    "fork_fire-2"
+   ]
+  },
+  "fork_hit": {
+   "bank": "combat",
+   "files": [
+    "fork_hit-0",
+    "fork_hit-1",
+    "fork_hit-2"
+   ]
+  },
+  "fork_over": {
+   "bank": "combat",
+   "files": [
+    "fork_over-0",
+    "fork_over-1"
    ]
   },
   "frost": {
@@ -381,29 +404,6 @@
    "bank": "combat",
    "files": [
     "ult_5-0"
-   ]
-  },
-  "sog": {
-   "bank": "combat",
-   "files": [
-    "sog-0",
-    "sog-1"
-   ]
-  },
-  "spit": {
-   "bank": "combat",
-   "files": [
-    "spit-0",
-    "spit-1",
-    "spit-2"
-   ]
-  },
-  "organic_growl": {
-   "bank": "combat",
-   "files": [
-    "organic_growl-0",
-    "organic_growl-1",
-    "organic_growl-2"
    ]
   },
   "boss_roar": {
