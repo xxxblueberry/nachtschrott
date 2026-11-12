@@ -1,5 +1,5 @@
 {
- "version": "stage9-1",
+ "version": "stage10-1",
  "sounds": {
   "shot": {
    "bank": "combat",
@@ -259,6 +259,24 @@
     "level-1"
    ]
   },
+  "wave_clear": {
+   "bank": "core",
+   "files": [
+    "wave_clear-0"
+   ]
+  },
+  "wave_start": {
+   "bank": "core",
+   "files": [
+    "wave_start-0"
+   ]
+  },
+  "magnet": {
+   "bank": "core",
+   "files": [
+    "magnet-0"
+   ]
+  },
   "upgrade": {
    "bank": "core",
    "files": [
@@ -327,6 +345,65 @@
    "files": [
     "dash_5-0",
     "dash_5-1"
+   ]
+  },
+  "ult_0": {
+   "bank": "combat",
+   "files": [
+    "ult_0-0"
+   ]
+  },
+  "ult_1": {
+   "bank": "combat",
+   "files": [
+    "ult_1-0"
+   ]
+  },
+  "ult_2": {
+   "bank": "combat",
+   "files": [
+    "ult_2-0"
+   ]
+  },
+  "ult_3": {
+   "bank": "combat",
+   "files": [
+    "ult_3-0"
+   ]
+  },
+  "ult_4": {
+   "bank": "combat",
+   "files": [
+    "ult_4-0"
+   ]
+  },
+  "ult_5": {
+   "bank": "combat",
+   "files": [
+    "ult_5-0"
+   ]
+  },
+  "sog": {
+   "bank": "combat",
+   "files": [
+    "sog-0",
+    "sog-1"
+   ]
+  },
+  "spit": {
+   "bank": "combat",
+   "files": [
+    "spit-0",
+    "spit-1",
+    "spit-2"
+   ]
+  },
+  "organic_growl": {
+   "bank": "combat",
+   "files": [
+    "organic_growl-0",
+    "organic_growl-1",
+    "organic_growl-2"
    ]
   },
   "boss_roar": {
