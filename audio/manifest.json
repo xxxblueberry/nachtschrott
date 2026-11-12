@@ -1,5 +1,5 @@
 {
- "version": "stage11-1",
+ "version": "stage11-2",
  "sounds": {
   "shot": {
    "bank": "combat",
@@ -95,7 +95,8 @@
    "files": [
     "fork_fire-0",
     "fork_fire-1",
-    "fork_fire-2"
+    "fork_fire-2",
+    "fork_fire-3"
    ]
   },
   "fork_hit": {
@@ -103,7 +104,8 @@
    "files": [
     "fork_hit-0",
     "fork_hit-1",
-    "fork_hit-2"
+    "fork_hit-2",
+    "fork_hit-3"
    ]
   },
   "fork_over": {
