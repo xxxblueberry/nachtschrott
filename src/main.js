@@ -4979,9 +4979,7 @@ function Ki(e, A, g) {
       (A.timer = 0),
       (A.cd = a ? 1.2 : Math.max(A.cd, 1)),
       a &&
-        ((e.banner = z[A.type].name + " · PHASE " + o),
-        (e.bannerTime = 2),
-        (e.shake = Math.max(e.shake, 6)),
+        ((e.shake = Math.max(e.shake, 6)),
         (e.pulse = Math.max(e.pulse, 0.2)),
         e.audio.sound("boss_roar", 1.05, 1, e.pan(A.x)),
         e.fx.explosion(A.x, A.y, A.r * 1.2, i),
@@ -6286,7 +6284,6 @@ class mi {
         Math.min(this.runDifficulty, this.maxDifficulty(A[0]), this.maxDifficulty(A[1]))),
       delete this.save.data.checkpoint,
       this.save.write(),
-      (this.banner = "ZU ZWEIT DURCH DIE NACHT"),
       this.setPhase("combat");
   }
   weaponRange(A) {
@@ -6592,8 +6589,6 @@ class mi {
       (this.heavyStop = 0),
       (this.shake = 0),
       (this.pulse = 0),
-      (this.banner = "DIE NACHT GEHÖRT DIR"),
-      (this.bannerTime = 3),
       this.setPhase("combat"),
       this.audio.init(),
       this.audio.sound("wave_start", 0.8),
@@ -6726,9 +6721,7 @@ class mi {
       A >= 8 &&
         ((i.hp = i.maxHp = Q.hp * (1 + Math.max(0, this.wave - 20) * 0.2) * this.rules.bossHp),
         (i.cd = 2),
-        (i.spawn = E ? 0 : 1.8),
-        (this.banner = Q.name),
-        (this.bannerTime = 4)),
+        (i.spawn = E ? 0 : 1.8)),
       i
     );
   }
@@ -6766,7 +6759,6 @@ class mi {
     return (
       this.formations++,
       (this.lastFormation = E ? "UMZINGELUNG · LÜCKE SUCHEN" : "ZANGENANGRIFF"),
-      i && ((this.banner = this.lastFormation), (this.bannerTime = 1.5)),
       { spawned: i, gap: B, surround: E }
     );
   }
@@ -7043,9 +7035,7 @@ class mi {
       ),
       A.type >= 7 &&
         ((this.shake = A.type >= 8 ? 18 : 9),
-        (this.pulse = A.type >= 8 ? 0.8 : 0.2),
-        (this.banner = A.type >= 8 ? "DER MORGEN IST NÄHER" : "ELITE ZERLEGT"),
-        (this.bannerTime = 3)),
+        (this.pulse = A.type >= 8 ? 0.8 : 0.2)),
       A.type >= 8
         ? ((this.bossDead = !0),
           this.drop(A.x, A.y, 60, 0, !0),
@@ -8124,8 +8114,6 @@ class mi {
               C.kind === 1 && (this.money += C.value * this.rules.economy),
               C.kind === 2 &&
                 (this.loot.each((s) => (s.magnet = !0)),
-                (this.banner = "SCHROTTSTURM!"),
-                (this.bannerTime = 2),
                 this.audio.sound("magnet", 1),
                 (this.pulse = 0.2)),
               C.kind === 4 && this.collectCapsule(),
@@ -8930,18 +8918,6 @@ class mi {
       this.forActors(() => {
         this.player.hp = Math.min(this.stats.hp, this.player.hp + this.stats.hp * this.rules.waveHeal);
       }, !0),
-      (this.banner =
-        "WELLE " +
-        String(this.wave).padStart(2, "0") +
-        (this.climb
-          ? " · " +
-            this.climbState.def.unit +
-            " " +
-            this.climbState.metres +
-            " m" +
-            (this.bossWave ? " · ENDGEGNER" : "")
-          : "")),
-      (this.bannerTime = 2.2),
       this.pendingShowcase &&
         ((this.showcase = { ...this.pendingShowcase, life: 1.85, max: 1.85, serial: ++this.purchaseSerial }),
         this.acquisitionShockwave(this.pendingShowcase.tier),
@@ -9023,8 +8999,6 @@ class mi {
       (this.ended = g.endless),
       (this.waveLength = Math.min(60, 40 + this.wave)),
       (this.waveTime = 0),
-      (this.banner = "WELLE " + this.wave + " · FORTGESETZT"),
-      (this.bannerTime = 2.5),
       (this.save.data.checkpoint = g),
       this.save.write(),
       (this.previous = "combat"),
@@ -12123,7 +12097,7 @@ class FC {
         Q.line(w - 12, q, w - 5, q, "#e3e9c8", 1.3),
         Q.line(w + 5, q, w + 12, q, "#e3e9c8", 1.3);
     }
-    if (
+    (
       (i.restore(),
       this.vignette &&
         (this.paintedPlate && (i.globalAlpha = 0.3),
@@ -12143,72 +12117,9 @@ class FC {
         (i.globalAlpha = this.fxFlashes),
         (i.lineWidth = 3),
         i.strokeRect(3, 3, this.w - 6, this.h - 6),
-        (i.globalAlpha = 1)),
-      I.bannerTime > 0 && I.phase === "combat")
-    ) {
-      // Game Feel: Banner knallt rein (Band + Warnstreifen + Schrift-Slam)
-      (I.banner !== this.feelBanner || I.bannerTime > (this.feelBannerT ?? 0) + 0.05) &&
-        ((this.feelBanner = I.banner), (this.feelBannerMax = I.bannerTime)),
-        (this.feelBannerT = I.bannerTime);
-      const rm = I.save.data.settings.reducedMotion,
-        age = (this.feelBannerMax ?? I.bannerTime) - I.bannerTime,
-        ease = (x) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3),
-        open = rm ? 1 : ease(age / 0.22),
-        slam = rm ? 1 : 1 + (1 - ease(age / 0.18)) * 0.9,
-        fade = Math.min(1, I.bannerTime / 0.45),
-        l = this.game.mobile ? Math.min(this.h * 0.36, 140 / this.scale) : 200,
-        cx = this.w / 2,
-        bw = Math.min(this.w * 0.9, 620) * open,
-        bh = 62;
-      i.save(), (i.globalAlpha = fade);
-      const band = i.createLinearGradient(cx - bw / 2, 0, cx + bw / 2, 0);
-      band.addColorStop(0, "rgba(11,12,14,0)"),
-        band.addColorStop(0.18, "rgba(11,12,14,0.82)"),
-        band.addColorStop(0.82, "rgba(11,12,14,0.82)"),
-        band.addColorStop(1, "rgba(11,12,14,0)"),
-        (i.fillStyle = band),
-        i.fillRect(cx - bw / 2, l - bh * 0.62, bw, bh),
-        (i.fillStyle = "#ff7a1a"),
-        i.fillRect(cx - bw * 0.3, l - bh * 0.62, bw * 0.6, 2),
-        i.fillRect(cx - bw * 0.3, l + bh * 0.38 - 2, bw * 0.6, 2);
-      for (const side of [-1, 1]) {
-        const sx = cx + side * (bw * 0.36);
-        i.save(), i.beginPath(), i.rect(sx - 26, l - 14, 52, 10), i.clip();
-        for (let k = -4; k < 8; k++)
-          (i.fillStyle = k % 2 ? "#15171a" : "#ffc21a"),
-            i.beginPath(),
-            i.moveTo(sx - 26 + k * 8, l - 4),
-            i.lineTo(sx - 18 + k * 8, l - 14),
-            i.lineTo(sx - 10 + k * 8, l - 14),
-            i.lineTo(sx - 18 + k * 8, l - 4),
-            i.fill();
-        i.restore();
-      }
-      i.save(),
-        i.translate(cx, l),
-        i.scale(slam, slam),
-        (i.textAlign = "center"),
-        (i.font = '900 36px "Barlow Condensed",system-ui'),
-        (i.lineJoin = "round"),
-        (i.lineWidth = 5),
-        (i.strokeStyle = "#0b0c0e"),
-        i.strokeText(I.banner, 0, 0),
-        (i.fillStyle = "#ffffff"),
-        age < 0.3 && !rm && ((i.shadowColor = "#ff7a1a"), (i.shadowBlur = 24 * (1 - age / 0.3))),
-        i.fillText(I.banner, 0, 0),
-        i.restore(),
-        (i.globalAlpha = fade * open),
-        (i.textAlign = "center"),
-        (i.font = '800 11px "Barlow Condensed",Figtree,system-ui'),
-        (i.fillStyle = "#ff7a1a"),
-        i.fillText(
-          (IA[I.map].name.toUpperCase() + " / NACHT " + String(I.wave).padStart(2, "0")).split("").join(" "),
-          cx,
-          l + 19,
-        ),
-        i.restore(),
-        (i.globalAlpha = 1);
-    }
+        (i.globalAlpha = 1)))
+    );
+    // Keine Ereignis-Banner mehr während der Runde (Wunsch des Spielers)
     I.debug &&
       (Q.rect(14, this.h - 117, 276, 102, 8, "#121923ed", "#7b8da16b", 1),
       (i.font = "11px monospace"),
