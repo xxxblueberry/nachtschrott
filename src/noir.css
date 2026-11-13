@@ -1092,3 +1092,92 @@ body[data-theme="a"] #ui:not(#_) {
     animation: none !important;
   }
 }
+
+/* ---------- Spiel-Einstellung "Reduzierte Bewegung & Blitze" ---------- */
+body[data-motion="reduced"] #ui:not(#_) :is(.level-modal, .level-modal *, .hud-a, .hud-a *),
+body[data-motion="reduced"] #ui:not(#_) .level-modal:before {
+  animation: none !important;
+}
+body[data-motion="reduced"] .ns-moment,
+body[data-motion="reduced"] .ns-moment * ,
+body[data-motion="reduced"] .ns-moment:before {
+  animation-duration: 0.01s !important;
+}
+
+/* ---------- Restliche Bildschirme ---------- */
+body[data-theme="a"] #ui:not(#_):not(#__) {
+  /* Herausforderungen: solide Karten statt durchsichtig */
+  .challenge {
+    background: var(--n-panel) !important;
+    opacity: 1 !important;
+  }
+  .challenge.locked > * {
+    opacity: 0.62;
+  }
+  .challenge:not(.locked) {
+    box-shadow:
+      inset 0 0 0 1px var(--n-orange),
+      inset 4px 0 0 var(--n-orange) !important;
+  }
+  /* Talentbaum */
+  .tree-toolbar button {
+    background: linear-gradient(180deg, #262a30, #1b1e22) !important;
+    color: var(--k-text) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    clip-path: var(--n-clip-s);
+    box-shadow: inset 0 0 0 1px var(--n-edge) !important;
+    font-family: var(--k-head);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .tree-toolbar button:hover {
+    box-shadow: inset 0 0 0 1px var(--n-orange) !important;
+  }
+  .talent-detail button.primary {
+    font-size: 18px !important;
+    min-height: 46px;
+  }
+  .talent-node.available {
+    box-shadow:
+      0 0 0 1px var(--n-orange),
+      0 0 14px var(--n-orange-glow) !important;
+  }
+  .talent-node.selected {
+    box-shadow:
+      0 0 0 2px var(--n-yellow),
+      0 0 18px rgba(255, 194, 26, 0.5) !important;
+  }
+  /* Rundenende */
+  .end-modal h2 {
+    font-size: clamp(40px, 5vw, 64px) !important;
+    animation: n-title-slam 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .end-won {
+    box-shadow:
+      inset 0 0 0 1px #6b5418,
+      inset 0 4px 0 var(--n-yellow),
+      0 0 80px rgba(255, 194, 26, 0.18) !important;
+  }
+  .end-won h2 {
+    background: linear-gradient(180deg, #fff6d0 0%, #ffc21a 55%, #ff9a1a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent !important;
+    filter: drop-shadow(0 0 22px rgba(255, 194, 26, 0.45));
+  }
+  .end-won .eyebrow {
+    color: var(--n-yellow) !important;
+  }
+  .end-modal:not(.end-won) {
+    box-shadow:
+      inset 0 0 0 1px #5a1d18,
+      inset 0 4px 0 var(--n-red) !important;
+  }
+  .end-modal:not(.end-won) .eyebrow {
+    color: #ff6a5a !important;
+  }
+}
+body[data-motion="reduced"] #ui:not(#_) .end-modal h2 {
+  animation: none !important;
+}
