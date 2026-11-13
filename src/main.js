@@ -808,7 +808,10 @@ async function Zo() {
   await Promise.all(
     Object.entries(Bg).map(async ([e, A]) => {
       const g = new Image();
-      (g.src = A), await g.decode().catch(() => {}), Z.set(e, g);
+      await new Promise((r) => {
+        (g.onload = g.onerror = r), (g.src = A);
+      }),
+        Z.set(e, g);
     }),
   );
 }
@@ -9094,7 +9097,7 @@ const LA = [
       name: "Werkbank",
       short: "Creme · Rost · viel Luft",
       desc: "Warm und ruhig: cremefarbene Karten mit weichen Ecken, ein Rost-Akzent, Sora-Überschriften und Figtree-Text. Menü frei links, Held rechts; das HUD sitzt kompakt oben links, Waffen direkt darunter.",
-      hero: { x: 0.68, y: 0.56, shade: "left", py: 0.7 },
+      hero: { x: 0.68, y: 0.56, shade: "left", py: 0.8 },
       pitch: 1,
     },
   ],
@@ -9979,11 +9982,12 @@ function MC(e) {
     B = A.hubReturn,
     E = Math.min(1, B / 0.8) * Math.min(1, (3.2 - B) / 0.4 + 0.2),
     o = e.scale || 1,
-    i = innerWidth,
-    I = A.hubWelcome;
+    i = innerWidth;
+  let I = A.hubWelcome;
   let C = V(i * 0.045, 40, 68);
   g.save(), (g.globalAlpha = V(E, 0, 1));
-  const Q = (l) => `800 ${l / o}px Sora, Figtree, sans-serif`;
+  const Q = (l) => `900 ${l / o}px "Barlow Condensed", Sora, sans-serif`;
+  I = I.toUpperCase();
   g.font = Q(C);
   const a = (i - 56) / o,
     t = C * 0.62,
@@ -10001,13 +10005,25 @@ function MC(e) {
     k =
       ((Y.every((l) => l.right < c || l.left > R) ? 16 - 18 : Math.max(16, ...Y.map((l) => l.bottom))) + 18) /
       o;
-  (g.fillStyle = "rgba(22, 17, 13, 0.62)"),
-    (g.strokeStyle = "rgba(246, 237, 220, 0.18)"),
-    (g.lineWidth = 1 / o),
-    g.beginPath(),
-    g.roundRect(r - M / 2, k, M, U, U / 2),
-    g.fill(),
-    g.stroke(),
+  {
+    // Industrial Noir: abgeschrägte Stahlplatte mit Orange-Kante
+    const x0 = r - M / 2, cut = 10 / o;
+    (g.fillStyle = "rgba(16, 18, 21, 0.86)"),
+      (g.strokeStyle = "rgba(255, 255, 255, 0.12)"),
+      (g.lineWidth = 1 / o),
+      g.beginPath(),
+      g.moveTo(x0 + cut, k),
+      g.lineTo(x0 + M, k),
+      g.lineTo(x0 + M, k + U - cut),
+      g.lineTo(x0 + M - cut, k + U),
+      g.lineTo(x0, k + U),
+      g.lineTo(x0, k + cut),
+      g.closePath(),
+      g.fill(),
+      g.stroke(),
+      (g.fillStyle = "#ff7a1a"),
+      g.fillRect(x0 + M * 0.3, k + U - 3 / o, M * 0.4, 3 / o);
+  }
     (g.textAlign = "center"),
     (g.textBaseline = "middle"),
     (g.lineJoin = "round"),
@@ -10015,10 +10031,10 @@ function MC(e) {
     (g.shadowBlur = 4 / o),
     (g.shadowOffsetY = 2 / o),
     (g.lineWidth = 6 / o),
-    (g.strokeStyle = "#16120e"),
+    (g.strokeStyle = "#0b0c0e"),
     g.strokeText(I, r, k + U / 2 + (C * 0.04) / o),
     (g.shadowColor = "transparent"),
-    (g.fillStyle = "#f6eddc"),
+    (g.fillStyle = "#ffffff"),
     g.fillText(I, r, k + U / 2 + (C * 0.04) / o),
     g.restore(),
     (e.hubBeatBox = { x: r - M / 2, y: k, w: M, h: U, px: C });
@@ -12582,7 +12598,7 @@ class wC {
         b: "Eine lange Nacht. Ein Werkzeug. Kein Feierabend.",
         c: "Schicht 11 · Anlage bereit",
       }[E.id];
-    return `<section class="screen home home3 painted-home home-${E.id}"><header class="home-header"><span class="build-label">STUFE 12 · DER HOF</span><div class="row">${this.themeSwitch()}${this.button("fullscreen", x("fullscreen"), "icon-button")}${this.button("quit", x("quit"), "icon-button")}</div></header><div class="hero-stage" aria-hidden="true"><i></i><i></i><i></i></div><div class="home-copy"><div class="home-mast"><h1>NACHTSCHROTT</h1><div class="title-ornament"><i></i>⚙<i></i></div><p class="home-tagline">${o}</p></div><div class="home-actions">${A.save.data.checkpoint ? this.button("continueRun", x("time") + "<span>Fortsetzen · Welle " + A.save.data.checkpoint.wave + "</span>", "primary continue-run") : ""}${this.button("enterHub", x("play") + "<span>" + (A.save.data.checkpoint ? "Neuer Lauf" : "Spielen") + "</span>", "primary play")}${A.save.data.checkpoint ? '<p class="resume-note">Ab Wellenbeginn · danach entstandener Fortschritt wird zurückgesetzt.</p>' : ""}</div><nav class="home-nav">${this.button("coopSetup", x("coop") + "<span>Zwei Spieler<small>EIN BILDSCHIRM · ZU ZWEIT</small></span>", "home-link")}${B.map(([i, I, C]) => this.button(i, x(i) + `<span>${I}<small>${C}</small></span>`, "home-link")).join("")}</nav></div><div class="hero-plate">${this.button("preview", "‹", "icon-button plate-nav", "-1")}<div class="plate-text"><small>${g.title}</small><h3>${g.name}</h3><span class="plate-dots" aria-label="Held ${A.character + 1} von ${J.length}">${J.map((i, I) => `<i class="${I === A.character ? "on" : ""}"></i>`).join("")}</span></div>${this.button("preview", "›", "icon-button plate-nav", "1")}</div><footer class="footer"><div class="row home-counts"><span>06+2 <small>ARENEN</small></span><span>${String(j.length).padStart(2, "0")} <small>WAFFEN</small></span><span>04 <small>BOSSE</small></span></div><span class="input-type">TASTATUR · CONTROLLER · TOUCH</span>${this.button("credits", "Credits & Lizenzen", "textbtn credits-link")}</footer><div class="portrait-note">Für mehr Sicht: Handy quer halten ↻</div></section>`;
+    return `<section class="screen home home3 painted-home home-${E.id}"><header class="home-header"><span class="build-label">STUFE 13 · INDUSTRIAL NOIR</span><div class="row">${this.themeSwitch()}${this.button("fullscreen", x("fullscreen"), "icon-button")}${this.button("quit", x("quit"), "icon-button")}</div></header><div class="hero-stage" aria-hidden="true"><i></i><i></i><i></i></div><div class="home-copy"><div class="home-mast"><h1>NACHTSCHROTT</h1><div class="title-ornament"><i></i>⚙<i></i></div><p class="home-tagline">${o}</p></div><div class="home-actions">${A.save.data.checkpoint ? this.button("continueRun", x("time") + "<span>Fortsetzen · Welle " + A.save.data.checkpoint.wave + "</span>", "primary continue-run") : ""}${this.button("enterHub", x("play") + "<span>" + (A.save.data.checkpoint ? "Neuer Lauf" : "Spielen") + "</span>", "primary play")}${A.save.data.checkpoint ? '<p class="resume-note">Ab Wellenbeginn · danach entstandener Fortschritt wird zurückgesetzt.</p>' : ""}</div><nav class="home-nav">${this.button("coopSetup", x("coop") + "<span>Zwei Spieler<small>EIN BILDSCHIRM · ZU ZWEIT</small></span>", "home-link")}${B.map(([i, I, C]) => this.button(i, x(i) + `<span>${I}<small>${C}</small></span>`, "home-link")).join("")}</nav></div><div class="hero-plate">${this.button("preview", "‹", "icon-button plate-nav", "-1")}<div class="plate-text"><small>${g.title}</small><h3>${g.name}</h3><span class="plate-dots" aria-label="Held ${A.character + 1} von ${J.length}">${J.map((i, I) => `<i class="${I === A.character ? "on" : ""}"></i>`).join("")}</span></div>${this.button("preview", "›", "icon-button plate-nav", "1")}</div><footer class="footer"><div class="row home-counts"><span>06+2 <small>ARENEN</small></span><span>${String(j.length).padStart(2, "0")} <small>WAFFEN</small></span><span>04 <small>BOSSE</small></span></div><span class="input-type">TASTATUR · CONTROLLER · TOUCH</span>${this.button("credits", "Credits & Lizenzen", "textbtn credits-link")}</footer><div class="portrait-note">Für mehr Sicht: Handy quer halten ↻</div></section>`;
   }
   themeSwitch() {
     return "";
