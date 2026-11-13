@@ -900,3 +900,195 @@ body[data-theme="a"] #ui:not(#_) .modal .menu-buttons button.primary {
     }
   }
 }
+
+/* =====================================================================
+   GAME FEEL – HUD lebt, große Momente, Levelaufstieg
+   ===================================================================== */
+@keyframes n-bump {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.18); filter: brightness(1.5); }
+  100% { transform: scale(1); }
+}
+@keyframes n-level-flash {
+  0% { box-shadow: inset 0 0 0 2px #ffc21a, 0 0 0 0 rgba(255, 194, 26, 0.8); }
+  100% { box-shadow: inset 0 0 0 1px #3a3f47, 0 0 0 26px rgba(255, 194, 26, 0); }
+}
+@keyframes n-tick {
+  0% { transform: translateX(-50%) scale(1.14); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+@keyframes n-urgent-glow {
+  0%, 100% { text-shadow: 0 0 14px rgba(255, 59, 47, 0.5); }
+  50% { text-shadow: 0 0 26px rgba(255, 59, 47, 0.95); }
+}
+body[data-theme="a"] #ui:not(#_) .hud-a {
+  .currency.feel-bump {
+    animation: n-bump 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .streak-panel.feel-bump strong {
+    display: inline-block;
+    animation: n-bump 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .hp-block.feel-level {
+    animation: n-level-flash 0.9s ease-out;
+  }
+  .hp-block.feel-level #xp-bar {
+    filter: brightness(2);
+    transition: filter 0.6s;
+  }
+  .wave-block.feel-urgent {
+    box-shadow:
+      inset 0 0 0 1px #6b201a,
+      inset 0 -3px 0 #ff3b2f !important;
+  }
+  .wave-block.feel-urgent .timer {
+    color: #ff5a4a !important;
+    animation: n-urgent-glow 1s ease-in-out infinite;
+  }
+  .wave-block.feel-urgent .wave {
+    color: #ff5a4a !important;
+  }
+  .wave-block.feel-tick .timer {
+    display: inline-block;
+    animation:
+      n-bump 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+      n-urgent-glow 1s ease-in-out infinite;
+  }
+}
+
+/* ---------- Großer Moment (Welle überstanden) ---------- */
+@keyframes n-moment-band {
+  0% { clip-path: inset(0 50% 0 50%); }
+  18% { clip-path: inset(0 0 0 0); }
+  82% { clip-path: inset(0 0 0 0); opacity: 1; }
+  100% { clip-path: inset(0 0 0 0); opacity: 0; }
+}
+@keyframes n-moment-slam {
+  0% { transform: scale(2.2); opacity: 0; letter-spacing: 0.3em; }
+  22% { transform: scale(0.96); opacity: 1; letter-spacing: 0.04em; }
+  32% { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+@keyframes n-moment-flash {
+  0% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+.ns-moment {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.ns-moment:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(255, 122, 26, 0.45), transparent 60%);
+  animation: n-moment-flash 0.7s ease-out both;
+}
+.ns-moment-band {
+  position: relative;
+  width: 100%;
+  padding: 22px 16px 20px;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  background: linear-gradient(90deg, transparent, rgba(11, 12, 14, 0.94) 15%, rgba(11, 12, 14, 0.94) 85%, transparent);
+  border-top: 2px solid #ff7a1a;
+  border-bottom: 2px solid #ff7a1a;
+  animation: n-moment-band 1.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ns-moment-band i {
+  position: absolute;
+  top: 50%;
+  width: 90px;
+  height: 12px;
+  margin-top: -6px;
+  background: repeating-linear-gradient(-45deg, #ffc21a 0 7px, #15171a 7px 14px);
+}
+.ns-moment-band i:first-child {
+  left: max(16px, 10vw);
+}
+.ns-moment-band i:last-child {
+  right: max(16px, 10vw);
+}
+.ns-moment-band b {
+  font: 900 clamp(34px, 6vw, 72px) / 1 "Barlow Condensed", system-ui, sans-serif;
+  color: #fff;
+  text-transform: uppercase;
+  text-shadow: 0 0 30px rgba(255, 122, 26, 0.7), 0 3px 0 #000;
+  animation: n-moment-slam 1.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ns-moment-band small {
+  font: 800 12px "Barlow Condensed", system-ui, sans-serif;
+  letter-spacing: 0.4em;
+  color: #ff7a1a;
+}
+.ns-moment.reduced,
+.ns-moment.reduced * {
+  animation-duration: 0.01s !important;
+}
+@media (max-width: 700px) {
+  .ns-moment-band i {
+    display: none;
+  }
+}
+
+/* ---------- Levelaufstieg: Auftritt ---------- */
+@keyframes n-deal {
+  0% { transform: translateY(60px) rotate(var(--r, 0deg)) scale(0.9); opacity: 0; }
+  70% { transform: translateY(-6px) rotate(0) scale(1.02); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+@keyframes n-title-slam {
+  0% { transform: scale(1.8); opacity: 0; }
+  60% { transform: scale(0.97); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes n-ray {
+  0% { opacity: 0; transform: scale(0.6) rotate(0deg); }
+  30% { opacity: 1; }
+  100% { opacity: 0.35; transform: scale(1) rotate(25deg); }
+}
+body[data-theme="a"] #ui:not(#_) {
+  .level-modal {
+    position: relative;
+    isolation: isolate;
+    overflow: visible !important;
+  }
+  .level-wrap {
+    overflow-x: hidden !important;
+  }
+  .level-modal:before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 90px;
+    width: 900px;
+    height: 900px;
+    margin: -450px 0 0 -450px;
+    pointer-events: none;
+    z-index: -1;
+    background: repeating-conic-gradient(from 0deg, rgba(255, 122, 26, 0.3) 0 6deg, transparent 6deg 18deg);
+    -webkit-mask: radial-gradient(circle, #000 0, transparent 60%);
+    mask: radial-gradient(circle, #000 0, transparent 60%);
+    animation: n-ray 1.2s ease-out both;
+  }
+  .level-modal > h2 {
+    animation: n-title-slam 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .level-modal .card {
+    animation: n-deal 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .level-modal .card:nth-child(1) { --r: -6deg; animation-delay: 0.08s; }
+  .level-modal .card:nth-child(2) { animation-delay: 0.16s; }
+  .level-modal .card:nth-child(3) { --r: 6deg; animation-delay: 0.24s; }
+  .level-modal .card:nth-child(4) { animation-delay: 0.32s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-theme="a"] #ui:not(#_) :is(.level-modal, .level-modal *, .hud-a *) {
+    animation: none !important;
+  }
+}

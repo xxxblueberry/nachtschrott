@@ -6080,7 +6080,7 @@ class mi {
     }),
     1500,
   );
-  numbers = new DA(() => ({ active: !1, x: 0, y: 0, life: 0, max: 0, text: "", crit: !1, color: "" }), 200);
+  numbers = new DA(() => ({ active: !1, x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 0, text: "", crit: !1, color: "" }), 200);
   deaths = new DA(
     () => ({ active: !1, x: 0, y: 0, type: 0, elite: 0, foe: -1, face: 1, life: 0, max: 0.32, angle: 0 }),
     64,
@@ -6878,8 +6878,10 @@ class mi {
         Object.assign(i, {
           x: A + p(-10, 10),
           y: g - 15,
-          life: E ? 0.85 : 0.6,
-          max: E ? 0.85 : 0.6,
+          vx: p(-40, 40),
+          vy: E ? -150 : -105,
+          life: E ? 0.9 : 0.62,
+          max: E ? 0.9 : 0.62,
           text: Math.ceil(B).toString(),
           crit: E,
           color: o,
@@ -7897,7 +7899,7 @@ class mi {
         this.ghosts[0].life <= 0 &&
         (this.ghosts = this.ghosts.filter((C) => C.life > 0)),
       this.numbers.each((C) => {
-        (C.life -= A), (C.y -= 35 * A), C.life <= 0 && (C.active = !1);
+        (C.life -= A), (C.vy = (C.vy ?? -35) + 300 * A), (C.y += Math.min(C.vy, 25) * A), (C.x += (C.vx ?? 0) * A), (C.vx = (C.vx ?? 0) * (1 - Math.min(1, A * 3))), C.life <= 0 && (C.active = !1);
       }),
       (this.beams = this.beams.filter((C) => (C.life -= A) > 0)),
       this.forkBolts.length && (this.forkBolts = this.forkBolts.filter((C) => (C.life -= A) > 0)),
@@ -8590,7 +8592,8 @@ class mi {
       this.finish(!0);
       return;
     }
-    this.makeShop(),
+    nsMoment("WELLE " + String(this.wave).padStart(2, "0") + " ÜBERSTANDEN", "DIE WERKSTATT HAT GEÖFFNET", this.save.data.settings.reducedMotion),
+      this.makeShop(),
       [4, 9, 14].includes(this.wave) ? this.setPhase("risk") : this.setPhase("shop"),
       this.audio.sound("wave_clear", 0.9);
   }
@@ -12086,22 +12089,29 @@ class FC {
       this.vfxTop(),
       this.telegraphs(!0),
       I.numbers.each((l) => {
-        i.globalAlpha = Math.min(1, l.life * 3);
-        const w =
-          l.crit && !I.save.data.settings.reducedMotion
-            ? 1 + Math.max(0, 1 - (l.max - l.life) * 9) * 0.45
-            : 1;
-        i.save(),
+        // Game Feel: Zahlen ploppen auf, setzen sich und schrumpfen beim Ausblenden
+        const age = l.max - l.life,
+          rm = I.save.data.settings.reducedMotion,
+          pop = rm ? 1 : 1 + Math.max(0, 1 - age / (l.crit ? 0.16 : 0.1)) * (l.crit ? 1.1 : 0.55),
+          out = l.life < 0.18 ? 0.6 + (l.life / 0.18) * 0.4 : 1,
+          w = pop * out * (l.crit ? 1.12 : 1),
+          big = Number(l.text.replace(/[^0-9]/g, "")) >= 100;
+        (i.globalAlpha = Math.min(1, l.life * 5)),
+          i.save(),
           i.translate(l.x, l.y),
           i.scale(w, w),
-          (i.font = `${l.crit ? 800 : 600} ${l.crit ? (Number(l.text.replace(/[^0-9]/g, "")) >= 100 ? 32 : 27) : Number(l.text) >= 100 ? 21 : 15}px Figtree,system-ui`),
+          (i.font = `900 ${l.crit ? (big ? 34 : 29) : big ? 23 : 18}px "Barlow Condensed",Figtree,system-ui`),
           (i.textAlign = "center"),
-          (i.strokeStyle = "#0a101c"),
-          (i.lineWidth = 3),
-          i.strokeText(l.text, 0, 0),
-          (i.fillStyle = l.color),
-          i.fillText(l.text, 0, 0),
-          i.restore();
+          (i.lineJoin = "round"),
+          (i.strokeStyle = l.crit ? "#2a0f00" : "#0b0c0e"),
+          (i.lineWidth = l.crit ? 5 : 3.5),
+          i.strokeText(l.text, 0, 0);
+        if (l.crit) {
+          const gr = i.createLinearGradient(0, -22, 0, 4);
+          gr.addColorStop(0, "#fff3c4"), gr.addColorStop(0.45, "#ffc21a"), gr.addColorStop(1, "#ff7a1a");
+          (i.fillStyle = gr), age < 0.25 && !rm && ((i.shadowColor = "#ff7a1acc"), (i.shadowBlur = 14));
+        } else i.fillStyle = l.color;
+        i.fillText(l.text, 0, 0), i.restore();
       }),
       (i.globalAlpha = 1),
       I.save.data.settings.manual && I.input.aimActive)
@@ -12136,19 +12146,67 @@ class FC {
         (i.globalAlpha = 1)),
       I.bannerTime > 0 && I.phase === "combat")
     ) {
-      (i.globalAlpha = Math.min(1, I.bannerTime)),
+      // Game Feel: Banner knallt rein (Band + Warnstreifen + Schrift-Slam)
+      (I.banner !== this.feelBanner || I.bannerTime > (this.feelBannerT ?? 0) + 0.05) &&
+        ((this.feelBanner = I.banner), (this.feelBannerMax = I.bannerTime)),
+        (this.feelBannerT = I.bannerTime);
+      const rm = I.save.data.settings.reducedMotion,
+        age = (this.feelBannerMax ?? I.bannerTime) - I.bannerTime,
+        ease = (x) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3),
+        open = rm ? 1 : ease(age / 0.22),
+        slam = rm ? 1 : 1 + (1 - ease(age / 0.18)) * 0.9,
+        fade = Math.min(1, I.bannerTime / 0.45),
+        l = this.game.mobile ? Math.min(this.h * 0.36, 140 / this.scale) : 200,
+        cx = this.w / 2,
+        bw = Math.min(this.w * 0.9, 620) * open,
+        bh = 62;
+      i.save(), (i.globalAlpha = fade);
+      const band = i.createLinearGradient(cx - bw / 2, 0, cx + bw / 2, 0);
+      band.addColorStop(0, "rgba(11,12,14,0)"),
+        band.addColorStop(0.18, "rgba(11,12,14,0.82)"),
+        band.addColorStop(0.82, "rgba(11,12,14,0.82)"),
+        band.addColorStop(1, "rgba(11,12,14,0)"),
+        (i.fillStyle = band),
+        i.fillRect(cx - bw / 2, l - bh * 0.62, bw, bh),
+        (i.fillStyle = "#ff7a1a"),
+        i.fillRect(cx - bw * 0.3, l - bh * 0.62, bw * 0.6, 2),
+        i.fillRect(cx - bw * 0.3, l + bh * 0.38 - 2, bw * 0.6, 2);
+      for (const side of [-1, 1]) {
+        const sx = cx + side * (bw * 0.36);
+        i.save(), i.beginPath(), i.rect(sx - 26, l - 14, 52, 10), i.clip();
+        for (let k = -4; k < 8; k++)
+          (i.fillStyle = k % 2 ? "#15171a" : "#ffc21a"),
+            i.beginPath(),
+            i.moveTo(sx - 26 + k * 8, l - 4),
+            i.lineTo(sx - 18 + k * 8, l - 14),
+            i.lineTo(sx - 10 + k * 8, l - 14),
+            i.lineTo(sx - 18 + k * 8, l - 4),
+            i.fill();
+        i.restore();
+      }
+      i.save(),
+        i.translate(cx, l),
+        i.scale(slam, slam),
         (i.textAlign = "center"),
-        (i.font = '800 30px "Barlow Condensed",system-ui'),
-        (i.fillStyle = "#f4e9ce");
-      const l = this.game.mobile ? Math.min(this.h * 0.32, 125 / this.scale) : 148;
-      i.fillText(I.banner, this.w / 2, l),
-        (i.font = "600 9px Figtree,system-ui"),
-        (i.fillStyle = "#acb7c9"),
+        (i.font = '900 36px "Barlow Condensed",system-ui'),
+        (i.lineJoin = "round"),
+        (i.lineWidth = 5),
+        (i.strokeStyle = "#0b0c0e"),
+        i.strokeText(I.banner, 0, 0),
+        (i.fillStyle = "#ffffff"),
+        age < 0.3 && !rm && ((i.shadowColor = "#ff7a1a"), (i.shadowBlur = 24 * (1 - age / 0.3))),
+        i.fillText(I.banner, 0, 0),
+        i.restore(),
+        (i.globalAlpha = fade * open),
+        (i.textAlign = "center"),
+        (i.font = '800 11px "Barlow Condensed",Figtree,system-ui'),
+        (i.fillStyle = "#ff7a1a"),
         i.fillText(
-          IA[I.map].name.toUpperCase() + " / NACHT " + String(I.wave).padStart(2, "0"),
-          this.w / 2,
-          l + 21,
+          (IA[I.map].name.toUpperCase() + " / NACHT " + String(I.wave).padStart(2, "0")).split("").join(" "),
+          cx,
+          l + 19,
         ),
+        i.restore(),
         (i.globalAlpha = 1);
     }
     I.debug &&
@@ -12598,7 +12656,7 @@ class wC {
         b: "Eine lange Nacht. Ein Werkzeug. Kein Feierabend.",
         c: "Schicht 11 · Anlage bereit",
       }[E.id];
-    return `<section class="screen home home3 painted-home home-${E.id}"><header class="home-header"><span class="build-label">STUFE 13 · INDUSTRIAL NOIR</span><div class="row">${this.themeSwitch()}${this.button("fullscreen", x("fullscreen"), "icon-button")}${this.button("quit", x("quit"), "icon-button")}</div></header><div class="hero-stage" aria-hidden="true"><i></i><i></i><i></i></div><div class="home-copy"><div class="home-mast"><h1>NACHTSCHROTT</h1><div class="title-ornament"><i></i>⚙<i></i></div><p class="home-tagline">${o}</p></div><div class="home-actions">${A.save.data.checkpoint ? this.button("continueRun", x("time") + "<span>Fortsetzen · Welle " + A.save.data.checkpoint.wave + "</span>", "primary continue-run") : ""}${this.button("enterHub", x("play") + "<span>" + (A.save.data.checkpoint ? "Neuer Lauf" : "Spielen") + "</span>", "primary play")}${A.save.data.checkpoint ? '<p class="resume-note">Ab Wellenbeginn · danach entstandener Fortschritt wird zurückgesetzt.</p>' : ""}</div><nav class="home-nav">${this.button("coopSetup", x("coop") + "<span>Zwei Spieler<small>EIN BILDSCHIRM · ZU ZWEIT</small></span>", "home-link")}${B.map(([i, I, C]) => this.button(i, x(i) + `<span>${I}<small>${C}</small></span>`, "home-link")).join("")}</nav></div><div class="hero-plate">${this.button("preview", "‹", "icon-button plate-nav", "-1")}<div class="plate-text"><small>${g.title}</small><h3>${g.name}</h3><span class="plate-dots" aria-label="Held ${A.character + 1} von ${J.length}">${J.map((i, I) => `<i class="${I === A.character ? "on" : ""}"></i>`).join("")}</span></div>${this.button("preview", "›", "icon-button plate-nav", "1")}</div><footer class="footer"><div class="row home-counts"><span>06+2 <small>ARENEN</small></span><span>${String(j.length).padStart(2, "0")} <small>WAFFEN</small></span><span>04 <small>BOSSE</small></span></div><span class="input-type">TASTATUR · CONTROLLER · TOUCH</span>${this.button("credits", "Credits & Lizenzen", "textbtn credits-link")}</footer><div class="portrait-note">Für mehr Sicht: Handy quer halten ↻</div></section>`;
+    return `<section class="screen home home3 painted-home home-${E.id}"><header class="home-header"><span class="build-label">STUFE 14 · GAME FEEL</span><div class="row">${this.themeSwitch()}${this.button("fullscreen", x("fullscreen"), "icon-button")}${this.button("quit", x("quit"), "icon-button")}</div></header><div class="hero-stage" aria-hidden="true"><i></i><i></i><i></i></div><div class="home-copy"><div class="home-mast"><h1>NACHTSCHROTT</h1><div class="title-ornament"><i></i>⚙<i></i></div><p class="home-tagline">${o}</p></div><div class="home-actions">${A.save.data.checkpoint ? this.button("continueRun", x("time") + "<span>Fortsetzen · Welle " + A.save.data.checkpoint.wave + "</span>", "primary continue-run") : ""}${this.button("enterHub", x("play") + "<span>" + (A.save.data.checkpoint ? "Neuer Lauf" : "Spielen") + "</span>", "primary play")}${A.save.data.checkpoint ? '<p class="resume-note">Ab Wellenbeginn · danach entstandener Fortschritt wird zurückgesetzt.</p>' : ""}</div><nav class="home-nav">${this.button("coopSetup", x("coop") + "<span>Zwei Spieler<small>EIN BILDSCHIRM · ZU ZWEIT</small></span>", "home-link")}${B.map(([i, I, C]) => this.button(i, x(i) + `<span>${I}<small>${C}</small></span>`, "home-link")).join("")}</nav></div><div class="hero-plate">${this.button("preview", "‹", "icon-button plate-nav", "-1")}<div class="plate-text"><small>${g.title}</small><h3>${g.name}</h3><span class="plate-dots" aria-label="Held ${A.character + 1} von ${J.length}">${J.map((i, I) => `<i class="${I === A.character ? "on" : ""}"></i>`).join("")}</span></div>${this.button("preview", "›", "icon-button plate-nav", "1")}</div><footer class="footer"><div class="row home-counts"><span>06+2 <small>ARENEN</small></span><span>${String(j.length).padStart(2, "0")} <small>WAFFEN</small></span><span>04 <small>BOSSE</small></span></div><span class="input-type">TASTATUR · CONTROLLER · TOUCH</span>${this.button("credits", "Credits & Lizenzen", "textbtn credits-link")}</footer><div class="portrait-note">Für mehr Sicht: Handy quer halten ↻</div></section>`;
   }
   themeSwitch() {
     return "";
@@ -12878,6 +12936,31 @@ class wC {
     else {
       const Y = C - this.displayMoney;
       this.displayMoney += Y > 0 ? Math.ceil(Y * 0.45) : Math.floor(Y * 0.45);
+    }
+    {
+      // Game Feel: HUD reagiert auf Ereignisse
+      const bump = (el, cls) => {
+          el && (el.classList.remove(cls), void el.offsetWidth, el.classList.add(cls));
+        },
+        hud = document.getElementById("hud");
+      if (A) this.feelMoney = this.displayMoney;
+      if (!A && this.feelMoney !== void 0 && this.displayMoney > this.feelMoney)
+        bump(hud?.querySelector(".currency"), "feel-bump");
+      this.feelMoney = this.displayMoney;
+      if (this.feelLevel !== void 0 && E.level > this.feelLevel && !A)
+        bump(hud?.querySelector(".hp-block"), "feel-level");
+      this.feelLevel = E.level;
+      const wb = hud?.querySelector(".wave-block"),
+        urgent = !E.bossWave && I > 0 && I <= 5 && E.phase === "combat";
+      wb && wb.classList.toggle("feel-urgent", urgent);
+      if (urgent && this.feelSec !== I) {
+        bump(wb, "feel-tick");
+        I <= 3 && E.audio.sound("click", 1.5 + (3 - I) * 0.12, 0.5);
+      }
+      this.feelSec = I;
+      const sc = E.killStreak;
+      if (sc >= 5 && sc !== this.feelStreak) bump(document.getElementById("streak-panel"), "feel-bump");
+      this.feelStreak = sc;
     }
     o("money-text", this.displayMoney.toString()),
       o("supply-text", `VORRAT · ▱ ${E.scrapBudget - E.scrapDropped} / EP ${E.xpBudget - E.xpDropped}`);
@@ -14106,3 +14189,15 @@ requestAnimationFrame(() =>
     b && (b.classList.add("out"), setTimeout(() => b.remove(), 600));
   }),
 );
+// Game Feel: großer Moment als Einblendung über allem (überlebt UI-Neuaufbau)
+function nsMoment(title, sub = "", reduced = !1) {
+  if (typeof document > "u") return;
+  document.querySelector(".ns-moment")?.remove();
+  const el = document.createElement("div");
+  (el.className = "ns-moment" + (reduced ? " reduced" : "")),
+    (el.innerHTML = `<div class="ns-moment-band"><i></i><b></b><small></small><i></i></div>`),
+    (el.querySelector("b").textContent = title),
+    (el.querySelector("small").textContent = sub),
+    document.body.append(el),
+    setTimeout(() => el.remove(), 1700);
+}
