@@ -808,7 +808,7 @@ async function Zo() {
   await Promise.all(
     Object.entries(Bg).map(async ([e, A]) => {
       const g = new Image();
-      (g.src = A), await g.decode(), Z.set(e, g);
+      (g.src = A), await g.decode().catch(() => {}), Z.set(e, g);
     }),
   );
 }
@@ -3291,7 +3291,7 @@ function Ug(e) {
     B.cameraZoom === 1 && B.cameraZoomVersion !== 2 ? 0.75 : P(B.cameraZoom, 0.75, 0.6, 1.2)),
     (g.settings.cameraZoomVersion = 2),
     ["auto", "high", "low"].includes(B.quality) && (g.settings.quality = B.quality),
-    ["a", "b", "c"].includes(B.uiTheme) && (g.settings.uiTheme = B.uiTheme);
+    (g.settings.uiTheme = "a");
   for (const Q of ["numbers", "manual", "reducedMotion", "dangerContrast", "muteUnfocused"])
     typeof B[Q] == "boolean" && (g.settings[Q] = B[Q]);
   (g.points = N(A.points, 3)), (g.kills = N(A.kills)), (g.bestWave = N(A.bestWave, 0, 0, 1e4));
@@ -9097,22 +9097,6 @@ const LA = [
       hero: { x: 0.68, y: 0.56, shade: "left", py: 0.7 },
       pitch: 1,
     },
-    {
-      id: "b",
-      name: "Nachtschrift",
-      short: "Anthrazit · Schrift · Goldlinie",
-      desc: "Dunkel und typografisch: große ruhige Schrift (Sora + Figtree), feine Goldlinien, sonst nichts. Held in der Mitte, Menü als Zeile darunter; das HUD ist ein schmaler Streifen am oberen Rand.",
-      hero: { x: 0.5, y: 0.5, shade: "frame", py: 0.47 },
-      pitch: 0.84,
-    },
-    {
-      id: "c",
-      name: "Grafit",
-      short: "Grafit · Stahlkante · Bernstein",
-      desc: "Matt und sachlich: Grafitflächen, feine Stahlkanten, Sora + Figtree, ein einziger Bernstein-Akzent. Menü als feste Leiste rechts, Held links; HUD gebündelt unten links.",
-      hero: { x: 0.34, y: 0.56, shade: "right", py: 0.76 },
-      pitch: 1.18,
-    },
   ],
   Ag = (e) => LA.find((A) => A.id === e) ?? LA[0];
 function Wi(e) {
@@ -12601,10 +12585,12 @@ class wC {
     return `<section class="screen home home3 painted-home home-${E.id}"><header class="home-header"><span class="build-label">STUFE 12 · DER HOF</span><div class="row">${this.themeSwitch()}${this.button("fullscreen", x("fullscreen"), "icon-button")}${this.button("quit", x("quit"), "icon-button")}</div></header><div class="hero-stage" aria-hidden="true"><i></i><i></i><i></i></div><div class="home-copy"><div class="home-mast"><h1>NACHTSCHROTT</h1><div class="title-ornament"><i></i>⚙<i></i></div><p class="home-tagline">${o}</p></div><div class="home-actions">${A.save.data.checkpoint ? this.button("continueRun", x("time") + "<span>Fortsetzen · Welle " + A.save.data.checkpoint.wave + "</span>", "primary continue-run") : ""}${this.button("enterHub", x("play") + "<span>" + (A.save.data.checkpoint ? "Neuer Lauf" : "Spielen") + "</span>", "primary play")}${A.save.data.checkpoint ? '<p class="resume-note">Ab Wellenbeginn · danach entstandener Fortschritt wird zurückgesetzt.</p>' : ""}</div><nav class="home-nav">${this.button("coopSetup", x("coop") + "<span>Zwei Spieler<small>EIN BILDSCHIRM · ZU ZWEIT</small></span>", "home-link")}${B.map(([i, I, C]) => this.button(i, x(i) + `<span>${I}<small>${C}</small></span>`, "home-link")).join("")}</nav></div><div class="hero-plate">${this.button("preview", "‹", "icon-button plate-nav", "-1")}<div class="plate-text"><small>${g.title}</small><h3>${g.name}</h3><span class="plate-dots" aria-label="Held ${A.character + 1} von ${J.length}">${J.map((i, I) => `<i class="${I === A.character ? "on" : ""}"></i>`).join("")}</span></div>${this.button("preview", "›", "icon-button plate-nav", "1")}</div><footer class="footer"><div class="row home-counts"><span>06+2 <small>ARENEN</small></span><span>${String(j.length).padStart(2, "0")} <small>WAFFEN</small></span><span>04 <small>BOSSE</small></span></div><span class="input-type">TASTATUR · CONTROLLER · TOUCH</span>${this.button("credits", "Credits & Lizenzen", "textbtn credits-link")}</footer><div class="portrait-note">Für mehr Sicht: Handy quer halten ↻</div></section>`;
   }
   themeSwitch() {
+    return "";
     const A = this.g.save.data.settings.uiTheme;
     return `<div class="theme-switch" role="group" aria-label="Oberfläche wählen">${LA.map((g) => `<button class="theme-pill ${A === g.id ? "selected" : ""}" data-action="uiTheme" data-id="${g.id}" title="Oberfläche ${g.id.toUpperCase()}: ${g.name}" aria-pressed="${A === g.id}">${g.id.toUpperCase()}</button>`).join("")}</div>`;
   }
   themeChooser() {
+    return "";
     const A = this.g.save.data.settings.uiTheme;
     return `<section class="theme-chooser"><h3>${x("settings")}Oberfläche</h3><p class="notice">Drei schlichte Designs mit eigenem Aufbau, eigener Schrift und Farbtemperatur. Wirkt sofort in Menüs und im Kampf.</p><div class="theme-cards">${LA.map((g) => `<button class="theme-card theme-card-${g.id} ${A === g.id ? "selected" : ""}" data-action="uiTheme" data-id="${g.id}" aria-pressed="${A === g.id}"><span class="theme-mini" data-mini="${g.id}"><i class="mini-bar"></i><i class="mini-icon" style="--ix:0;--iy:2"></i><i class="mini-icon" style="--ix:1;--iy:2"></i><i class="mini-icon" style="--ix:${2 + LA.indexOf(g)};--iy:2"></i></span><b><em>${g.id.toUpperCase()}</em>${g.name}</b><small>${g.short}</small><span class="theme-desc">${g.desc}</span><span class="theme-state">${A === g.id ? "AKTIV" : "WÄHLEN"}</span></button>`).join("")}</div></section>`;
   }
@@ -13040,7 +13026,7 @@ class wC {
         ["flashes", "Trefferblitze"],
         ["particles", "Partikelstärke"],
       ];
-    return `<section class="screen dim settings-screen">${this.header("Einstellungen", "Oberfläche, Kamera, Klang & Effekte")}<div class="settings panel">${this.themeChooser()}<div class="separator"></div>${g.map(([B, E, o = 0, i = 100]) => `<label class="setting"><span>${E}</span><input data-setting="${B}" type="range" min="${o}" max="${i}" step="5" value="${Math.round(Number(A[B]) * 100)}"><output>${Math.round(Number(A[B]) * 100)} %</output></label>`).join("")}${[
+    return `<section class="screen dim settings-screen">${this.header("Einstellungen", "Kamera, Klang & Effekte")}<div class="settings panel">${g.map(([B, E, o = 0, i = 100]) => `<label class="setting"><span>${E}</span><input data-setting="${B}" type="range" min="${o}" max="${i}" step="5" value="${Math.round(Number(A[B]) * 100)}"><output>${Math.round(Number(A[B]) * 100)} %</output></label>`).join("")}${[
       ["numbers", "Schadenszahlen"],
       ["manual", "Manuelles Zielen"],
       ["reducedMotion", "Reduzierte Bewegung & Blitze"],
