@@ -5897,7 +5897,7 @@ const Dg = (e) => Si(e, 9) - 4,
       xpPerWave: 12,
       name: "Normal",
       subtitle: "Schon die erste Nacht beißt.",
-      color: "#b6c7de",
+      color: "#e6dcc6",
       hp: 1.12,
       damage: 1.12,
       speed: 1.18,
@@ -5939,7 +5939,7 @@ const Dg = (e) => Si(e, 9) - 4,
       xpPerWave: 10,
       name: "Albtraum",
       subtitle: "Für Builds, die die Nacht bezwingen.",
-      color: "#d7a9ee",
+      color: "#e0624a",
       hp: 1.65,
       damage: 1.6,
       speed: 1.4,
@@ -12324,6 +12324,38 @@ class FC {
     dim > 0 && ((A.globalAlpha = dim), (A.fillStyle = "#030303"), A.fillRect(0, 0, S.vw, S.vh), (A.globalAlpha = 1)), A.restore();
   }
   // t105u: Hauptmenü nach Konzept A – Schiefer, Glühbirne mit Lichtkegel (flackert dauerhaft), NS-Stempel, Held zwischen Schrotthaufen, Glut.
+  menuNoir2(img) {
+    // t116u: übrige Menü-Bildschirme im Noir-Kreide-Look – Schiefer, Glühbirne, Lichtkegel, NS-Stempel (Menü-Hintergrund 14.7),
+    // links abgedunkelt für die Tafeln. Held im Lichtkegel nur bei der Einsatzvorbereitung (wie bisher nur auf großen Fenstern).
+    const A = this.c,
+      B = this.game,
+      W = this.w,
+      H = this.h,
+      iw = img.naturalWidth,
+      ih = img.naturalHeight,
+      phone = W <= 600 && H > W,
+      hero = ["characters"].includes(this.menuScreen) && W > 900 && H > 600,
+      hx = W * 0.79,
+      hy = H * 0.4,
+      s = Math.max(W / iw, H / ih) * (hero ? 1.12 : 1.02),
+      dw = iw * s,
+      dh = ih * s,
+      dx = Math.min(0, Math.max(W - dw, hero ? hx - 0.731 * dw : W - dw * 0.92)),
+      dy = Math.min(0, Math.max(H - dh, 0));
+    (A.fillStyle = "#050505"), A.fillRect(0, 0, W, H), A.drawImage(img, dx, dy, dw, dh);
+    const L = A.createLinearGradient(0, 0, W, 0);
+    L.addColorStop(0, phone ? "rgba(6,6,6,0.62)" : "rgba(6,6,6,0.5)"), L.addColorStop(0.55, phone ? "rgba(6,6,6,0.55)" : "rgba(6,6,6,0.3)"), L.addColorStop(1, phone ? "rgba(6,6,6,0.5)" : "rgba(6,6,6,0.08)"), (A.fillStyle = L), A.fillRect(0, 0, W, H);
+    if (hero) {
+      const z = H < 600 ? 1.8 : 2.5,
+        fy = hy + 30 * z,
+        g = A.createRadialGradient(hx, fy, 0, hx, fy, 150 * z * 0.5);
+      g.addColorStop(0, "rgba(255,170,90,0.28)"), g.addColorStop(1, "rgba(255,150,70,0)");
+      A.save(), A.translate(hx, fy), A.scale(1, 0.26), A.translate(-hx, -fy), (A.fillStyle = g), A.fillRect(hx - 100 * z, fy - 100 * z, 200 * z, 200 * z), A.restore();
+      A.save(), A.translate(hx, hy), A.scale(z, z), this.player(0, 0, B.character, B.time * 0.75, !1, !1, this.previewFace), A.restore();
+    }
+    !B.save.data.settings.reducedMotion && B.save.data.settings.particles > 0 && this.menuFx(A, hero ? hx : dx + 0.731 * dw, hero ? hy : H * 0.45, phone, B);
+    this.vignette && A.drawImage(this.vignette, 0, 0, W, H);
+  }
   menuNoir(img) {
     const A = this.c,
       B = this.game,
@@ -12411,6 +12443,8 @@ class FC {
       o = this.menuHome ? Ag(this.uiTheme).hero : { x: 0.79, y: 0.4, shade: "left" },
       nimg = this.menuHome && this.mnImage();
     if (nimg) return this.menuNoir(nimg);
+    const n2 = !this.menuHome && this.mnImage();
+    if (n2) return this.menuNoir2(n2);
     const
       i = this.w * (E ? 0.5 : o.x),
       I = this.h * (E ? ("py" in o && o.py ? o.py : 0.68) : o.y);
@@ -12672,9 +12706,11 @@ class wC {
         : "game"),
       this.screen !== "hub" && (this.hubMenuOpen = !1),
       (A.hubPaused = this.screen !== "hub" || this.hubMenuOpen),
-      Wi(A.save.data.settings.uiTheme),
-      (this.r.uiTheme = A.save.data.settings.uiTheme),
+      // t116u: ein einziges Design (Noir-Kreide) – alte Oberflächen B/C sind nicht mehr wählbar, gespeicherte Wahl wird ignoriert.
+      Wi("a"),
+      (this.r.uiTheme = "a"),
       (this.r.menuHome = this.screen === "home"),
+      (this.r.menuScreen = this.screen),
       (this.r.selected = A.character),
       (this.r.menuWeapon = A.startWeapon);
     let g = "";
@@ -12772,6 +12808,10 @@ class wC {
             : !Q.shiftKey && document.activeElement === h && (t?.focus(), Q.preventDefault());
         });
     }
+    // t116u: Auftritt (nur beim Wechsel des Bildschirms, nicht bei jedem Neuzeichnen) + Papiergeräusch bei Dialogen
+    const nxNew = this.screen !== this.nmLast;
+    this.root.classList.toggle("nx-enter", nxNew),
+      nxNew && this.root.querySelector(".modal-wrap .modal, .quit") && this.tbSound("tb_paper", 0.4, 0.95);
     this.nsFit(),
       (this.nmLast = this.screen),
       this.screen === "shop" ? this.nwBind() : ((this.wsWas = this.screen), (this.wsSel = this.wsInfo = void 0), (this.wsBuildOpen = !1)),
@@ -12784,12 +12824,12 @@ class wC {
   credits() {
     const A = JSON.parse(document.getElementById("font-licenses")?.textContent || "{}"),
       g = (B) => B.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
-    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Talentbaum (Werkstatt): Hintergrund mit Spotlicht und NS-Stempel, Kreide- und Wachssiegel-Knoten, Schrotthaufen für dieses Spiel nach Konzept B erzeugt und nachbearbeitet. Klänge eigene Synthese (Kreide, Röhrenbrummen, Flackern, Siegel-Schlag, Bröseln), geschichtet mit „RPG Sounds“ von Kenney (kenney.nl, CC0 1.0, über OpenGameArt.org).</p><p style="margin:0 0 15px">Hauptmenü, Kampf-HUD und Levelaufstieg (Noir-Kreide): Menü-Hintergrund mit Schrotthaufen, Tuscherahmen, Kartenrücken, Wachssiegel und HUD-Symbole für dieses Spiel nach den eigenen Konzepten erzeugt und nachbearbeitet.</p><p style="margin:0 0 15px">Werkstatt (Noir-Kreide, Konzept B): Werkzeugwand mit Glühbirne und Werkbank, hängende Preis-Etiketten und das Klemmbrett für „Dein Build“ für dieses Spiel nach dem eigenen Konzept erzeugt und nachbearbeitet; Siegel, Stempel und Tuscherahmen aus Stufe 14.7 wiederverwendet. Klänge: dieselben CC0-Aufnahmen und eigene Synthese (Papier, Stempel, Kreide, Münzen) – keine neuen Quellen.</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
+    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Talentbaum (Werkstatt): Hintergrund mit Spotlicht und NS-Stempel, Kreide- und Wachssiegel-Knoten, Schrotthaufen für dieses Spiel nach Konzept B erzeugt und nachbearbeitet. Klänge eigene Synthese (Kreide, Röhrenbrummen, Flackern, Siegel-Schlag, Bröseln), geschichtet mit „RPG Sounds“ von Kenney (kenney.nl, CC0 1.0, über OpenGameArt.org).</p><p style="margin:0 0 15px">Hauptmenü, Kampf-HUD und Levelaufstieg (Noir-Kreide): Menü-Hintergrund mit Schrotthaufen, Tuscherahmen, Kartenrücken, Wachssiegel und HUD-Symbole für dieses Spiel nach den eigenen Konzepten erzeugt und nachbearbeitet.</p><p style="margin:0 0 15px">Werkstatt (Noir-Kreide, Konzept B): Werkzeugwand mit Glühbirne und Werkbank, hängende Preis-Etiketten und das Klemmbrett für „Dein Build“ für dieses Spiel nach dem eigenen Konzept erzeugt und nachbearbeitet; Siegel, Stempel und Tuscherahmen aus Stufe 14.7 wiederverwendet. Klänge: dieselben CC0-Aufnahmen und eigene Synthese (Papier, Stempel, Kreide, Münzen) – keine neuen Quellen.</p><p style="margin:0 0 15px">Übrige Bildschirme (Noir-Kreide, Stufe 14.9): Einstellungen, Pause, Sammlung, Statistiken, Herausforderungen, Einsatzvorbereitung, Unterkunft, Zwei-Spieler-Vorbereitung, Hof-Menü, Dialoge und Ergebnis nutzen den Menü-Hintergrund, Tuscherahmen, Wachssiegel und NS-Stempel aus Stufe 14.7 – keine neuen Grafiken oder Klänge.</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
       A,
     )
       .map(
         ([B, E]) =>
-          `<details style="margin-top:20px;border-top:1px solid #7388a344;padding-top:15px"><summary>${B} / Lizenz lesen</summary><pre style="white-space:pre-wrap;font:11px Figtree;line-height:1.7;color:#a9b6cb">${g(E)}</pre></details>`,
+          `<details style="margin-top:20px;border-top:1px solid #7388a344;padding-top:15px"><summary>${B} / Lizenz lesen</summary><pre style="white-space:pre-wrap;font:11px Figtree;line-height:1.7;color:#cfc6b4">${g(E)}</pre></details>`,
       )
       .join("")}</div></section>`;
   }
@@ -12997,7 +13037,7 @@ class wC {
     const A = this.g.save.data;
     return `<div class="difficulty-records">${J.map((g, B) => {
       const E = Qg(A.difficultyClears, B);
-      return `<div class="panel"><img src="${d.thumb("hero" + B)}" alt=""><span><b>${g.name}</b><small>HÖCHSTER GEMEISTERTER GRAD</small><strong style="color:${E >= 0 ? gA[E].color : "#97a7be"}">${E >= 0 ? gA[E].name : "Noch keiner"}</strong><small>${E === 2 ? "Alle Grade freigeschaltet" : gA[Math.min(2, E + 1)].name + " spielbar"}</small></span></div>`;
+      return `<div class="panel"><img src="${d.thumb("hero" + B)}" alt=""><span><b>${g.name}</b><small>HÖCHSTER GEMEISTERTER GRAD</small><strong style="color:${E >= 0 ? gA[E].color : "#8f887c"}">${E >= 0 ? gA[E].name : "Noch keiner"}</strong><small>${E === 2 ? "Alle Grade freigeschaltet" : gA[Math.min(2, E + 1)].name + " spielbar"}</small></span></div>`;
     }).join("")}</div>`;
   }
   hud() {
@@ -13794,7 +13834,7 @@ class wC {
   }
   stats() {
     const A = this.g.save.data;
-    return `<section class="screen dim">${this.header("Jede Nacht hinterlässt Spuren.", "Statistiken")}<div class="summary-stats"><div><b>${A.history.length}</b><span>GESPEICHERTE RUNS</span></div><div><b>${A.bestWave}</b><span>BESTE WELLE</span></div><div><b>${A.kills}</b><span>GEGNER BESIEGT</span></div><div><b>${A.history.filter((g) => g.won).length}</b><span>SIEGE / LETZTE 20 RUNS</span></div></div>${this.difficultyRecords()}<div class="panel" style="overflow:auto;touch-action:pan-x pan-y"><table class="history-table"><thead><tr><th>DATUM · BERLIN</th><th>CHARAKTER</th><th>SCHWIERIGKEIT</th><th>ERGEBNIS</th><th>ZEIT</th><th>GEGNER</th><th>SCHADEN</th></tr></thead><tbody>${A.history.map((g) => `<tr><td>${new Date(g.date).toLocaleString("de-DE", { timeZone: "Europe/Berlin", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</td><td>${g.character}</td><td>${g.difficulty === void 0 ? "Archiv · vor Herausforderungsupdate" : gA[g.difficulty]?.name || "Archiv"}<small class="history-map">${g.map || ""}</small></td><td style="color:${g.won ? "#b8d0f0" : "#d8b1a6"}">${g.won ? "Sieg" : "Welle " + g.wave}</td><td>${Math.floor(g.time / 60)}:${String(Math.floor(g.time % 60)).padStart(2, "0")}</td><td>${g.kills}</td><td>${g.damage.toLocaleString("de-DE")}</td></tr>`).join("") || '<tr><td colspan="7" class="muted">Deine Geschichte beginnt mit dem ersten Run.</td></tr>'}</tbody></table></div><p class="notice">Es werden die letzten 20 abgeschlossenen Runs gespeichert. Aktive Runs können nach Neuladen ab dem letzten Wellenbeginn fortgesetzt werden. Zwischenfortschritt dieser Welle entfällt.</p></section>`;
+    return `<section class="screen dim">${this.header("Jede Nacht hinterlässt Spuren.", "Statistiken")}<div class="summary-stats"><div><b>${A.history.length}</b><span>GESPEICHERTE RUNS</span></div><div><b>${A.bestWave}</b><span>BESTE WELLE</span></div><div><b>${A.kills}</b><span>GEGNER BESIEGT</span></div><div><b>${A.history.filter((g) => g.won).length}</b><span>SIEGE / LETZTE 20 RUNS</span></div></div>${this.difficultyRecords()}<div class="panel" style="overflow:auto;touch-action:pan-x pan-y"><table class="history-table"><thead><tr><th>DATUM · BERLIN</th><th>CHARAKTER</th><th>SCHWIERIGKEIT</th><th>ERGEBNIS</th><th>ZEIT</th><th>GEGNER</th><th>SCHADEN</th></tr></thead><tbody>${A.history.map((g) => `<tr><td data-label="DATUM">${new Date(g.date).toLocaleString("de-DE", { timeZone: "Europe/Berlin", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</td><td data-label="CHARAKTER">${g.character}</td><td data-label="SCHWIERIGKEIT">${g.difficulty === void 0 ? "Archiv · vor Herausforderungsupdate" : gA[g.difficulty]?.name || "Archiv"}<small class="history-map">${g.map || ""}</small></td><td style="color:${g.won ? "#efe6d2" : "#e0907a"}" data-label="ERGEBNIS">${g.won ? "Sieg" : "Welle " + g.wave}</td><td data-label="ZEIT">${Math.floor(g.time / 60)}:${String(Math.floor(g.time % 60)).padStart(2, "0")}</td><td data-label="GEGNER">${g.kills}</td><td data-label="SCHADEN">${g.damage.toLocaleString("de-DE")}</td></tr>`).join("") || '<tr><td colspan="7" class="muted">Deine Geschichte beginnt mit dem ersten Run.</td></tr>'}</tbody></table></div><p class="notice">Es werden die letzten 20 abgeschlossenen Runs gespeichert. Aktive Runs können nach Neuladen ab dem letzten Wellenbeginn fortgesetzt werden. Zwischenfortschritt dieser Welle entfällt.</p></section>`;
   }
   risk() {
     return `<div class="modal-wrap"><div class="modal"><div class="eyebrow">EINE ENTSCHEIDUNG IM DUNKELN</div><h2>Wie viel Nacht verträgst du?</h2><p class="sub">Deine Wahl gilt für die nächste Welle. Keine Eile.</p><div class="cards two"><button class="card" data-action="risk" data-id="yes"><span class="card-icon" style="color:#f0bd87">ϟ</span><h3>Das knirscht so schön.</h3><p class="small muted">35 % mehr Gegner erscheinen.<br>Überleben bringt ${(40 * this.g.rules.economy).toLocaleString("de-DE")} zusätzlichen Schrott.</p><div class="delta gold" style="margin-top:20px">Risiko → ▱ ${(40 * this.g.rules.economy).toLocaleString("de-DE")}</div><span class="choose">HERAUSFORDERUNG ANNEHMEN ↗</span></button><button class="card" data-action="risk" data-id="no"><span class="card-icon">♥</span><h3>Erst mal durchatmen.</h3><p class="small muted">${(50 * this.g.rules.healing).toLocaleString("de-DE")} % des maximalen Lebens heilen.<br>${(10 * this.g.rules.economy).toLocaleString("de-DE")} Schrott sofort mitnehmen.</p><div class="delta" style="margin-top:20px">Sicher → Heilung + ▱ ${(10 * this.g.rules.economy).toLocaleString("de-DE")}</div><span class="choose">SICHEREN VORTEIL WÄHLEN ↗</span></button></div></div></div>`;
@@ -14327,13 +14367,17 @@ class wC {
       }
     }
     if (!B.includes(E)) {
-      (this.screen === "home"
-        ? this.root.querySelector("[data-action=continueRun],button.play")
-        : this.screen === "characters"
-          ? this.root.querySelector("[data-action=start]")
-          : this.screen === "shop"
-            ? this.root.querySelector(".nw-buy:not(:disabled),.nw-next")
-            : B[0]
+      (
+        (this.screen === "home"
+          ? this.root.querySelector("[data-action=continueRun],button.play")
+          : this.screen === "characters"
+            ? this.root.querySelector("[data-action=start]")
+            : this.screen === "shop"
+              ? this.root.querySelector(".nw-buy:not(:disabled),.nw-next")
+              : null) ||
+        B.find((a) => a.matches(".primary")) ||
+        B.find((a) => a.matches(".selected")) ||
+        B[0]
       )?.focus();
       return;
     }
@@ -14401,9 +14445,12 @@ window.addEventListener("keydown", (e) => {
         e.code === "KeyU" && K.withActor(1, () => K.ability())),
       K.phase === "hub" && O.screen === "hub")
     ) {
+      const hm = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.code];
       e.code === "Escape"
         ? O.toggleHubMenu()
-        : KA() && ["KeyE", "Enter", "Space", "NumpadEnter"].includes(e.code)
+        : O.hubMenuOpen && hm
+          ? (document.body.classList.add("ns-pad"), O.focusMove(...hm))
+          : KA() && ["KeyE", "Enter", "Space", "NumpadEnter"].includes(e.code)
           ? (e.preventDefault(), K.hubInteract())
           : KA() &&
             ["KeyO", "KeyU", "ShiftRight"].includes(e.code) &&
