@@ -9902,6 +9902,17 @@ function UC(e, A) {
   }
   e.restore();
 }
+// t105u: gemeinsame Bühne in Konzept-Koordinaten (1280 × 720, hoch: 390 breit) für Menü / HUD / Levelaufstieg.
+function nsStage() {
+  const vw = innerWidth || 1280,
+    vh = innerHeight || 720,
+    portrait = vw <= 600 && vh > vw;
+  let k, W, H;
+  portrait ? ((k = vw / 390), (W = 390), (H = vh / k)) : ((k = Math.min(vw / 1280, vh / 720)), (W = vw / k), (H = vh / k));
+  // q: Hochformat mit wenig Höhe (iPhone SE) rückt Held + Menü nach oben
+  const q = portrait ? Math.max(0, Math.min(120, 766 - H)) : 0;
+  return { k, W, H, q, ox: portrait ? 0 : (W - 1280) / 2, oy: portrait ? 0 : (H - 720) / 2, portrait, flat: !portrait && vh < 560, vw, vh };
+}
 // t101u: Hof-Partikel = feiner Staub im Sonnenlicht (weich, leicht hell, schwebt und driftet langsam, glimmt sanft auf).
 // Größe und Tempo in Bildschirm-Pixeln, damit der Staub bei jeder Zoomstufe gleich groß wirkt.
 let hofGlow;
@@ -12166,8 +12177,9 @@ class FC {
     return o.restore(), Z.has("floor-" + aB) && ((this.menuCache = E), (this.menuCacheKey = B)), E;
   }
   // t99u: Noir-Partikel im Hauptmenü – aufsteigende Rostfunken/Glut + feiner Staub, der nur im Lichtkegel aufleuchtet.
-  menuFx(A, i, I, E, B) {
+  menuFx(A, i, I, E, B, G) {
     const S = this.mfx || (this.mfx = { t: B.time, emb: [], dust: [], glow: null }),
+      ps = G ? G.ps : 1,
       dt = Math.max(0, Math.min(0.05, B.time - S.t)),
       W = this.w,
       H = this.h,
@@ -12175,10 +12187,11 @@ class FC {
       mob = B.mobile || W < 700,
       nE = Math.round((mob ? 30 : 52) * P),
       nD = Math.round((mob ? 46 : 80) * P),
-      top = -40,
-      bot = I + 150,
-      half = (y) => 55 + ((y - top) / (bot - top)) * 140,
-      ax = (y) => i + 20 + ((y - top) / (bot - top)) * 10;
+      top = G ? G.top : -40,
+      bot = G ? G.bot : I + 150,
+      half = G ? G.half : (y) => 55 + ((y - top) / (bot - top)) * 140,
+      ax = G ? G.ax : (y) => i + 20 + ((y - top) / (bot - top)) * 10;
+    G && S.geo !== G.key && ((S.geo = G.key), (S.emb.length = 0), (S.dust.length = 0));
     S.t = B.time;
     if (!S.glow) {
       const c = document.createElement("canvas");
@@ -12189,26 +12202,26 @@ class FC {
       (x.fillStyle = r), x.fillRect(0, 0, 64, 64), (S.glow = c);
     }
     const ember = (y) => ({
-      x: Math.random() * W,
-      y: y ?? H + 10 + Math.random() * 40,
-      vx: (Math.random() - 0.5) * 14,
-      vy: -(26 + Math.random() * 46),
+      x: G ? G.ex0 + Math.random() * (G.ex1 - G.ex0) : Math.random() * W,
+      y: y ?? (G ? G.ey + Math.random() * 30 * ps : H + 10 + Math.random() * 40),
+      vx: (Math.random() - 0.5) * 14 * ps,
+      vy: -(26 + Math.random() * 46) * ps,
       ph: Math.random() * 6.28,
       age: 0,
       life: 4 + Math.random() * 5,
-      size: 1.9 + Math.random() * 2.2,
+      size: (1.9 + Math.random() * 2.2) * ps,
       hot: Math.random() < 0.3,
     });
     const dust = () => {
       const y = top + Math.random() * (bot - top + 120);
-      return { x: ax(y) + (Math.random() * 2 - 1) * half(y) * 1.35, y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 6, ph: Math.random() * 6.28, size: 1.1 + Math.random() * 1.6 };
+      return { x: ax(y) + (Math.random() * 2 - 1) * half(y) * 1.35, y, vx: (Math.random() - 0.5) * 8 * ps, vy: (Math.random() - 0.5) * 6 * ps, ph: Math.random() * 6.28, size: (1.1 + Math.random() * 1.6) * ps };
     };
-    for (; S.emb.length < nE; ) S.emb.push(ember(Math.random() * H));
+    for (; S.emb.length < nE; ) S.emb.push(ember(G ? G.top + Math.random() * (G.ey - G.top) : Math.random() * H));
     for (; S.dust.length < nD; ) S.dust.push(dust());
     S.emb.length > nE && (S.emb.length = nE), S.dust.length > nD && (S.dust.length = nD);
     A.save();
     for (const d of S.dust) {
-      (d.ph += dt * 0.9), (d.x += (d.vx + Math.sin(d.ph) * 4) * dt), (d.y += (d.vy + Math.cos(d.ph * 0.7) * 3 + 2) * dt);
+      (d.ph += dt * 0.9), (d.x += (d.vx + Math.sin(d.ph) * 4 * ps) * dt), (d.y += (d.vy + (Math.cos(d.ph * 0.7) * 3 + 2) * ps) * dt);
       if (d.y > bot + 140 || d.y < top - 10 || Math.abs(d.x - ax(d.y)) > half(d.y) * 1.6) Object.assign(d, dust());
       const k = Math.max(0, 1 - Math.abs(d.x - ax(d.y)) / half(Math.min(d.y, bot))),
         f = d.y > bot ? Math.max(0, 1 - (d.y - bot) / 140) : 1,
@@ -12218,7 +12231,7 @@ class FC {
     }
     A.globalCompositeOperation = "lighter";
     for (const e of S.emb) {
-      (e.age += dt), (e.ph += dt * (2 + e.size)), (e.x += (e.vx + Math.sin(e.ph) * 12) * dt), (e.y += e.vy * dt), (e.vy *= 1 - dt * 0.05);
+      (e.age += dt), (e.ph += dt * (2 + e.size / ps)), (e.x += (e.vx + Math.sin(e.ph) * 12 * ps) * dt), (e.y += e.vy * dt), (e.vy *= 1 - dt * 0.05);
       if (e.age > e.life || e.y < -20) {
         Object.assign(e, ember());
         continue;
@@ -12238,12 +12251,103 @@ class FC {
     A.restore();
     typeof window < "u" && (window.__menuEmbers = { n: S.emb.length, d: S.dust.length });
   }
+  mnImage() {
+    if (!this.mnImg) {
+      const u = getComputedStyle(document.documentElement).getPropertyValue("--mn-bg").trim().replace(/^url\(["']?/, "").replace(/["']?\)$/, "");
+      if (!u) return null;
+      (this.mnImg = new Image()), (this.mnImg.src = u);
+    }
+    return this.mnImg.complete && this.mnImg.naturalWidth ? this.mnImg : null;
+  }
+  // t105u: Hauptmenü nach Konzept A – Schiefer, Glühbirne mit Lichtkegel (flackert dauerhaft), NS-Stempel, Held zwischen Schrotthaufen, Glut.
+  menuNoir(img) {
+    const A = this.c,
+      B = this.game,
+      S = nsStage(),
+      k = S.k,
+      iw = img.naturalWidth,
+      ih = img.naturalHeight;
+    A.save(), A.setTransform(this.dpr, 0, 0, this.dpr, 0, 0), (A.fillStyle = "#050505"), A.fillRect(0, 0, S.vw, S.vh);
+    let map, sc;
+    if (S.portrait) {
+      sc = 0.65 * k;
+      const oy = (100 - S.q) * k;
+      map = (x, y) => [(x - 640) * sc, oy + y * sc];
+      A.drawImage(img, (640 * iw) / 1280, 0, (600 * iw) / 1280, ih, 0, oy, 600 * sc, 720 * sc);
+      const f = A.createLinearGradient(0, oy + 560 * sc, 0, oy + 720 * sc);
+      f.addColorStop(0, "rgba(5,5,5,0)"), f.addColorStop(1, "#050505"), (A.fillStyle = f), A.fillRect(0, oy + 540 * sc, S.vw, S.vh);
+    } else {
+      sc = k;
+      const X0 = S.ox * k,
+        Y0 = S.oy * k;
+      map = (x, y) => [X0 + x * k, Y0 + y * k];
+      A.drawImage(img, X0, Y0, 1280 * k, 720 * k);
+    }
+    // warmer Lichtfleck am Boden
+    const [gx, gy] = map(921, 516),
+      gr = A.createRadialGradient(gx, gy, 0, gx, gy, 190 * sc);
+    gr.addColorStop(0, "rgba(255,170,90,0.26)"), gr.addColorStop(1, "rgba(255,150,70,0)");
+    A.save(), A.translate(gx, gy), A.scale(1, 0.24), A.translate(-gx, -gy), (A.fillStyle = gr), A.fillRect(gx - 200 * sc, gy - 200 * sc, 400 * sc, 400 * sc), A.restore();
+    const [hx, hy] = map(921, 433),
+      hs = 3.05 * sc;
+    A.save(), A.translate(hx, hy), A.scale(hs, hs), this.player(0, 0, B.character, B.time * 0.75, !1, !1, this.previewFace), A.restore();
+    if (!B.save.data.settings.reducedMotion && B.save.data.settings.particles > 0) {
+      const top = 30,
+        bot = 560,
+        P = (x, y) => map(x, y),
+        [, tY] = P(0, top),
+        [, bY] = P(0, bot),
+        [ax0] = P(935, 0),
+        u = (y) => (y - tY) / (bY - tY);
+      this.menuFx(A, 0, 0, S.portrait, B, {
+        key: [S.vw, S.vh].join("x"),
+        ps: Math.max(0.8, sc * 1.05),
+        top: tY,
+        bot: bY,
+        ax: (y) => ax0 + u(y) * 21 * sc,
+        half: (y) => (18 + u(y) * 190) * sc,
+        ex0: P(660, 0)[0],
+        ex1: Math.min(S.vw, P(1240, 0)[0]),
+        ey: P(0, 580)[1],
+      });
+    }
+    // dauerhaftes Lampenflackern wie im Talentbaum
+    const now = performance.now() / 1e3,
+      F = this.mfl || (this.mfl = { next: now + 1.8 + Math.random() * 2.5, t0: -9, kind: 0 });
+    if (!B.save.data.settings.reducedMotion && now >= F.next) {
+      (F.t0 = now), (F.kind = Math.floor(Math.random() * 3)), (F.next = now + 2.6 + Math.random() * 5.2);
+      try {
+        !document.hidden && B.audio.buffers?.has("tb_flicker") && B.audio.sound("tb_flicker", 0.94 + Math.random() * 0.12, 0.45 + Math.random() * 0.25);
+      } catch {}
+    }
+    const KF = [
+        [[0, 0], [8, 0.32], [14, 0], [22, 0.42], [30, 0.06], [46, 0.22], [52, 0], [100, 0]],
+        [[0, 0], [12, 0.5], [26, 0.5], [32, 0], [60, 0.15], [66, 0], [100, 0]],
+        [[0, 0], [6, 0.2], [10, 0], [18, 0.55], [34, 0.55], [38, 0.1], [42, 0.45], [50, 0], [74, 0.18], [78, 0], [100, 0]],
+      ][F.kind],
+      pc = ((now - F.t0) / 0.9) * 100;
+    let dim = 0;
+    if (pc >= 0 && pc <= 100)
+      for (let n = 1; n < KF.length; n++)
+        if (pc <= KF[n][0]) {
+          const [p0, v0] = KF[n - 1],
+            [p1, v1] = KF[n];
+          dim = v0 + ((v1 - v0) * (pc - p0)) / Math.max(1e-3, p1 - p0);
+          break;
+        }
+    const hum = B.save.data.settings.reducedMotion ? 0 : now % 4.7 > 4.6 || (now % 4.7 > 1.45 && now % 4.7 < 1.55) ? 0.06 : 0;
+    (dim = Math.max(dim, hum)) > 0 && ((A.globalAlpha = dim), (A.fillStyle = "#030303"), A.fillRect(0, 0, S.vw, S.vh), (A.globalAlpha = 1));
+    (this.mnDim = dim), A.restore();
+  }
   menu() {
     const A = this.c,
       g = new X(A),
       B = this.game,
       E = innerWidth <= 600 && innerHeight > innerWidth,
       o = this.menuHome ? Ag(this.uiTheme).hero : { x: 0.79, y: 0.4, shade: "left" },
+      nimg = this.menuHome && this.mnImage();
+    if (nimg) return this.menuNoir(nimg);
+    const
       i = this.w * (E ? 0.5 : o.x),
       I = this.h * (E ? ("py" in o && o.py ? o.py : 0.68) : o.y);
     if ((A.drawImage(this.menuBackdrop(i, I), 0, 0, this.w, this.h), o.shade === "frame" && !E)) {
@@ -12604,14 +12708,17 @@ class wC {
             : !Q.shiftKey && document.activeElement === h && (t?.focus(), Q.preventDefault());
         });
     }
-    this.screen === "talents" && this.tbBind(),
+    this.nsFit(),
+      (this.nmLast = this.screen),
+      this.screen === "level" && this.nlBind(),
+      this.screen === "talents" && this.tbBind(),
       ["combat", "level", "pause"].includes(this.screen) && this.updateHUD(!0),
       A.save.error && this.screen === "home" && this.toast(A.save.error);
   }
   credits() {
     const A = JSON.parse(document.getElementById("font-licenses")?.textContent || "{}"),
       g = (B) => B.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
-    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Talentbaum (Werkstatt): Hintergrund mit Spotlicht und NS-Stempel, Kreide- und Wachssiegel-Knoten, Schrotthaufen für dieses Spiel nach Konzept B erzeugt und nachbearbeitet. Klänge eigene Synthese (Kreide, Röhrenbrummen, Flackern, Siegel-Schlag, Bröseln), geschichtet mit „RPG Sounds“ von Kenney (kenney.nl, CC0 1.0, über OpenGameArt.org).</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
+    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Talentbaum (Werkstatt): Hintergrund mit Spotlicht und NS-Stempel, Kreide- und Wachssiegel-Knoten, Schrotthaufen für dieses Spiel nach Konzept B erzeugt und nachbearbeitet. Klänge eigene Synthese (Kreide, Röhrenbrummen, Flackern, Siegel-Schlag, Bröseln), geschichtet mit „RPG Sounds“ von Kenney (kenney.nl, CC0 1.0, über OpenGameArt.org).</p><p style="margin:0 0 15px">Hauptmenü, Kampf-HUD und Levelaufstieg (Noir-Kreide): Menü-Hintergrund mit Schrotthaufen, Tuscherahmen, Kartenrücken, Wachssiegel und HUD-Symbole für dieses Spiel nach den eigenen Konzepten erzeugt und nachbearbeitet.</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
       A,
     )
       .map(
@@ -12621,22 +12728,19 @@ class wC {
       .join("")}</div></section>`;
   }
   home() {
+    // t105u: Hauptmenü 1:1 nach Konzept A (Noir-Kreide). Hintergrund, Lichtkegel, Held und Glut zeichnet der Renderer (menuNoir).
     const A = this.g,
       g = J[A.character],
-      B = [
-        ["talents", "Talentbaum", `${A.save.data.points} PUNKTE BEREIT`],
-        ["collection", "Sammlung", "WAFFEN & SYNERGIEN"],
-        ["challenges", "Herausforderungen", "VIER AUFTRÄGE"],
-        ["stats", "Statistiken", "DEINE RUNS"],
-        ["settings", "Einstellungen", "KLANG & EFFEKTE"],
-      ],
-      E = Ag(A.save.data.settings.uiTheme),
-      o = {
-        a: "Schrott sammeln. Nacht überstehen. Werkstatt öffnet bei Einbruch der Dunkelheit.",
-        b: "Eine lange Nacht. Ein Werkzeug. Kein Feierabend.",
-        c: "Schicht 11 · Anlage bereit",
-      }[E.id];
-    return `<section class="screen home home3 painted-home home-${E.id}"><header class="home-header"><span class="build-label">STUFE 14 · GAME FEEL</span><div class="row">${this.themeSwitch()}${this.button("fullscreen", x("fullscreen"), "icon-button")}${this.button("quit", x("quit"), "icon-button")}</div></header><div class="hero-stage" aria-hidden="true"><i></i><i></i><i></i></div><div class="home-copy"><div class="home-mast"><h1>NACHTSCHROTT</h1><div class="title-ornament"><i></i>⚙<i></i></div><p class="home-tagline">${o}</p></div><div class="home-actions">${A.save.data.checkpoint ? this.button("continueRun", x("time") + "<span>Fortsetzen · Welle " + A.save.data.checkpoint.wave + "</span>", "primary continue-run") : ""}${this.button("enterHub", x("play") + "<span>" + (A.save.data.checkpoint ? "Neuer Lauf" : "Spielen") + "</span>", "primary play")}${A.save.data.checkpoint ? '<p class="resume-note">Ab Wellenbeginn · danach entstandener Fortschritt wird zurückgesetzt.</p>' : ""}</div><nav class="home-nav">${this.button("coopSetup", x("coop") + "<span>Zwei Spieler<small>EIN BILDSCHIRM · ZU ZWEIT</small></span>", "home-link")}${B.map(([i, I, C]) => this.button(i, x(i) + `<span>${I}<small>${C}</small></span>`, "home-link")).join("")}</nav></div><div class="hero-plate">${this.button("preview", "‹", "icon-button plate-nav", "-1")}<div class="plate-text"><small>${g.title}</small><h3>${g.name}</h3><span class="plate-dots" aria-label="Held ${A.character + 1} von ${J.length}">${J.map((i, I) => `<i class="${I === A.character ? "on" : ""}"></i>`).join("")}</span></div>${this.button("preview", "›", "icon-button plate-nav", "1")}</div><footer class="footer"><div class="row home-counts"><span>06+2 <small>ARENEN</small></span><span>${String(j.length).padStart(2, "0")} <small>WAFFEN</small></span><span>04 <small>BOSSE</small></span></div><span class="input-type">TASTATUR · CONTROLLER · TOUCH</span>${this.button("credits", "Credits & Lizenzen", "textbtn credits-link")}</footer><div class="portrait-note">Für mehr Sicht: Handy quer halten ↻</div></section>`;
+      cp = A.save.data.checkpoint,
+      nav = [
+        ["coopSetup", "Zwei Spieler", "Ein Bildschirm · zu zweit", "coop"],
+        ["talents", "Talentbaum", `${A.save.data.points} Punkte bereit`, "talents"],
+        ["collection", "Sammlung", "Waffen & Synergien", "collection"],
+        ["challenges", "Herausforderungen", "Vier Aufträge", "challenges"],
+        ["stats", "Statistiken", "Deine Runs", "stats"],
+        ["settings", "Einstellungen", "Klang & Effekte", "settings"],
+      ];
+    return `<section class="screen home nm ${cp ? "nm-cp" : ""} ${this.nmLast === "home" ? "nm-static" : ""}" id="nm-screen"><div class="nm-stage ns-stage"><div class="nm-box"><div class="nm-tools">${this.button("fullscreen", x("fullscreen"), "nm-tool")}${this.button("quit", x("quit"), "nm-tool")}</div><div class="nm-eyebrow">NACHTSCHROTT / HAUPTMENÜ</div><h1 class="nm-title">NACHTSCHROTT</h1><i class="nm-hazard"></i><p class="nm-tag">Schrott sammeln. Nacht überstehen.</p><div class="nm-actions">${cp ? `<button class="nm-play continue-run" data-action="continueRun" data-id=""><i class="nm-tri"></i><span>Fortsetzen · Welle ${cp.wave}</span></button>` : ""}<button class="nm-play play ${cp ? "nm-alt" : ""}" data-action="enterHub" data-id=""><i class="nm-tri"></i><span>${cp ? "Neuer Lauf" : "Spielen"}</span></button></div><nav class="nm-nav">${nav.map(([a, n, s, ic]) => `<button class="nm-link" data-action="${a}" data-id="" title="${s}" aria-label="${n} · ${s}">${x(ic)}<span>${n}</span></button>`).join("")}</nav><div class="nm-plate"><button class="nm-arrow" data-action="preview" data-id="-1" aria-label="Vorheriger Held">‹</button><div class="nm-plate-text"><small>${g.title}</small><h3>${g.name}</h3><span class="nm-dots" aria-label="Held ${A.character + 1} von ${J.length}">${J.map((i, I) => `<i class="${I === A.character ? "on" : ""}"></i>`).join("")}</span></div><button class="nm-arrow" data-action="preview" data-id="1" aria-label="Nächster Held">›</button></div><footer class="nm-counts"><span><b>06+2</b><small>ARENEN</small></span><span><b>${String(j.length).padStart(2, "0")}</b><small>WAFFEN</small></span><span><b>04</b><small>BOSSE</small></span></footer>${this.button("credits", "Credits & Lizenzen", "nm-credits")}</div></div></section>`;
   }
   themeSwitch() {
     return "";
@@ -12710,25 +12814,22 @@ class wC {
       g = Math.min(...this.crewHeroes.map((B) => A.maxDifficulty(B)));
     return `<section class="screen dim coop-setup">${this.header("Gemeinsam durch die Nacht.", "Zwei Spieler · ein Bildschirm, eine Kamera")}<div class="coop-crew">${[0, 1].map((B) => `<section class="panel crew-player"><div class="eyebrow">SPIELER ${B + 1} · ${B ? "PFEILTASTEN / IJKL · O / RECHTE UMSCHALT: SPRINT · U: FÄHIGKEIT" : "WASD · LEER: SPRINT · E: FÄHIGKEIT"}</div><h3>Dein Held. Dein Arsenal.</h3><div class="character-grid">${J.map((E, o) => `<button class="char-card ${this.crewHeroes[B] === o ? "selected" : ""}" data-action="coopHero" data-id="${B}:${o}"><img class="portrait" src="${d.thumb("hero" + o)}" alt=""><b>${E.name}</b></button>`).join("")}</div><p class="notice crew-identity"><b>${J[this.crewHeroes[B]].name}</b> · ${J[this.crewHeroes[B]].perk}<br>${CA[this.crewHeroes[B]].name}: ${CA[this.crewHeroes[B]].desc}</p><div class="section-title">STARTWAFFE</div><div class="crew-weapons">${j.map((E) => `<button class="weapon-choice ${this.crewWeapons[B] === E.id ? "selected" : ""}" data-action="coopWeapon" data-id="${B}:${E.id}" title="${E.desc}">${x(E.id)}<small>${E.name}</small></button>`).join("")}</div><p class="notice">${j.find((E) => E.id === this.crewWeapons[B]).desc}</p></section>`).join("")}</div><div class="coop-options panel"><div><div class="section-title">GEMEINSAME ARENA</div><div class="row wrap">${IA.map((B, E) => this.button("map", B.name, "secondary compact " + (A.map === E && !A.climb ? "selected" : ""), String(E))).join("")}${GA.map((B, E) => this.button("climb", B.name + " · endlos", "secondary compact climb-button " + (A.climb === E + 1 ? "selected" : ""), String(E + 1))).join("")}</div><div class="row wrap crew-difficulty">${gA.map((B, E) => this.button("coopDifficulty", B.name + (E > g ? " · gesperrt" : ""), "secondary compact " + (A.difficulty === E ? "selected" : ""), String(E), E > g)).join("")}</div></div><div><p>Getrennte LP, Waffen, EP und Werkstätten. Zum Wiederbeleben <b>3 Sekunden</b> beim Partner bleiben. Erst wenn beide fallen, endet die Nacht. Zwei Controller werden unterstützt. Auf Touch: ein gemeinsames Bild – Spieler 1 steuert mit dem linken Stick, Spieler 2 mit dem rechten, jeder mit eigenen Aktionstasten.</p><p class="notice">Gemeinsame Läufe gelten für diese Sitzung; Wellen-Fortsetzen ist derzeit im Solomodus verfügbar. ${A.save.data.checkpoint ? "Ein neuer Lauf ersetzt den gespeicherten Sololauf." : ""}</p><div class="row wrap coop-start-row">${this.button("startCoop", "Zwei Spieler · gemeinsam starten →", "primary")}${this.returnScreen === "hub" ? "" : this.button("coopHub", "Zu zweit in den Hof", "secondary")}</div></div></div></section>`;
   }
+  nhSlots(W, owner = "") {
+    return `<div class="hotbar nh-slots">${Array.from({ length: 6 }, (g, B) => {
+      const E = W[B];
+      return `<div class="slot nh-slot ${E ? "" : "empty"} ${E?.mutation ? "mutated" : ""} ${E && E.tier >= 3 ? "nh-seal" : ""}" ${owner === "" ? `data-weapon-slot="${B}"` : ""} style="--rarity:${SA[E?.tier || 1]}" title="${E ? j.find((o) => o.id === E.id).name + " · Stufe " + iA[E.tier] : "Freier Waffenplatz"}">${E ? x(E.id) : "<small>+</small>"}<span>${E ? iA[E.tier] : ""}</span>${E?.id === "turret" && owner === "" ? '<b class="ground-tag">AUTO</b>' : ""}</div>`;
+    }).join("")}</div>`;
+  }
   coopHud() {
-    const A = this.g;
-    return `<div class="hud coop-hud">${A.coop
-      .snapshot()
-      .map(
-        (B, E) =>
-          `<section class="coop-hud-pane player-${E}"><div class="coop-top panel"><div class="coop-identity"><b>P${E + 1} · ${J[B.character].name}</b><span id="coop-level-${E}"></span></div><div class="coop-health"><span id="coop-hp-${E}"></span><span>▱ <b id="coop-money-${E}"></b></span></div><div class="bar"><i id="coop-hpbar-${E}"></i></div><div class="bar xp-bar"><i id="coop-xpbar-${E}"></i></div><small id="coop-xp-${E}"></small></div><div class="coop-wave"><b>WELLE ${A.wave} / ${A.endless ? "∞" : 20}</b><strong id="coop-time-${E}"></strong><small>${A.climb ? GA[A.climb - 1].name + ` · <span class="coop-climb">${A.climbState.def.unit} ${A.climbState.metres} m</span>` : IA[A.map].name}</small></div><div class="coop-boss panel" id="coop-boss-${E}" hidden><span id="coop-bossname-${E}"></span><div class="bar"><i id="coop-bossbar-${E}"></i></div></div><div class="coop-edge" id="coop-edge-${E}" hidden><i>➤</i> <b>BOSS</b></div><div class="coop-partner" id="coop-partner-${E}" hidden><i>➤</i> <b>PARTNER</b></div><div class="coop-down panel" id="coop-down-${E}" hidden></div><div class="hotbar">${Array.from(
-            { length: 6 },
-            (o, i) => {
-              const I = B.weapons[i];
-              return `<div class="slot ${I ? "" : "empty"}" style="--rarity:${SA[I?.tier || 1]}" title="${I ? j.find((C) => C.id === I.id).name : "Freier Waffenplatz"}">${I ? x(I.id) : "+"}<span>${I ? iA[I.tier] : ""}</span></div>`;
-            },
-          ).join(
-            "",
-          )}</div><div class="ability-dock"><button class="ability-button" data-action="dash" data-id="${E}" aria-label="Spieler ${E + 1}: Ausweichsprint">${x("dash")}<span id="coop-dash-${E}"></span><kbd>${E ? "O" : "LEER"}</kbd></button><button class="ability-button" data-action="ability" data-id="${E}" aria-label="Spieler ${E + 1}: Fähigkeit">${x("ability")}<span id="coop-ability-${E}"></span><kbd>${E ? "U" : "E"}</kbd></button></div><div class="coop-help">${E ? "PFEILE / IJKL" : "WASD"} · NAH AM PARTNER: BELEBEN</div></section>`,
-      )
-      .join(
-        "",
-      )}<div class="coop-divider"></div><div class="coop-pause">${this.button("pause", x("pause"), "pause-btn")}</div></div>`;
+    // t105u: Koop-HUD im Noir-Kreide-Stil des Kampf-HUD (P1 links, P2 rechts gespiegelt, Welle mittig).
+    const A = this.g,
+      S = A.coop.snapshot();
+    return `<div class="hud nh nh-coop coop-hud" id="hud"><i class="nh-ink" aria-hidden="true"></i>${S.map(
+      (B, E) =>
+        `<section class="nh-pane nh-p${E}"><div class="nh-corner"><div class="nh-panel nh-hp"><div class="nh-r1"><i class="nsi nh-heart" style="--i:3"></i><b id="coop-hp-${E}"></b><span class="nh-lvl" id="coop-level-${E}"></span></div><div class="nh-bar nh-red"><i id="coop-hpbar-${E}"></i></div><div class="nh-r2"><span>P${E + 1} · ${J[B.character].name.toUpperCase()}</span><span class="nh-cmoney"><i class="nsi" style="--i:1"></i><b id="coop-money-${E}"></b></span></div><div class="nh-bar nh-cream"><i id="coop-xpbar-${E}"></i></div><small id="coop-xp-${E}" class="nh-cxp"></small></div>${this.nhSlots(B.weapons, E)}</div><div class="coop-edge nh-edge" id="coop-edge-${E}" hidden><i>➤</i> <b>BOSS</b></div><div class="coop-partner nh-edge" id="coop-partner-${E}" hidden><i>➤</i> <b>PARTNER</b></div><div class="coop-down nh-panel nh-down" id="coop-down-${E}" hidden></div><div class="ability-dock nh-dock"><button class="ability-button nh-ab" data-action="dash" data-id="${E}" aria-label="Spieler ${E + 1}: Ausweichsprint"><i class="nsi" style="--i:2"></i><span id="coop-dash-${E}"></span><kbd>${E ? "O" : "LEER"}</kbd></button><button class="ability-button nh-ab" data-action="ability" data-id="${E}" aria-label="Spieler ${E + 1}: Fähigkeit">${Fg(B.character)}<span id="coop-ability-${E}"></span><kbd>${E ? "U" : "E"}</kbd></button></div><div class="coop-help nh-help">${E ? "PFEILE / IJKL" : "WASD"} · NAH AM PARTNER: BELEBEN</div><div class="coop-boss nh-panel nh-boss" id="coop-boss-${E}" hidden><span id="coop-bossname-${E}"></span><div class="nh-bar nh-red"><i id="coop-bossbar-${E}"></i></div></div></section>`,
+    ).join(
+      "",
+    )}<div class="nh-tc coop-wave"><span class="nh-night">${A.climb ? GA[A.climb - 1].name.toUpperCase() : IA[A.map].name.toUpperCase()}</span><div class="nh-wave">WELLE ${String(A.wave).padStart(2, "0")} / ${A.endless ? "∞" : 20}</div><strong class="nh-time" id="coop-time-0"></strong><b id="coop-time-1" hidden></b>${A.climb ? `<small class="nh-climb"><span class="coop-climb">${A.climbState.def.unit} ${A.climbState.metres} m</span></small>` : ""}</div><div class="coop-pause nh-cpause">${this.button("pause", '<i class="nh-pz">II</i><small>PAUSE</small>', "pause-btn nh-round")}</div></div>`;
   }
   updateCoopHUD() {
     const A = this.g,
@@ -12754,7 +12855,7 @@ class wC {
           `${Math.floor(I.xp)} / ${I.xpNeed} EP · Reichweite ${Math.round(I.stats.range * 100)} %`,
         ),
         o(`coop-time-${C}`, A.wave >= 20 && !A.bossDead && A.waveTime >= A.waveLength ? "BOSS" : String(E)),
-        o(`coop-dash-${C}`, I.dashCharges ? "BEREIT" : I.dashRecharge.toFixed(1) + " s"),
+        o(`coop-dash-${C}`, I.dashCharges ? "SPRINT" : I.dashRecharge.toFixed(1) + " s"),
         o(`coop-ability-${C}`, I.abilityCd ? Math.ceil(I.abilityCd) + " s" : "BEREIT");
       const Q = document.getElementById(`coop-down-${C}`);
       Q &&
@@ -12834,18 +12935,11 @@ class wC {
     }).join("")}</div>`;
   }
   hud() {
+    // t105u: Kampf-HUD 1:1 nach Konzept A (Noir-Kreide): Lebens-Tafel oben links, Welle mittig, Schrott + Pause rechts, Sprint/Fähigkeit unten rechts, Tuscherahmen.
     const A = this.g;
     return A.coop
       ? this.coopHud()
-      : `<div class="hud hud-${A.save.data.settings.uiTheme}" id="hud"><div class="hud-top"><div class="hp-block"><div class="hp-dial" aria-hidden="true"><i class="dial-arc"></i><i class="needle"></i><b id="level-num"></b></div><div class="hp-label"><span class="row">${x("hp")} <span id="hp-text"></span></span><span id="level-text"></span></div><div class="bar"><i id="hp-bar"></i></div><div class="xp-label"><span>ERFAHRUNG</span><span id="xp-text"></span></div><div class="bar xp-bar"><i id="xp-bar"></i></div><span id="supply-text" class="supply-hud" title="Der Beutevorrat begrenzt Schrott und EP pro Welle."></span></div><div class="wave-block"><span class="wave-emblem">${x("wave")}</span><div id="wave-text" class="wave"></div><div id="time-text" class="timer"></div><span class="map-hud">${A.climb ? GA[A.climb - 1].name : IA[A.map].name} · ${A.rules.name}</span>${A.climb ? '<span id="climb-text" class="climb-hud"></span>' : ""}</div><div class="hud-right"><div class="currency">${x("economy")}<span id="money-text"></span></div>${this.button("pause", x("pause"), "pause-btn")}${this.button("fullscreen", x("fullscreen"), "pause-btn fullscreen-btn")}</div></div><div class="boss-edge" id="boss-edge" hidden aria-label="Richtung zum Boss"><i>➤</i><b>BOSS</b></div><div class="boss-panel" id="boss-panel" hidden><div><span id="boss-name"></span><small id="boss-phase"></small></div><div class="bar"><i id="boss-hp"></i><b></b><b></b></div><span class="boss-pattern" id="boss-pattern"></span></div><div class="streak-panel" id="streak-panel" hidden><strong id="streak-count"></strong><span>ABSCHUSS-SERIE</span><i id="streak-bar"></i></div><div class="hotbar">${Array.from(
-          { length: 6 },
-          (g, B) => {
-            const E = A.weapons[B];
-            return `<div class="slot ${E ? "" : "empty"} ${E?.mutation ? "mutated" : ""}" data-weapon-slot="${B}" style="--rarity:${SA[E?.tier || 1]}" title="${E ? j.find((o) => o.id === E.id).name + " · Stufe " + iA[E.tier] : "Freier Waffenplatz"}">${E ? x(E.id) : "<small>+</small>"}<span>${E ? iA[E.tier] : ""}</span>${E?.id === "turret" ? '<b class="ground-tag">AUTO</b>' : ""}</div>`;
-          },
-        ).join(
-          "",
-        )}</div><div class="ability-dock"><button data-action="dash" class="ability-button" id="dash-button" aria-label="Ausweichsprint"><i class="cd-ring" aria-hidden="true"></i>${x("dash")}<span id="dash-text">BEREIT</span><kbd>LEER</kbd></button><button data-action="ability" class="ability-button" id="ability-button" aria-label="${CA[A.character].name}"><i class="cd-ring" aria-hidden="true"></i>${Fg(A.character)}<span id="ability-text">BEREIT</span><kbd>E</kbd></button><div class="ability-name">${CA[A.character].name}</div></div>${!A.save.data.tutorialSeen && A.wave <= 2 && this.screen === "combat" ? `<aside class="onboarding panel"><strong>DEINE ERSTE NACHT</strong><p>${A.mobile ? "Links ziehen: laufen. Rechts: Sprint & Fähigkeit." : "WASD: laufen · LEER: Sprint · E: Fähigkeit."}<br>Angriffe zielen automatisch. Schrott & EP einsammeln.<br><b>ROT + ! = GEFAHR.</b> Seitlich ausweichen.<br>Schraubenknecht bleibt stehen; Ersatz kommt automatisch.</p>${this.button("dismissGuide", "Verstanden ✓", "secondary compact")}</aside>` : ""}<div class="combat-tip" ${A.wave > 1 || !A.save.data.tutorialSeen ? "hidden" : ""}><kbd>WASD</kbd> Bewegen &nbsp; <kbd>LEER</kbd> Sprint<br><kbd>E</kbd> Fähigkeit &nbsp; <kbd>Q</kbd> Zielmodus</div><div class="touch-hint">LINKS ZIEHEN ZUM BEWEGEN</div></div>`;
+      : `<div class="hud nh hud-${A.save.data.settings.uiTheme}" id="hud"><i class="nh-ink" aria-hidden="true"></i><div class="nh-corner nh-tl"><div class="nh-panel hp-block nh-hp"><div class="nh-r1"><i class="nsi nh-heart" style="--i:3"></i><b id="hp-text"></b><span id="level-text" class="nh-lvl"></span></div><div class="nh-bar nh-red"><i id="hp-bar"></i></div><div class="nh-r2"><span>ERFAHRUNG</span><span id="xp-text"></span></div><div class="nh-bar nh-cream"><i id="xp-bar"></i></div><b id="level-num" hidden></b><span id="supply-text" class="supply-hud" hidden></span></div>${this.nhSlots(A.weapons)}</div><div class="nh-tc wave-block"><span class="nh-night">${A.climb ? GA[A.climb - 1].name.toUpperCase() : IA[A.map].name.toUpperCase()}</span><div id="wave-text" class="nh-wave"></div><div id="time-text" class="nh-time"></div>${A.climb ? '<span id="climb-text" class="nh-climb"></span>' : ""}</div><div class="nh-tr hud-right"><div class="nh-panel currency nh-money"><i class="nsi" style="--i:1"></i><b id="money-text"></b><small>SCHROTT</small></div>${this.button("pause", '<i class="nh-pz">II</i><small>PAUSE</small>', "pause-btn nh-round")}${this.button("fullscreen", x("fullscreen"), "pause-btn fullscreen-btn nh-round nh-fs")}</div><div class="boss-edge nh-edge" id="boss-edge" hidden aria-label="Richtung zum Boss"><i>➤</i><b>BOSS</b></div><div class="boss-panel nh-panel nh-boss" id="boss-panel" hidden><div class="nh-r1"><span id="boss-name"></span><small id="boss-phase"></small></div><div class="nh-bar nh-red"><i id="boss-hp"></i></div><span class="boss-pattern" id="boss-pattern"></span></div><div class="streak-panel nh-panel nh-streak" id="streak-panel" hidden><strong id="streak-count"></strong><span>ABSCHUSS-SERIE</span><i id="streak-bar"></i></div><div class="ability-dock nh-dock"><button data-action="dash" class="ability-button nh-ab" id="dash-button" aria-label="Ausweichsprint"><i class="cd-ring" aria-hidden="true"></i><i class="nsi" style="--i:2"></i><span id="dash-text">SPRINT</span><kbd>LEER</kbd></button><button data-action="ability" class="ability-button nh-ab" id="ability-button" aria-label="${CA[A.character].name}"><i class="cd-ring" aria-hidden="true"></i>${Fg(A.character)}<span id="ability-text">BEREIT</span><kbd>E</kbd></button></div>${!A.save.data.tutorialSeen && A.wave <= 2 && this.screen === "combat" ? `<aside class="onboarding nh-panel nh-guide"><strong>DEINE ERSTE NACHT</strong><p>${A.mobile ? "Links ziehen: laufen. Rechts: Sprint & Fähigkeit." : "WASD: laufen · LEER: Sprint · E: Fähigkeit."}<br>Angriffe zielen automatisch. Schrott & EP einsammeln.<br><b>ROT + ! = GEFAHR.</b> Seitlich ausweichen.<br>Schraubenknecht bleibt stehen; Ersatz kommt automatisch.</p>${this.button("dismissGuide", "Verstanden ✓", "nh-guidebtn")}</aside>` : ""}<div class="combat-tip nh-tip" ${A.wave > 1 || !A.save.data.tutorialSeen ? "hidden" : ""}><kbd>WASD</kbd> Bewegen &nbsp; <kbd>LEER</kbd> Sprint<br><kbd>E</kbd> Fähigkeit &nbsp; <kbd>Q</kbd> Zielmodus</div><div class="touch-hint nh-touch">LINKS ZIEHEN ZUM BEWEGEN</div></div>`;
   }
   acquisition() {
     const A = this.g.showcase;
@@ -12955,7 +13049,7 @@ class wC {
       E.dashCharges > 0
         ? E.dashMax > 1
           ? E.dashCharges + " / " + E.dashMax
-          : "BEREIT"
+          : "SPRINT"
         : E.dashRecharge.toFixed(1) + " s",
     ),
       o("ability-text", E.abilityCd > 0 ? Math.ceil(E.abilityCd) + " s" : "BEREIT"),
@@ -13004,8 +13098,8 @@ class wC {
               .filter((m) => !m.hidden)
               .map((m) => m.getBoundingClientRect())
               .filter((m) => m.width > 0 && m.height > 0),
-          n = Math.max(100, ...G(".hp-block,.wave-block,.hud-right,#boss-panel").map((q) => q.bottom)) + 26,
-          D = Math.min(innerHeight - 40, ...G(".hotbar,#dash-button,#ability-button").map((q) => q.top)) - 26,
+          n = Math.max(100, ...G(".nh-tl,.wave-block,.hud-right,#boss-panel").map((q) => q.bottom)) + 26,
+          D = Math.min(innerHeight - 40, ...G(".nh-dock,#dash-button,#ability-button").map((q) => q.top)) - 26,
           k = innerWidth / 2,
           l = (n + D) / 2,
           w = Math.min((k - 28) / Math.max(1, Math.abs(c)), (D - n) / 2 / Math.max(1, Math.abs(R)));
@@ -13017,14 +13111,47 @@ class wC {
     }
   }
   level() {
-    return `<div class="modal-wrap level-wrap"><div class="modal level-modal"><div class="eyebrow">STUFE ${this.g.level} / NEUE MÖGLICHKEITEN</div><h2>Levelaufstieg</h2><p class="sub">Wähle eine Verbesserung.</p><div class="cards">${this.g.levelOptions
-      .map((A, g) => {
-        const B = this.g.stats[A.stat];
-        return `<button data-action="upgrade" data-id="${g}" class="card" style="--i:${g}"><span class="card-num">${iA[g + 1]}</span><span class="card-icon">${x(A.stat)}</span><h3>${A.name}</h3><p class="small muted">${_A[A.stat]}</p><div class="delta">${lA(A.stat, B)} <span style="color:#77899f">→</span> ${lA(A.stat, B + A.amount)}</div><p class="benefits">PROFITIERT DAVON<br><span style="color:#c0ccde">${A.benefits}</span></p><span class="choose">WÄHLEN &nbsp; ↗</span></button>`;
+    // t105u: Levelaufstieg 1:1 nach Konzept B – drei gefächerte Wachssiegel-Karten auf Stage 1280 × 720.
+    const A = this.g,
+      n = A.levelOptions.length,
+      rot = n === 3 ? [-4, 0, 4] : n === 2 ? [-3, 3] : [0],
+      hot = n === 3 ? 1 : -1;
+    return `<div class="modal-wrap level-wrap nl" id="nl-screen" role="dialog" aria-modal="true" aria-label="Levelaufstieg"><i class="nl-shade" aria-hidden="true"></i><div class="nl-stage ns-stage"><div class="nl-box"><i class="nl-glow" aria-hidden="true"></i><i class="nl-bulb" aria-hidden="true"></i><i class="nl-ns" aria-hidden="true"></i><div class="nl-eyebrow">STUFE ${A.level} / NEUE MÖGLICHKEITEN</div><h2 class="nl-title">LEVELAUFSTIEG</h2><i class="nl-hazard" aria-hidden="true"></i><p class="nl-sub">Wähle eine Verbesserung.</p><div class="nl-cards cards n${n}">${A.levelOptions
+      .map((o, g) => {
+        const B = A.stats[o.stat],
+          [sheet, idx, cells] = this.nlSeal(o.stat);
+        return `<button data-action="upgrade" data-id="${g}" class="card nl-card ${g === hot ? "nl-hot" : ""}" style="--i:${g};--r:${rot[g]}deg;--x:${n === 3 ? [375, 636, 901][g] : n === 2 ? [505, 775][g] : 640}px" title="Profitiert davon: ${o.benefits}" aria-label="${o.name}: ${_A[o.stat]} ${lA(o.stat, B)} auf ${lA(o.stat, B + o.amount)}"><span class="nl-seal" style="background-image:var(${sheet});background-position:calc(${idx} * 100% / ${cells - 1}) 0;background-size:${cells * 100}% 100%"></span><h3>${o.name}</h3><p class="nl-label">${_A[o.stat]}</p><div class="nl-delta delta">${lA(o.stat, B)} → ${lA(o.stat, B + o.amount)}</div><span class="nl-btn choose">WÄHLEN</span><i class="nl-stampmark" aria-hidden="true"></i></button>`;
       })
-      .join(
-        "",
-      )}</div><p class="controller-hint">KEIN ZEITLIMIT &nbsp;·&nbsp; MAUS ODER RICHTUNGSTASTEN + ENTER &nbsp;·&nbsp; CONTROLLER: A</p></div></div>`;
+      .join("")}</div><p class="nl-hint controller-hint">KEIN ZEITLIMIT</p></div></div></div>`;
+  }
+  nlSeal(stat) {
+    // Wachssiegel: Talent-Siegelbogen (20) bzw. Zusatzbogen siegel-b (10)
+    const a = { damage: 0, crit: 1, burn: 3, chain: 4, dash: 5, hp: 7, speed: 9, lifesteal: 11, economy: 13, pickup: 14, engineering: 16 },
+      b2 = { attackSpeed: 0, bleed: 1, poison: 2, ability: 3, range: 4 };
+    return stat in b2 ? ["--ns-siegel2", b2[stat], 10] : ["--tb-siegel", a[stat] ?? 15, 20];
+  }
+  nlBind() {
+    // t105u: Karten fächern ein; Auswahl stempelt (tb_stamp) und wählt nach der Stempel-Animation. Logik bleibt chooseLevel.
+    const root = document.getElementById("nl-screen");
+    if (!root) return;
+    this.nlBusy = !1;
+    this.tbSound("tb_open", 0.6);
+    root.querySelectorAll(".nl-card").forEach((c) => {
+      c.addEventListener("click", (e) => {
+        if (this.nlGo) return;
+        e.preventDefault(), e.stopPropagation();
+        if (this.nlBusy) return;
+        this.nlBusy = !0;
+        root.classList.add("nl-picked"), c.classList.add("nl-stamped");
+        this.g.audio.init?.(), this.tbSound("tb_stamp", 1);
+        const reduced = document.body.dataset.motion === "reduced";
+        setTimeout(() => {
+          if (this.screen !== "level" || !c.isConnected) return (this.nlBusy = !1);
+          this.nlGo = !0;
+          try { this.action("upgrade", c.dataset.id, c); } finally { this.nlGo = !1; }
+        }, reduced ? 120 : 460);
+      }, !0);
+    });
   }
   shop() {
     const A = this.g,
@@ -13137,6 +13264,16 @@ class wC {
       g === "uiVolume" && this.g.audio.sound("click");
   }
   // ===== t97u: Talentbaum im Noir-Kreide-Stil (Konzept B) – nur Präsentation, Talent-Logik/Speicherstand unverändert =====
+  nsFit() {
+    const S = nsStage(),
+      r = this.root;
+    if (!r) return;
+    const hk = S.portrait ? 0.6 * (S.vw / 390) : S.flat ? Math.max(S.k, 0.64) : S.k;
+    const v = { "--nsq": S.q.toFixed(1), "--nhk": hk.toFixed(5), "--nk": S.k.toFixed(5), "--nsw": S.W.toFixed(1), "--nsh": S.H.toFixed(1), "--nox": S.ox.toFixed(1), "--noy": S.oy.toFixed(1) };
+    for (const n in v) r.style.setProperty(n, v[n]);
+    document.body.dataset.ns = S.portrait ? "portrait" : S.flat ? "flat" : "wide";
+    this.nsBound || ((this.nsBound = !0), addEventListener("resize", () => this.nsFit()), addEventListener("orientationchange", () => setTimeout(() => this.nsFit(), 150)));
+  }
   tbLayout() {
     // t100u: 1:1 nach Konzept B – 3 Reihen × 7 Plätze (Stage 1280 × 720). Die echten 17 Talente, 4 Plätze bleiben leer (Schloss).
     const rows = [
