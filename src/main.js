@@ -4,11 +4,11 @@ const DEV_KEY = "nachtschrott-dev-v1",
   DEV_SCHEMA = [
     { id: "menuFx", name: "Partikel · Hauptmenü", hint: "Glut und Staub im Lichtkegel des Menüs", items: [
       { k: "typ", label: "Art", opts: [["glut-staub", "Glut + Staub"], ["glut", "Nur Glut"], ["staub", "Nur Staub"], ["asche", "Asche"], ["aus", "Aus"]], def: "glut-staub" },
-      { k: "menge", label: "Menge", min: 0, max: 3, def: 1 },
-      { k: "groesse", label: "Größe", min: 0.3, max: 3, def: 1 },
-      { k: "deckkraft", label: "Deckkraft", min: 0, max: 1.5, def: 1 },
-      { k: "tempo", label: "Tempo", min: 0, max: 3, def: 1 },
-      { k: "drift", label: "Drift & Wirbel", min: 0, max: 3, def: 1 },
+      { k: "menge", label: "Menge", min: 0, max: 3, def: 0.45 },
+      { k: "groesse", label: "Größe", min: 0.3, max: 3, def: 0.75 },
+      { k: "deckkraft", label: "Deckkraft", min: 0, max: 1.5, def: 0.8 },
+      { k: "tempo", label: "Tempo", min: 0, max: 3, def: 0.55 },
+      { k: "drift", label: "Drift & Wirbel", min: 0, max: 3, def: 0.55 },
       { k: "waerme", label: "Farbe kalt ↔ warm", min: 0, max: 1, step: 0.02, def: 0.5, fmt: "temp" },
     ] },
     { id: "hofFx", name: "Partikel · Hof", hint: "Sonnenstaub über dem Schrotthof", items: [
@@ -21,7 +21,7 @@ const DEV_KEY = "nachtschrott-dev-v1",
       { k: "waerme", label: "Farbe kalt ↔ warm", min: 0, max: 1, step: 0.02, def: 0.5, fmt: "temp" },
     ] },
     { id: "licht", name: "Licht & Lampen", hint: "Glühbirnen, Lichtkegel, Fackeln", items: [
-      { k: "flackern", label: "Lampenflackern (Menü, Werkstatt)", min: 0, max: 3, def: 1 },
+      { k: "flackern", label: "Lampenflackern (Menü, Werkstatt)", min: 0, max: 3, def: 0.6 },
       { k: "kegel", label: "Lichtkegel Hauptmenü", min: 0, max: 2, def: 1 },
       { k: "lampen", label: "Lampenlicht im Hof", min: 0, max: 2, def: 1 },
       { k: "fackeln", label: "Fackelflackern (Arenen, Hof)", min: 0, max: 3, def: 1 },
@@ -82,6 +82,8 @@ try {
   // t126u: Rand-Texturen + Vignette standardmäßig nur noch 10 %. Alte Speicherstände mit dem alten Standard (1) übernehmen den neuen.
   const raw = JSON.parse(localStorage.getItem(DEV_KEY) || "{}");
   raw && !(raw._v >= 2) && (raw.noir?.tinte === 1 && delete raw.noir.tinte, raw.bild?.vignette === 1 && delete raw.bild.vignette);
+  // t129u: Hauptmenü ruhiger – alte Partikel-/Flacker-Standardwerte (1) übernehmen die neuen.
+  raw && !(raw._v >= 3) && (["menge", "groesse", "deckkraft", "tempo", "drift"].forEach((k) => raw.menuFx?.[k] === 1 && delete raw.menuFx[k]), raw.licht?.flackern === 1 && delete raw.licht.flackern);
   DEV.v = devSanitize(raw);
 } catch {
   DEV.v = devDefaults();
@@ -167,7 +169,7 @@ function devAnimRate() {
 }
 function devSave() {
   try {
-    localStorage.setItem(DEV_KEY, JSON.stringify({ ...DEV.v, _v: 2 }));
+    localStorage.setItem(DEV_KEY, JSON.stringify({ ...DEV.v, _v: 3 }));
   } catch {}
 }
 function devIsPC() {
@@ -954,17 +956,17 @@ const hE = "__ASSET_12__",
   JE = "__ASSET_35__",
   jE = "__ASSET_36__",
   uE = "__ASSET_37__",
-  OE = "__ASSET_38__",
+  OE = "__ASSET_171__",
   HE = "__ASSET_39__",
-  fE = "__ASSET_40__",
+  fE = "__ASSET_172__",
   zE = "__ASSET_41__",
-  ZE = "__ASSET_42__",
+  ZE = "__ASSET_173__",
   LE = "__ASSET_43__",
-  yE = "__ASSET_44__",
+  yE = "__ASSET_174__",
   NE = "__ASSET_45__",
-  bE = "__ASSET_46__",
+  bE = "__ASSET_175__",
   vE = "__ASSET_47__",
-  XE = "__ASSET_48__",
+  XE = "__ASSET_176__",
   TE = "__ASSET_49__",
   PE = "__ASSET_50__",
   $E = "__ASSET_51__",
@@ -2286,7 +2288,26 @@ class No {
         I,
       );
   }
-  heroSource(A, g = !1, B = !1, E = 0) {
+  heroSource(A, g = !1, B = !1, E = 0, px = 0) {
+    const src = this.heroBase(A, g, B, E);
+    if (!src || !(px > 0)) return src;
+    // t128u: für kleine Darstellung schrittweise halbierte Fassungen (sauber geglättet statt flimmernd/pixelig)
+    let lv = 0, s = src.width;
+    while (s / 2 >= px * 1.15 && lv < 4) (s /= 2), lv++;
+    if (!lv) return src;
+    const key = `hero-mip:${A}:${Math.max(0, Math.min(8, Math.floor(E)))}:${B}:${lv}`,
+      hit = this.cache.get(key);
+    if (hit) return hit.canvas;
+    let cur = src;
+    for (let k = 1; k <= lv; k++) {
+      const c = document.createElement("canvas");
+      (c.width = Math.max(1, Math.round(cur.width / 2))), (c.height = Math.max(1, Math.round(cur.height / 2)));
+      const x = c.getContext("2d");
+      (x.imageSmoothingEnabled = !0), (x.imageSmoothingQuality = "high"), x.drawImage(cur, 0, 0, c.width, c.height), (cur = c);
+    }
+    return this.cache.set(key, { canvas: cur, w: cur.width, h: cur.height, ox: cur.width / 2, oy: cur.height / 2 }), cur;
+  }
+  heroBase(A, g = !1, B = !1, E = 0) {
     const o = Z.get(`hero-${A}`),
       i = Z.get(`hero-atlas-${A}`);
     if (!o || !i) return;
@@ -6780,6 +6801,7 @@ class mi {
         !0);
   }
   setPhase(A) {
+    A !== "combat" && A !== "pause" && ((this.clearHold = 0), (this.clearHoldDone = null));
     (this.phase = A), this.onChange();
   }
   recalc() {
@@ -8227,6 +8249,11 @@ class mi {
       this.phase !== "combat")
     )
       return;
+    // t128u: „Welle überstanden" erst vollständig zeigen, dann die Werkstatt öffnen
+    if (this.clearHold > 0) {
+      (this.clearHold -= A), this.clearHold <= 0 && this.clearHoldDone && this.clearHoldDone();
+      return;
+    }
     if (this.coop && (!this.showcase || this.showcase.life <= 0)) {
       this.coop.save();
       const C = this.coop.actors.findIndex((Q) => !!Q.pendingShowcase);
@@ -8872,9 +8899,12 @@ class mi {
       this.finish(!0);
       return;
     }
-    this.coop.beginShop(),
-      [4, 9, 14].includes(this.wave) && this.setPhase("risk"),
-      this.audio.sound("wave_clear", 0.9);
+    nsMoment("WELLE " + String(this.wave).padStart(2, "0") + " ÜBERSTANDEN", "DIE WERKSTATT HAT GEÖFFNET", this.save.data.settings.reducedMotion),
+      this.audio.sound("wave_clear", 0.9),
+      (this.clearHold = WAVE_CLEAR_HOLD),
+      (this.clearHoldDone = () => {
+        (this.clearHoldDone = null), this.coop.beginShop(), [4, 9, 14].includes(this.wave) && this.setPhase("risk");
+      });
   }
   endWave() {
     if (this.coop) {
@@ -8911,8 +8941,11 @@ class mi {
     }
     nsMoment("WELLE " + String(this.wave).padStart(2, "0") + " ÜBERSTANDEN", "DIE WERKSTATT HAT GEÖFFNET", this.save.data.settings.reducedMotion),
       this.makeShop(),
-      [4, 9, 14].includes(this.wave) ? this.setPhase("risk") : this.setPhase("shop"),
-      this.audio.sound("wave_clear", 0.9);
+      this.audio.sound("wave_clear", 0.9),
+      (this.clearHold = WAVE_CLEAR_HOLD),
+      (this.clearHoldDone = () => {
+        (this.clearHoldDone = null), [4, 9, 14].includes(this.wave) ? this.setPhase("risk") : this.setPhase("shop");
+      });
   }
   makeShop() {
     for (
@@ -10532,16 +10565,18 @@ class FC {
         k = r.cell * R,
         l = $g(E),
         w = Q.globalAlpha,
+        tf = Q.getTransform(),
+        px = D * Math.hypot(tf.a, tf.b),
         q = (m, S) => {
           if (S <= 0) return;
-          const VA = d.heroSource(B, !1, !1, m);
+          const VA = d.heroSource(B, !1, !1, m, px);
           (Q.globalAlpha = w * S),
             Q.drawImage(VA, G, n, D, k),
             i &&
               Y &&
               this.fxFlashes > 0 &&
               ((Q.globalAlpha = w * S * 0.35 * this.fxFlashes),
-              Q.drawImage(d.heroSource(B, !1, !0, m), G, n, D, k));
+              Q.drawImage(d.heroSource(B, !1, !0, m, px), G, n, D, k));
         };
       q(0, 1 - C), q(l, C), Q.restore();
       return;
@@ -13659,7 +13694,10 @@ class wC {
           justUnlock = !deal && !o.locked && prevLock === !0;
         deal && this.wsFx.deal++, justSold && this.wsFx.sold++, justLock && this.wsFx.lock++, justUnlock && this.wsFx.unlock++;
         const label = o.sold ? "GEKAUFT" : full ? "ARSENAL VOLL" : Q ? "AUFWERTEN" : "KAUFEN";
-        return `<article class="nw-tag ${o.sold ? "sold" : ""} ${o.locked ? "locked" : ""} ${poor ? "poor" : ""} ${deal ? "nw-deal" : ""} ${justSold ? "nw-justsold" : ""} ${justLock ? "nw-justlock" : ""} ${this.wsInfo === i ? "nw-info-open" : ""}" style="--i:${i};--x:${X[i] ?? 340 + i * 190}px;--r:${[-1.2, 0.8, -0.6, 1.1][i % 4]}deg" data-offer="${i}"><button class="nw-seal" data-action="wsInfo" data-id="${i}" aria-label="${C.name}: Details" title="${C.desc}"><i class="nw-wax"></i>${I ? x(C.id, C.color) : cg(C.id, C.color)}</button><h3 class="${C.name.length > 13 ? "nw-long" : ""}">${C.name}</h3><p class="nw-sub">${I ? `STUFE ${iA[o.tier]} · ${BB[o.tier].toUpperCase()}` : "GEGENSTAND"}</p>${this.button("buy", `<b class="nw-price">${price}</b><span>${label}</span>`, "nw-buy", String(i), o.sold || poor || full)}${this.button("lock", o.locked ? "GEHALTEN" : "HALTEN", "nw-lock " + (o.locked ? "locked" : ""), String(i), o.sold)}<i class="nw-lockseal" aria-hidden="true"></i><i class="nw-soldstamp" aria-hidden="true"></i><div class="nw-info" role="tooltip"><p>${C.desc}</p>${info}</div></article>`;
+        const kindTag = I
+          ? `<span class="nw-kind" aria-label="Waffe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4 9.5 14.5M20 4h-5.5M20 4v5.5M6.5 12.5l5 5M4 20l3.6-3.6"/></svg>WAFFE</span>`
+          : `<span class="nw-kind" aria-label="Gegenstand"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.4"/><path d="M12 2.8v3.1M12 18.1v3.1M2.8 12h3.1M18.1 12h3.1M5.5 5.5l2.2 2.2M16.3 16.3l2.2 2.2M5.5 18.5l2.2-2.2M16.3 7.7l2.2-2.2"/></svg>GEGENSTAND</span>`;
+        return `<article class="nw-tag nw-k-${I ? "weapon" : "item"} ${o.sold ? "sold" : ""} ${o.locked ? "locked" : ""} ${poor ? "poor" : ""} ${deal ? "nw-deal" : ""} ${justSold ? "nw-justsold" : ""} ${justLock ? "nw-justlock" : ""} ${this.wsInfo === i ? "nw-info-open" : ""}" style="--i:${i};--x:${X[i] ?? 340 + i * 190}px;--r:${[-1.2, 0.8, -0.6, 1.1][i % 4]}deg" data-offer="${i}">${kindTag}<button class="nw-seal" data-action="wsInfo" data-id="${i}" aria-label="${C.name}: Details" title="${C.desc}"><i class="nw-wax"></i>${I ? x(C.id, C.color) : cg(C.id, C.color)}</button><h3 class="${C.name.length > 13 ? "nw-long" : ""}">${C.name}</h3><p class="nw-sub">${I ? `STUFE ${iA[o.tier]} · ${BB[o.tier].toUpperCase()}` : `PASSIV · ${(_A[Object.keys(C.stats)[0]] || "BONUS").toUpperCase()}`}</p>${this.button("buy", `<b class="nw-price">${price}</b><span>${label}</span>`, "nw-buy", String(i), o.sold || poor || full)}${this.button("lock", o.locked ? "GEHALTEN" : "HALTEN", "nw-lock " + (o.locked ? "locked" : ""), String(i), o.sold)}<i class="nw-lockseal" aria-hidden="true"></i><i class="nw-soldstamp" aria-hidden="true"></i><div class="nw-info" role="tooltip"><p>${C.desc}</p>${info}</div></article>`;
       })
       .join("");
     const slots = Array.from({ length: 6 }, (o, i) => {
@@ -13682,7 +13720,7 @@ class wC {
         })
         .join("");
     const next = A.coop ? (A.actorIndex === 0 ? "BEREIT · WEITER ZU SPIELER 2" : `GEMEINSAM IN WELLE ${A.wave + 1}`) : `WELLE ${A.wave + 1} STARTEN`;
-    return `<section class="screen shop-screen nw ${fresh ? "nw-fresh" : ""} ${fresh && performance.now() - (globalThis.nsMomentAt ?? -1e9) < 1200 ? "nw-late" : ""}" id="nw-screen"><div class="nw-stage ns-stage"><div class="nw-box"><div class="nw-eyebrow">NACHTSCHROTT / WELLE ${A.wave}${A.coop ? ` · SPIELER ${(A.actorIndex ?? 0) + 1}` : ""}</div><h1 class="nw-title">DIE WERKSTATT</h1><i class="nw-hazard" aria-hidden="true"></i><p class="nw-tagline">Welle ${A.wave} überlebt · ${A.rules.name}</p><div class="nw-money currency"><i class="nsi" style="--i:1"></i><b id="nw-money" data-from="${this.wsMoney ?? money}" data-to="${money}">${this.wsMoney ?? money}</b><span class="nw-chip">SCHROTT</span></div>${this.button("shopHelp", "? REGELN", "nw-help")}<div class="nw-tags shop-offers">${tags}</div>${this.button("reroll", `NEU WÜRFELN <small>· ${A.rerollCost}</small>`, "nw-reroll", "", A.money < A.rerollCost)}<p class="nw-odds" title="Waffen-Chancen">WAFFEN-CHANCEN ${g.map((o, i) => iA[i + 1] + " " + Math.round(o * 100) + " %").join(" · ")}</p><section class="nw-arsenal inventory"><div class="nw-ahead"><i></i><span>DEIN ARSENAL</span><b>${A.weapons.length} / 6 PLÄTZE</b></div><div class="nw-slots">${slots}</div></section><aside class="nw-board owned-items"><h4>DEIN BUILD</h4>${["hp", "damage", "range", "armor", "engineering"].map(st).join("")}${this.button("wsBuild", this.wsBuildOpen ? "ZU ×" : "ALLE ▸", "nw-more")}</aside>${this.button("next", next, A.coop ? "nw-next nw-long" : "nw-next")}<p class="nw-hint">KEIN ZEITLIMIT</p>${
+    return `<section class="screen shop-screen nw ${fresh ? "nw-fresh" : ""} ${fresh && performance.now() - (globalThis.nsMomentAt ?? -1e9) < 1200 ? "nw-late" : ""}" id="nw-screen"><div class="nw-stage ns-stage"><div class="nw-box">${A.coop ? `<div class="nw-eyebrow">SPIELER ${(A.actorIndex ?? 0) + 1}</div>` : ""}<h1 class="nw-title">WERKSTATT</h1><i class="nw-hazard" aria-hidden="true"></i><div class="nw-money currency"><i class="nsi" style="--i:1"></i><b id="nw-money" data-from="${this.wsMoney ?? money}" data-to="${money}">${this.wsMoney ?? money}</b><span class="nw-chip">SCHROTT</span></div>${this.button("shopHelp", "? REGELN", "nw-help")}<div class="nw-tags shop-offers">${tags}</div>${this.button("reroll", `NEU WÜRFELN <small>· ${A.rerollCost}</small>`, "nw-reroll", "", A.money < A.rerollCost)}<p class="nw-odds" title="Waffen-Chancen"><span class="nw-odds-k">WAFFEN-CHANCEN</span> ${g.map((o, i) => iA[i + 1] + "\u00a0" + Math.round(o * 100) + "\u00a0%").join(" · ")}</p><section class="nw-arsenal inventory"><div class="nw-ahead"><i></i><span>DEIN ARSENAL</span><b>${A.weapons.length} / 6 PLÄTZE</b></div><div class="nw-slots">${slots}</div></section><aside class="nw-board owned-items"><h4>DEIN BUILD</h4>${["hp", "damage", "range", "armor", "engineering"].map(st).join("")}${this.button("wsBuild", this.wsBuildOpen ? "ZU ×" : "ALLE ▸", "nw-more")}</aside>${this.button("next", next, A.coop ? "nw-next nw-long" : "nw-next")}<p class="nw-hint">KEIN ZEITLIMIT</p>${
       this.wsBuildOpen
         ? `<div class="nw-sheet" role="dialog" aria-label="Dein Build"><h4>DEIN BUILD · ALLE WERTE</h4><div class="nw-cols">${all.map(st).join("")}</div><h5>GEGENSTÄNDE <small>ANTIPPEN: EIN EXEMPLAR VERKAUFEN</small></h5><div class="nw-items">${items || '<p class="nw-none">Noch keine Gegenstände.</p>'}</div><p class="nw-note">Doppelte Waffe = mindestens +1 Stufe, maximal IV. ${Math.round(A.rules.waveHeal * 100)} % Wellenheilung · Mutationen bleiben erhalten.<br>Mutationen ab III: Nietenspucker ≥12 % Krit. · Mondspalter ≥3 Blutung · Schraubenknecht ≥140 % Technik · Lichtgabel ≥2 Blitzsprünge</p>${this.button("wsBuild", "SCHLIESSEN ×", "nw-close")}</div>`
         : ""
@@ -15142,6 +15180,8 @@ requestAnimationFrame(() =>
   }),
 );
 // Game Feel: großer Moment als Einblendung über allem (überlebt UI-Neuaufbau)
+// t128u: so lange bleibt die Arena nach „Welle überstanden" stehen (Einblendung dauert 1,7 s), dann erst die Werkstatt
+var WAVE_CLEAR_HOLD = 1.8;
 function nsMoment(title, sub = "", reduced = !1) {
   if (typeof document > "u") return;
   document.querySelector(".ns-moment")?.remove();
