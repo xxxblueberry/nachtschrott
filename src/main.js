@@ -47,6 +47,8 @@ const DEV_KEY = "nachtschrott-dev-v1",
     ] },
     { id: "ui", name: "Oberfläche", hint: "HUD und Menü-Animationen", items: [
       { k: "hud", label: "HUD-Größe", min: 0.6, max: 1.6, def: 1 },
+      { k: "menue", label: "Menü-/Bühnengröße", min: 0.6, max: 1, def: 1 },
+      { k: "rand", label: "Bildrand (TV-Overscan)", min: 0, max: 0.1, def: 0 },
       { k: "anim", label: "Animationstempo (Menüs)", min: 0.1, max: 3, def: 1 },
     ] },
     { id: "ton", name: "Soundmix", hint: "Zusätzlich zu den normalen Lautstärken", items: [
@@ -204,6 +206,10 @@ function devMsg(t) {
 }
 function devSet(g, k, x) {
   (DEV.v[g][k] = x), devSave(), devApply();
+  if (g === "ui" && k === "menue") {
+    const u = globalThis.nachtschrott?.ui;
+    u && u.screen !== "combat" && u.screen !== "hub" && (clearTimeout(devSet.t), (devSet.t = setTimeout(() => u.render(), 120)));
+  }
 }
 function devExport() {
   const txt = JSON.stringify({ nachtschrottDev: 1, ...DEV.v }, null, 1),
@@ -3570,6 +3576,8 @@ const qB = () => ({
       numbers: !0,
       manual: !1,
       uiTheme: "a",
+      uiScale: "auto",
+      overscan: 0,
     },
     history: [],
     seen: [],
@@ -3594,7 +3602,9 @@ function Ug(e) {
     B.cameraZoom === 1 && B.cameraZoomVersion !== 2 ? 0.75 : P(B.cameraZoom, 0.75, 0.6, 1.2)),
     (g.settings.cameraZoomVersion = 2),
     ["auto", "high", "low"].includes(B.quality) && (g.settings.quality = B.quality),
-    (g.settings.uiTheme = "a");
+    (g.settings.uiTheme = "a"),
+    (g.settings.uiScale = typeof B.uiScale == "number" && Number.isFinite(B.uiScale) ? V(Math.round(B.uiScale * 20) / 20, 0.8, 1.5) : "auto"),
+    (g.settings.overscan = typeof B.overscan == "number" && Number.isFinite(B.overscan) ? V(Math.round(B.overscan * 100) / 100, 0, 0.1) : 0);
   for (const Q of ["numbers", "manual", "reducedMotion", "dangerContrast", "muteUnfocused"])
     typeof B[Q] == "boolean" && (g.settings[Q] = B[Q]);
   (g.points = N(A.points, 3)), (g.kills = N(A.kills)), (g.bestWave = N(A.bestWave, 0, 0, 1e4));
@@ -10117,12 +10127,58 @@ function UC(e, A) {
   e.restore();
 }
 // t105u: gemeinsame Bühne in Konzept-Koordinaten (1280 × 720, hoch: 390 breit) für Menü / HUD / Levelaufstieg.
+// t122u: UI-Größe. "auto" = passend zum Fenster; Zahl = Wunschgröße (0.8–1.5, groß = Sofa/TV). Bühnen (Menü, Werkstatt, Talentbaum, Levelaufstieg)
+// werden nie größer als das Fenster (kein Abschneiden), nur kleiner; das HUD folgt der Wahl innerhalb sicherer Grenzen.
+function uiScaleSetting() {
+  try {
+    const s = globalThis.nachtschrott?.game?.save?.data?.settings?.uiScale;
+    return typeof s == "number" && Number.isFinite(s) ? Math.min(1.5, Math.max(0.8, s)) : "auto";
+  } catch {
+    return "auto";
+  }
+}
+// t124u: TV-Overscan – Bildrand 0–10 % je Seite. Das ganze Spiel (Canvas + Oberfläche) wird mittig verkleinert,
+// damit Fernseher, die den Rand abschneiden, nichts Wichtiges verschlucken.
+function overscanSetting() {
+  try {
+    const s = globalThis.nachtschrott?.game?.save?.data?.settings?.overscan,
+      d = typeof DV == "function" ? DV("ui", "rand") ?? 0 : 0;
+    return Math.min(0.1, Math.max(0, Number.isFinite(s) ? s : 0, Number.isFinite(d) ? d : 0));
+  } catch {
+    return 0;
+  }
+}
+function overscanFactor() {
+  return 1 - 2 * overscanSetting();
+}
+function applyOverscan() {
+  if (typeof document > "u" || !document.body) return;
+  const f = overscanFactor(),
+    b = document.body.style;
+  f < 0.999
+    ? ((b.transform = `scale(${f.toFixed(4)})`), (b.transformOrigin = "50% 50%"), (document.documentElement.style.background = "#000"))
+    : ((b.transform = ""), (b.transformOrigin = ""), (document.documentElement.style.background = ""));
+}
+function padConnected() {
+  try {
+    return Array.from(navigator.getGamepads?.() || []).some(Boolean);
+  } catch {
+    return !1;
+  }
+}
+function isDesktopView() {
+  const vw = innerWidth || 1280,
+    vh = innerHeight || 720;
+  return !(typeof matchMedia == "function" && matchMedia("(hover: none) and (pointer: coarse)").matches) && vw >= 900 && vh >= 480;
+}
 function nsStage() {
   const vw = innerWidth || 1280,
     vh = innerHeight || 720,
-    portrait = vw <= 600 && vh > vw;
+    portrait = vw <= 600 && vh > vw,
+    us = uiScaleSetting(),
+    sf = Math.min(1, us === "auto" ? 1 : us) * (typeof DV == "function" ? DV("ui", "menue") ?? 1 : 1);
   let k, W, H;
-  portrait ? ((k = vw / 390), (W = 390), (H = vh / k)) : ((k = Math.min(vw / 1280, vh / 720)), (W = vw / k), (H = vh / k));
+  portrait ? ((k = vw / 390), (W = 390), (H = vh / k)) : ((k = Math.min(vw / 1280, vh / 720) * sf), (W = vw / k), (H = vh / k));
   // q: Hochformat mit wenig Höhe (iPhone SE) rückt Held + Menü nach oben
   const q = portrait ? Math.max(0, Math.min(120, 766 - H)) : 0;
   return { k, W, H, q, ox: portrait ? 0 : (W - 1280) / 2, oy: portrait ? 0 : (H - 720) / 2, portrait, flat: !portrait && vh < 560, vw, vh };
@@ -10359,6 +10415,8 @@ class FC {
       (this.canvas.width = Math.round(g * this.dpr)),
       (this.canvas.height = Math.round(B * this.dpr)),
       (this.scale = B > g ? g / 650 : Math.min(g / 1120, B / 680)),
+      // t122u: am PC nicht linear vergrößern – große Bildschirme zeigen mehr Welt statt riesiger Figuren
+      !E && g >= 900 && B <= g && ((this.scale *= 0.92), this.scale > 1 && (this.scale = 1 + (this.scale - 1) * 0.55)),
       (this.w = g / this.scale),
       (this.h = B / this.scale);
     const o = (this.vignette = document.createElement("canvas"));
@@ -10414,7 +10472,7 @@ class FC {
                 ? 0.9
                 : this.game.mobile
                   ? Math.min(1.2, devicePixelRatio || 1)
-                  : Math.min(1.5, devicePixelRatio || 1);
+                  : Math.min(1.5, devicePixelRatio || 1, Math.sqrt(3.2e6 / Math.max(1, (this.viewport?.width || 1280) * (this.viewport?.height || 720))));
   }
   get baseZoom() {
     const A = this.game.save.data.settings.cameraZoom;
@@ -13704,7 +13762,7 @@ class wC {
       "bild",
       "02",
       "Bild & Kamera",
-      slider("cameraZoom", "Kamera-Zoom", "60 % Übersicht · 75 % Standard · 120 % näher", 60, 120) + `<div class="quality-setting set-row set-seg"><span class="set-l">Darstellungsqualität<small>Leistung hilft auf älteren Geräten</small></span><div class="row">${["auto", "high", "low"].map((B, E) => this.button("quality", ["Auto", "Hoch", "Leistung"][E], "secondary compact " + (A.quality === B ? "selected" : ""), B)).join("")}</div></div>`,
+      slider("cameraZoom", "Kamera-Zoom", "60 % Übersicht · 75 % Standard · 120 % näher", 60, 120) + `<div class="set-row set-seg set-ui"><span class="set-l">UI-Größe<small>Auto passt alles ins Fenster · groß für TV/Sofa</small></span><div class="row">${["auto", 0.8, 0.9, 1, 1.1, 1.25, 1.5].map((v) => this.button("uiScale", v === "auto" ? "Auto" : Math.round(v * 100) + " %", "secondary compact " + (A.uiScale === v || (v === "auto" && typeof A.uiScale != "number") ? "selected" : ""), String(v))).join("")}</div></div><div class="set-row set-seg set-ui set-rand"><span class="set-l">Bildrand (TV-Overscan)<small>Schneidet dein Fernseher den Rand ab? Dann Rand vergrößern</small></span><div class="row">${[0, 0.02, 0.04, 0.06, 0.08, 0.1].map((v) => this.button("overscan", v ? Math.round(v * 100) + " %" : "Aus", "secondary compact " + (Math.abs((Number(A.overscan) || 0) - v) < 0.005 ? "selected" : ""), String(v))).join("")}</div></div><div class="quality-setting set-row set-seg"><span class="set-l">Darstellungsqualität<small>Leistung hilft auf älteren Geräten</small></span><div class="row">${["auto", "high", "low"].map((B, E) => this.button("quality", ["Auto", "Hoch", "Leistung"][E], "secondary compact " + (A.quality === B ? "selected" : ""), B)).join("")}</div></div>`,
     )}${group(
       "effekte",
       "03",
@@ -13738,11 +13796,19 @@ class wC {
     const S = nsStage(),
       r = this.root;
     if (!r) return;
-    const hk = (S.portrait ? 0.6 * (S.vw / 390) : S.flat ? Math.max(S.k, 0.64) : S.k) * DV("ui", "hud");
+    // t122u: am PC wächst das HUD auf großen Bildschirmen nur gedämpft mit (vorher bis 2× = „übergroß“); UI-Größe wirkt zusätzlich.
+    let hk = S.portrait ? 0.6 * (S.vw / 390) : S.flat ? Math.max(S.k, 0.64) : S.k;
+    const us = uiScaleSetting(),
+      fit = Math.min(S.vw / 1280, S.vh / 720);
+    // mit Controller (Sofa/TV) bleibt Auto beim vollen Maß, damit Texte aus der Entfernung lesbar sind
+    !S.portrait && isDesktopView() && (hk = padConnected() ? Math.max(fit, 0.9) : fit <= 1 ? fit * 0.9 : 0.9 + (fit - 1) * 0.5);
+    us !== "auto" && !S.portrait && (hk *= us);
+    hk = Math.min(hk * DV("ui", "hud"), S.portrait ? 9 : Math.max(0.5, fit * 1.6));
     const v = { "--nsq": S.q.toFixed(1), "--nhk": hk.toFixed(5), "--nk": S.k.toFixed(5), "--nsw": S.W.toFixed(1), "--nsh": S.H.toFixed(1), "--nox": S.ox.toFixed(1), "--noy": S.oy.toFixed(1) };
     for (const n in v) r.style.setProperty(n, v[n]);
+    applyOverscan();
     document.body.dataset.ns = S.portrait ? "portrait" : S.flat ? "flat" : "wide";
-    this.nsBound || ((this.nsBound = !0), addEventListener("resize", () => this.nsFit()), addEventListener("orientationchange", () => setTimeout(() => this.nsFit(), 150)));
+    this.nsBound || ((this.nsBound = !0), addEventListener("resize", () => this.nsFit()), addEventListener("orientationchange", () => setTimeout(() => this.nsFit(), 150)), addEventListener("gamepadconnected", () => this.nsFit()), addEventListener("gamepaddisconnected", () => this.nsFit()));
   }
   tbLayout() {
     // t100u: 1:1 nach Konzept B – 3 Reihen × 7 Plätze (Stage 1280 × 720). Die echten 17 Talente, 4 Plätze bleiben leer (Schloss).
@@ -13820,7 +13886,7 @@ class wC {
       .join("");
     const labels = L.rows.map((r, i) => `<div class="tb-rowlabel${r.name.length > 12 ? " tb-long" : ""}" style="--y:${L.Y[i]}px;--py:${L.PY[i] - 44}px;--d:${(0.15 + i * 0.12).toFixed(2)}s">${r.name}</div>`).join("");
     const gear = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 1.5h3.4l.5 2.6a8.3 8.3 0 0 1 2.1.9l2.2-1.5 2.4 2.4-1.5 2.2c.4.7.7 1.4.9 2.1l2.6.5v3.4l-2.6.5a8.3 8.3 0 0 1-.9 2.1l1.5 2.2-2.4 2.4-2.2-1.5a8.3 8.3 0 0 1-2.1.9l-.5 2.6h-3.4l-.5-2.6a8.3 8.3 0 0 1-2.1-.9l-2.2 1.5-2.4-2.4 1.5-2.2a8.3 8.3 0 0 1-.9-2.1l-2.6-.5v-3.4l2.6-.5c.2-.7.5-1.4.9-2.1L3.1 5.9l2.4-2.4 2.2 1.5c.7-.4 1.4-.7 2.1-.9zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>`;
-    return `<section class="screen tb-screen ${this.tbIntro ? "tb-intro" : ""}" id="tb-screen"><div class="tb-dim"></div><div class="tb-fit"><div class="tb-stage" id="tb-stage"><div class="tb-cone"></div><div class="tb-board" id="tb-board"><header class="tb-head"><div class="tb-eyebrow">NACHTSCHROTT / WERKSTATT</div><h2>TALENTBAUM</h2><i class="tb-hazard"></i></header>${labels}${segs}${nodes}<div class="tb-fx" id="tb-fx"></div></div><div class="tb-wallet" title="Talentpunkte"><b id="tb-points">${A.points}</b>${gear}</div><div class="tb-side"><aside class="tb-detail" id="tb-detail">${this.talentDetail()}</aside><footer class="tb-foot"><button class="tb-key" data-action="tbReset" data-id=""><i>▼</i>Zurücksetzen</button><button class="tb-key" data-action="back" data-id=""><i>←</i>Zurück</button></footer></div></div></div></section>`;
+    return `<section class="screen tb-screen ${this.tbIntro ? "tb-intro" : ""}" id="tb-screen"><div class="tb-dim"></div><div class="tb-fit"><div class="tb-stage" id="tb-stage"><div class="tb-cone"></div><div class="tb-bulb"></div><div class="tb-board" id="tb-board"><header class="tb-head"><div class="tb-eyebrow">NACHTSCHROTT / WERKSTATT</div><h2>TALENTBAUM</h2><i class="tb-hazard"></i></header>${labels}${segs}${nodes}<div class="tb-fx" id="tb-fx"></div></div><div class="tb-wallet" title="Talentpunkte"><b id="tb-points">${A.points}</b>${gear}</div><div class="tb-side"><aside class="tb-detail" id="tb-detail">${this.talentDetail()}</aside><footer class="tb-foot"><button class="tb-key" data-action="tbReset" data-id=""><i>▼</i>Zurücksetzen</button><button class="tb-key" data-action="back" data-id=""><i>←</i>Zurück</button></footer></div></div></div></section>`;
   }
   talentDetail() {
     const A = b.find((o) => o.id === this.selectedTalent) || b[0],
@@ -14314,6 +14380,12 @@ class wC {
       case "quality":
         (E.save.data.settings.quality = g), E.save.write(), this.r.resize(), this.render();
         break;
+      case "uiScale":
+        (E.save.data.settings.uiScale = g === "auto" ? "auto" : V(Number(g) || 1, 0.8, 1.5)), E.save.write(), this.nsFit(), this.r.resize(), this.render();
+        break;
+      case "overscan":
+        (E.save.data.settings.overscan = V(Number(g) || 0, 0, 0.1)), E.save.write(), this.nsFit(), this.render();
+        break;
       case "fullscreen": {
         document.fullscreenElement
           ? document.exitFullscreen?.()
@@ -14805,7 +14877,8 @@ document.addEventListener("visibilitychange", () => {
     document.hidden && v() && K.pause();
 });
 window.addEventListener("mousemove", (e) => {
-  (jB = e.clientX), (uB = e.clientY), (xg = !0);
+  const f = overscanFactor();
+  (jB = innerWidth / 2 + (e.clientX - innerWidth / 2) / f), (uB = innerHeight / 2 + (e.clientY - innerHeight / 2) / f), (xg = !0);
 });
 window.addEventListener("pointerdown", () => T.init());
 function YB(e, A = 0) {

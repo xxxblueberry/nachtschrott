@@ -2067,3 +2067,19 @@ html body #ui:not(#_):not(#__) .set-v2 .set-foot { order: 6 !important; }
   html body #ui:not(#_):not(#__) .set-v2 .set-seg .row button { flex: 1 !important; }
   html body #ui:not(#_):not(#__) .set-v2 .save-actions button { flex: 1 1 140px !important; height: auto !important; max-height: 48px !important; }
 }
+/* t122/t124: UI-Größe + Bildrand – Beschriftung oben, Knöpfe darunter in voller Breite */
+html body #ui:not(#_):not(#__) .set-v2 .set-ui { grid-template-columns: 1fr !important; gap: 8px !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-ui .row { justify-content: stretch !important; flex-wrap: wrap !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-ui .row button { flex: 1 1 0 !important; padding: 0 6px !important; white-space: nowrap !important; }
+/* t125u: Talentbaum – nur die Glühbirne oben in der Mitte flackert; Lichtkegel und Raumhelligkeit bleiben ruhig */
+body #ui:not(#_):not(#__) .tb-screen .tb-cone { background: conic-gradient(from 180deg at 50% -2%, transparent 0 160deg, rgba(255, 180, 100, 0.07) 170deg, rgba(255, 190, 110, 0.1) 180deg, rgba(255, 180, 100, 0.07) 190deg, transparent 200deg) !important; animation: none !important; opacity: 1 !important; }
+body #ui:not(#_):not(#__) .tb-screen.tb-intro .tb-cone { animation: tb-fade 1.4s ease-out both !important; }
+body #ui:not(#_):not(#__) .tb-screen .tb-dim { animation: none !important; opacity: 0 !important; }
+body #ui:not(#_):not(#__) .tb-screen .tb-bulb { position: absolute; left: calc(var(--sw, 1280) * 0.5px - 132px); top: -46px; width: 264px; height: 150px; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(ellipse 18% 24% at 50% 32%, rgba(255, 244, 214, 0.95), rgba(255, 214, 140, 0.6) 45%, transparent 100%), radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255, 200, 120, 0.42), transparent 75%); animation: tb-hum 4.7s steps(1, end) infinite; }
+body #ui:not(#_):not(#__) .tb-screen.tb-flick0 .tb-bulb { animation: tb-flick0 0.9s linear; }
+body #ui:not(#_):not(#__) .tb-screen.tb-flick1 .tb-bulb { animation: tb-flick1 0.9s linear; }
+body #ui:not(#_):not(#__) .tb-screen.tb-flick2 .tb-bulb { animation: tb-flick2 0.9s linear; }
+body #ui:not(#_):not(#__) .tb-screen.tb-intro .tb-bulb { animation: tb-on 1.1s linear both; }
+body[data-motion="reduced"] #ui:not(#_):not(#__) .tb-screen .tb-bulb { animation: none !important; }
+@media (max-width: 600px) and (orientation: portrait) { body #ui:not(#_):not(#__) .tb-screen .tb-bulb { left: 63px; } }
+@keyframes tb-fade { from { opacity: 0; } to { opacity: 1; } }
