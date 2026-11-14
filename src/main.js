@@ -1,3 +1,318 @@
+// ===== t118u: Dev-Menü (nur PC, F1 oder ^/`) – Optik-Regler mit Live-Vorschau, gespeichert in localStorage =====
+const DEV_KEY = "nachtschrott-dev-v1",
+  DEV_PCT = (v) => Math.round(v * 100) + " %",
+  DEV_SCHEMA = [
+    { id: "menuFx", name: "Partikel · Hauptmenü", hint: "Glut und Staub im Lichtkegel des Menüs", items: [
+      { k: "typ", label: "Art", opts: [["glut-staub", "Glut + Staub"], ["glut", "Nur Glut"], ["staub", "Nur Staub"], ["asche", "Asche"], ["aus", "Aus"]], def: "glut-staub" },
+      { k: "menge", label: "Menge", min: 0, max: 3, def: 1 },
+      { k: "groesse", label: "Größe", min: 0.3, max: 3, def: 1 },
+      { k: "deckkraft", label: "Deckkraft", min: 0, max: 1.5, def: 1 },
+      { k: "tempo", label: "Tempo", min: 0, max: 3, def: 1 },
+      { k: "drift", label: "Drift & Wirbel", min: 0, max: 3, def: 1 },
+      { k: "waerme", label: "Farbe kalt ↔ warm", min: 0, max: 1, step: 0.02, def: 0.5, fmt: "temp" },
+    ] },
+    { id: "hofFx", name: "Partikel · Hof", hint: "Sonnenstaub über dem Schrotthof", items: [
+      { k: "typ", label: "Art", opts: [["sonnenstaub", "Sonnenstaub"], ["glut", "Glut"], ["asche", "Asche"], ["aus", "Aus"]], def: "sonnenstaub" },
+      { k: "menge", label: "Menge", min: 0, max: 3, def: 1 },
+      { k: "groesse", label: "Größe", min: 0.3, max: 3, def: 1 },
+      { k: "deckkraft", label: "Deckkraft", min: 0, max: 1.5, def: 1 },
+      { k: "tempo", label: "Tempo", min: 0, max: 3, def: 1 },
+      { k: "drift", label: "Drift & Wirbel", min: 0, max: 3, def: 1 },
+      { k: "waerme", label: "Farbe kalt ↔ warm", min: 0, max: 1, step: 0.02, def: 0.5, fmt: "temp" },
+    ] },
+    { id: "licht", name: "Licht & Lampen", hint: "Glühbirnen, Lichtkegel, Fackeln", items: [
+      { k: "flackern", label: "Lampenflackern (Menü, Werkstatt)", min: 0, max: 3, def: 1 },
+      { k: "kegel", label: "Lichtkegel Hauptmenü", min: 0, max: 2, def: 1 },
+      { k: "lampen", label: "Lampenlicht im Hof", min: 0, max: 2, def: 1 },
+      { k: "fackeln", label: "Fackelflackern (Arenen, Hof)", min: 0, max: 3, def: 1 },
+    ] },
+    { id: "bild", name: "Bild & Filter", hint: "Wirkt auf die ganze Spielfläche", items: [
+      { k: "helligkeit", label: "Helligkeit", min: 0.5, max: 1.5, def: 1 },
+      { k: "kontrast", label: "Kontrast", min: 0.5, max: 1.5, def: 1 },
+      { k: "saettigung", label: "Sättigung", min: 0, max: 2, def: 1 },
+      { k: "farbton", label: "Farbstich kalt ↔ warm", min: 0, max: 1, step: 0.02, def: 0.5, fmt: "temp" },
+      { k: "vignette", label: "Vignette", min: 0, max: 2, def: 1 },
+      { k: "koernung", label: "Filmkorn", min: 0, max: 1, def: 0 },
+    ] },
+    { id: "noir", name: "Noir-Rahmen & Stempel", hint: "Tintenrand und roter NS-Stempel", items: [
+      { k: "tinte", label: "Tintenrahmen", min: 0, max: 1, def: 1 },
+      { k: "stempel", label: "NS-Stempel Deckkraft", min: 0, max: 1, def: 1 },
+    ] },
+    { id: "welt", name: "Welt & Kamera", hint: "Kampf und Hof", items: [
+      { k: "zoom", label: "Kamera-Zoom (zusätzlich)", min: 0.6, max: 1.6, def: 1 },
+      { k: "cutout", label: "Cutout-Radius", min: 0.4, max: 2, def: 1 },
+      { k: "wasser", label: "Wasser: Wellenstärke", min: 0, max: 1.5, def: 1 },
+      { k: "wassertempo", label: "Wasser: Tempo", min: 0, max: 3, def: 1 },
+      { k: "wiegen", label: "Bäume & Gras: Wiegen", min: 0, max: 3, def: 1 },
+    ] },
+    { id: "ui", name: "Oberfläche", hint: "HUD und Menü-Animationen", items: [
+      { k: "hud", label: "HUD-Größe", min: 0.6, max: 1.6, def: 1 },
+      { k: "anim", label: "Animationstempo (Menüs)", min: 0.1, max: 3, def: 1 },
+    ] },
+    { id: "ton", name: "Soundmix", hint: "Zusätzlich zu den normalen Lautstärken", items: [
+      { k: "musik", label: "Musik", min: 0, max: 2, def: 1 },
+      { k: "effekte", label: "Effekte", min: 0, max: 2, def: 1 },
+      { k: "ambiente", label: "Ambiente", min: 0, max: 2, def: 1 },
+      { k: "menue", label: "Menütöne", min: 0, max: 2, def: 1 },
+    ] },
+  ],
+  DEV = { v: {} };
+function devDefaults() {
+  const o = {};
+  for (const g of DEV_SCHEMA) {
+    o[g.id] = {};
+    for (const it of g.items) o[g.id][it.k] = it.def;
+  }
+  return o;
+}
+function devSanitize(src) {
+  const o = devDefaults(),
+    s = src && typeof src == "object" ? src : {};
+  for (const g of DEV_SCHEMA)
+    for (const it of g.items) {
+      const x = s[g.id]?.[it.k];
+      if (it.opts) it.opts.some(([v]) => v === x) && (o[g.id][it.k] = x);
+      else typeof x == "number" && Number.isFinite(x) && (o[g.id][it.k] = Math.min(it.max, Math.max(it.min, x)));
+    }
+  return o;
+}
+try {
+  DEV.v = devSanitize(JSON.parse(localStorage.getItem(DEV_KEY) || "{}"));
+} catch {
+  DEV.v = devDefaults();
+}
+function DV(g, k) {
+  return DEV.v[g]?.[k];
+}
+// Farbe zur Wärme verschieben: 0.5 = Original, 0 = kühles Mondlicht, 1 = glühend orange
+const devTintCache = new Map();
+function devTint(hex, w) {
+  if (w === 0.5 || w == null) return hex;
+  const key = hex + w;
+  if (devTintCache.has(key)) return devTintCache.get(key);
+  const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)),
+    a = p(hex),
+    b = p(w < 0.5 ? "#b9d2ff" : "#ff6a1e"),
+    t = Math.abs(w - 0.5) * 2 * 0.85,
+    r = "#" + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, "0")).join("");
+  return devTintCache.size > 400 && devTintCache.clear(), devTintCache.set(key, r), r;
+}
+function devVig(ctx, img, w, h, base = 1) {
+  const v = DV("bild", "vignette");
+  if (!img || v <= 0) return;
+  const a = ctx.globalAlpha;
+  (ctx.globalAlpha = base * Math.min(1, v)), ctx.drawImage(img, 0, 0, w, h);
+  v > 1 && ((ctx.globalAlpha = base * (v - 1)), ctx.drawImage(img, 0, 0, w, h));
+  ctx.globalAlpha = a;
+}
+function devFlick(v) {
+  // Fackel-Flackern um den Mittelwert 0.9 verstärken/abschwächen
+  return 0.9 + (v - 0.9) * DV("licht", "fackeln");
+}
+let devGrainUrl = "";
+function devApply() {
+  if (typeof document > "u") return;
+  const v = DEV.v,
+    root = document.documentElement,
+    cv = document.getElementById("game"),
+    b = v.bild,
+    tint = b.farbton - 0.5,
+    f = [];
+  b.helligkeit !== 1 && f.push(`brightness(${b.helligkeit})`);
+  b.kontrast !== 1 && f.push(`contrast(${b.kontrast})`);
+  b.saettigung !== 1 && f.push(`saturate(${b.saettigung})`);
+  tint > 0 && f.push(`sepia(${(tint * 1.2).toFixed(2)})`);
+  tint < 0 && f.push(`hue-rotate(${(tint * 50).toFixed(1)}deg) saturate(${(1 + tint * 0.8).toFixed(2)})`);
+  cv && (cv.style.filter = f.join(" "));
+  root.toggleAttribute("data-dev-ink", v.noir.tinte !== 1), root.style.setProperty("--dev-ink", String(v.noir.tinte));
+  root.toggleAttribute("data-dev-ns", v.noir.stempel !== 1), root.style.setProperty("--dev-ns", String(v.noir.stempel));
+  let gr = document.getElementById("devfx-grain");
+  if (b.koernung > 0) {
+    if (!devGrainUrl) {
+      const c = document.createElement("canvas");
+      c.width = c.height = 160;
+      const x = c.getContext("2d"),
+        d = x.createImageData(160, 160);
+      for (let i = 0; i < d.data.length; i += 4) {
+        const n = Math.random() * 255;
+        (d.data[i] = d.data[i + 1] = d.data[i + 2] = n), (d.data[i + 3] = 255);
+      }
+      x.putImageData(d, 0, 0), (devGrainUrl = c.toDataURL());
+    }
+    gr || ((gr = document.createElement("div")), (gr.id = "devfx-grain"), document.body.append(gr));
+    (gr.style.backgroundImage = `url(${devGrainUrl})`), (gr.style.opacity = String(b.koernung * 0.35));
+  } else gr?.remove();
+  const ns = globalThis.nachtschrott;
+  try {
+    ns?.game?.audio?.update?.(), ns?.ui?.nsFit?.();
+  } catch {}
+  devAnimRate();
+}
+let devAnimTimer = 0;
+function devAnimRate() {
+  const r = DV("ui", "anim");
+  clearInterval(devAnimTimer), (devAnimTimer = 0);
+  const set = (x) => {
+    try {
+      for (const a of document.getAnimations()) a.playbackRate !== x && (a.playbackRate = x);
+    } catch {}
+  };
+  if (r !== 1) (devAnimTimer = setInterval(() => set(r), 120)), set(r);
+  else set(1);
+}
+function devSave() {
+  try {
+    localStorage.setItem(DEV_KEY, JSON.stringify(DEV.v));
+  } catch {}
+}
+function devIsPC() {
+  if (typeof matchMedia != "function") return !1;
+  const touchOnly = matchMedia("(hover: none) and (pointer: coarse)").matches;
+  return !touchOnly && !globalThis.nachtschrott?.game?.mobile && innerWidth >= 900;
+}
+function devFmt(it, x) {
+  if (it.fmt === "temp") return x < 0.47 ? "kalt " + Math.round((0.5 - x) * 200) : x > 0.53 ? "warm " + Math.round((x - 0.5) * 200) : "neutral";
+  return DEV_PCT(x);
+}
+const devOpen = new Set(["menuFx", "hofFx"]);
+function devPanelHTML() {
+  const g = DEV_SCHEMA.map((G) => {
+    const rows = G.items
+      .map((it) => {
+        const val = DEV.v[G.id][it.k],
+          id = `dev-${G.id}-${it.k}`,
+          changed = val !== it.def ? " dev-changed" : "";
+        if (it.opts)
+          return `<div class="dev-row dev-choice${changed}"><span class="dev-l">${it.label}</span><div class="dev-seg" role="radiogroup" aria-label="${it.label}">${it.opts.map(([v, l]) => `<button type="button" role="radio" aria-checked="${v === val}" class="${v === val ? "on" : ""}" data-dev-g="${G.id}" data-dev-k="${it.k}" data-dev-v="${v}">${l}</button>`).join("")}</div></div>`;
+        return `<label class="dev-row${changed}" for="${id}"><span class="dev-l">${it.label}</span><input id="${id}" type="range" min="${it.min}" max="${it.max}" step="${it.step ?? 0.05}" value="${val}" data-dev-g="${G.id}" data-dev-k="${it.k}"><output>${devFmt(it, val)}</output></label>`;
+      })
+      .join("");
+    const n = G.items.filter((it) => DEV.v[G.id][it.k] !== it.def).length;
+    return `<details class="dev-group" data-dev-group="${G.id}"${devOpen.has(G.id) ? " open" : ""}><summary><b>${G.name}</b><small>${G.hint}</small>${n ? `<em class="dev-count">${n} geändert</em>` : ""}<button type="button" class="dev-mini" data-dev-reset="${G.id}" title="Gruppe zurücksetzen">↺</button></summary><div class="dev-body">${rows}</div></details>`;
+  }).join("");
+  return `<div class="dev-head"><small>Nachtschrott / nur PC · F1 oder ^</small><h2>Dev-Menü</h2><i class="dev-hazard"></i><button type="button" class="dev-x" data-dev-act="close" aria-label="Schließen">✕</button></div><div class="dev-tools"><button type="button" data-dev-act="expand">Alle auf</button><button type="button" data-dev-act="collapse">Alle zu</button><button type="button" data-dev-act="export">Export</button><button type="button" data-dev-act="import">Import</button><button type="button" class="dev-warn" data-dev-act="resetAll">Alles zurücksetzen</button></div><div class="dev-scroll">${g}</div><div class="dev-foot"><span class="dev-msg" role="status"></span><span>Wird sofort gespeichert · gilt nur auf diesem PC</span></div>`;
+}
+function devRender() {
+  const p = document.getElementById("devmenu");
+  if (!p) return;
+  const sc = p.querySelector(".dev-scroll")?.scrollTop || 0;
+  (p.innerHTML = devPanelHTML()), (p.querySelector(".dev-scroll").scrollTop = sc);
+}
+function devMsg(t) {
+  const m = document.querySelector("#devmenu .dev-msg");
+  m && ((m.textContent = t), clearTimeout(devMsg.t), (devMsg.t = setTimeout(() => (m.textContent = ""), 2600)));
+}
+function devSet(g, k, x) {
+  (DEV.v[g][k] = x), devSave(), devApply();
+}
+function devExport() {
+  const txt = JSON.stringify({ nachtschrottDev: 1, ...DEV.v }, null, 1),
+    a = document.createElement("a");
+  (a.href = URL.createObjectURL(new Blob([txt], { type: "application/json" }))), (a.download = "nachtschrott-dev.json"), a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2e3);
+  try {
+    navigator.clipboard?.writeText(txt)?.catch?.(() => {});
+  } catch {}
+  devMsg("Exportiert (Datei + Zwischenablage)");
+}
+function devImportText(txt) {
+  try {
+    const o = JSON.parse(txt);
+    if (!o || typeof o != "object") throw 0;
+    (DEV.v = devSanitize(o)), devSave(), devApply(), devRender(), devMsg("Importiert");
+    return !0;
+  } catch {
+    return devMsg("Import fehlgeschlagen: kein gültiges JSON"), !1;
+  }
+}
+function devImport() {
+  const i = document.createElement("input");
+  (i.type = "file"), (i.accept = "application/json,.json");
+  i.onchange = () => i.files?.[0]?.text().then(devImportText);
+  i.click();
+}
+function devToggle(force) {
+  if (!devIsPC()) return !1;
+  let p = document.getElementById("devmenu");
+  const show = force ?? !p?.classList.contains("open");
+  if (!p) {
+    (p = document.createElement("aside")), (p.id = "devmenu"), p.setAttribute("aria-label", "Dev-Menü"), document.body.append(p);
+    const stop = (e) => {
+      if (e.code === "F1" || e.code === "Backquote" || (e.key === "Escape" && e.type === "keydown")) return;
+      e.stopPropagation();
+    };
+    p.addEventListener("keydown", stop), p.addEventListener("keyup", stop);
+    p.addEventListener("input", (e) => {
+      const t = e.target;
+      if (!t.dataset.devG) return;
+      const G = DEV_SCHEMA.find((G) => G.id === t.dataset.devG),
+        it = G.items.find((i) => i.k === t.dataset.devK),
+        x = Math.round(Number(t.value) * 1e3) / 1e3;
+      devSet(G.id, it.k, x), (t.nextElementSibling.textContent = devFmt(it, x)), t.closest(".dev-row").classList.toggle("dev-changed", x !== it.def);
+    });
+    p.addEventListener("change", (e) => {
+      const g = e.target.dataset?.devG;
+      if (!g) return;
+      const G = DEV_SCHEMA.find((G) => G.id === g),
+        n = G.items.filter((it) => DEV.v[G.id][it.k] !== it.def).length,
+        s = p.querySelector(`[data-dev-group="${g}"] summary`);
+      let c = s.querySelector(".dev-count");
+      n ? (c || ((c = document.createElement("em")), (c.className = "dev-count"), s.insertBefore(c, s.querySelector(".dev-mini"))), (c.textContent = n + " geändert")) : c?.remove();
+    });
+    p.addEventListener("toggle", (e) => {
+      const d = e.target;
+      d.dataset?.devGroup && (d.open ? devOpen.add(d.dataset.devGroup) : devOpen.delete(d.dataset.devGroup));
+    }, !0);
+    p.addEventListener("click", (e) => {
+      const t = e.target.closest("button");
+      if (!t) return;
+      if (t.dataset.devReset) {
+        e.preventDefault();
+        const G = DEV_SCHEMA.find((G) => G.id === t.dataset.devReset);
+        for (const it of G.items) DEV.v[G.id][it.k] = it.def;
+        return devSave(), devApply(), devRender(), devMsg(G.name + " zurückgesetzt");
+      }
+      if (t.dataset.devV) return devSet(t.dataset.devG, t.dataset.devK, t.dataset.devV), devRender();
+      const a = t.dataset.devAct;
+      a === "close" && devToggle(!1);
+      a === "expand" && (DEV_SCHEMA.forEach((G) => devOpen.add(G.id)), devRender());
+      a === "collapse" && (devOpen.clear(), devRender());
+      a === "export" && devExport();
+      a === "import" && devImport();
+      a === "resetAll" && ((DEV.v = devDefaults()), devSave(), devApply(), devRender(), devMsg("Alles auf Standard zurückgesetzt"));
+    });
+    devRender();
+  }
+  show && devRender();
+  p.classList.toggle("open", show), document.body.toggleAttribute("data-dev-open", show);
+  if (show) {
+    // passende Gruppe zum aktuellen Bildschirm aufklappen und zeigen (Hof → Hof-Partikel, Menüs → Menü-Partikel)
+    const scr = globalThis.nachtschrott?.ui?.screen,
+      gid = scr === "hub" ? "hofFx" : scr === "home" ? "menuFx" : "";
+    p.querySelectorAll(".dev-group").forEach((d) => d.classList.toggle("dev-here", d.dataset.devGroup === gid));
+    const d = gid && p.querySelector(`[data-dev-group="${gid}"]`);
+    d && ((d.open = !0), devOpen.add(gid), d.scrollIntoView({ block: "start" }));
+  }
+  return show;
+}
+if (typeof window < "u") {
+  window.addEventListener(
+    "keydown",
+    (e) => {
+      if ((e.code === "F1" || e.code === "Backquote") && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (!devIsPC()) return;
+        e.preventDefault(), e.stopImmediatePropagation(), devToggle();
+      } else if (e.key === "Escape" && document.getElementById("devmenu")?.classList.contains("open") && document.getElementById("devmenu").contains(document.activeElement)) {
+        e.stopImmediatePropagation(), devToggle(!1);
+      }
+    },
+    !0,
+  );
+  window.addEventListener("load", () => devApply());
+  setTimeout(() => devApply(), 0);
+  globalThis.nachtschrottDev = { DEV, DV, toggle: devToggle, apply: devApply, importText: devImportText, defaults: devDefaults, schema: DEV_SCHEMA, isPC: devIsPC };
+}
+// ===== /t118u Dev-Menü =====
 (function () {
   const A = document.createElement("link").relList;
   if (A && A.supports && A.supports("modulepreload")) return;
@@ -2768,11 +3083,12 @@ class To {
     const A = this.settings(),
       g = this.ctx.currentTime,
       B = (E, o) => (typeof E == "number" && Number.isFinite(E) ? Math.max(0, Math.min(1, E)) : o);
+    const dm = DEV.v.ton;
     this.out?.gain.setTargetAtTime(A.muteUnfocused && !this.focused ? 0 : B(A.master, 0.65), g, 0.04),
-      this.uiBus?.gain.setTargetAtTime(B(A.uiVolume, 0.65), g, 0.04),
-      this.sfxBus?.gain.setTargetAtTime(B(A.sfx, 0.7), g, 0.04),
-      this.ambBus?.gain.setTargetAtTime(B(A.sfx, 0.7) * 0.55, g, 0.1),
-      this.musicBus?.gain.setTargetAtTime(B(A.music, 0.32) * (this.combat ? 1 : 0.72), g, 0.1);
+      this.uiBus?.gain.setTargetAtTime(B(A.uiVolume, 0.65) * dm.menue, g, 0.04),
+      this.sfxBus?.gain.setTargetAtTime(B(A.sfx, 0.7) * dm.effekte, g, 0.04),
+      this.ambBus?.gain.setTargetAtTime(B(A.sfx, 0.7) * 0.55 * dm.ambiente, g, 0.1),
+      this.musicBus?.gain.setTargetAtTime(B(A.music, 0.32) * (this.combat ? 1 : 0.72) * dm.musik, g, 0.1);
   }
   async loadBank(A) {
     if (!this.ctx || this.banks[A] === "loading" || this.banks[A] === "ready") return;
@@ -9385,7 +9701,7 @@ function iC() {
 const cA = (e) => kB.get(e);
 function kg(e) {
   const A = Math.min(e.w / BA.w, e.h / BA.h);
-  return e.hubZoomOverride ? Math.max(A, e.hubZoomOverride) : A;
+  return (e.hubZoomOverride ? Math.max(A, e.hubZoomOverride) : A) * DV("welt", "zoom");
 }
 function CC(e, A, g) {
   const B = e.game,
@@ -9511,11 +9827,13 @@ function QC(e, A) {
   (L.t += Math.min(0.05, A)), (g.imageSmoothingEnabled = !0), (g.imageSmoothingQuality = "high");
   const o = BA.plate;
   g.drawImage(cA("ground"), o.x, o.y, o.w, o.h);
+  L.wt = (L.wt ?? L.t) + Math.min(0.05, A) * DV("welt", "wassertempo");
+  const ws = DV("welt", "wasser");
   for (const [r, Y] of [
     [BA.water, cA("water")],
     [BA.waterRun, cA("waterRun")],
   ]) {
-    const c = ((L.t / r.loop) % 1) * r.frames,
+    const c = ((L.wt / r.loop) % 1) * r.frames,
       R = Math.floor(c) % r.frames,
       G = (R + 1) % r.frames,
       n = c - Math.floor(c),
@@ -9523,7 +9841,7 @@ function QC(e, A) {
         (g.globalAlpha = l),
           g.drawImage(Y, (k % r.cols) * r.w, Math.floor(k / r.cols) * r.h, r.w, r.h, r.x, r.y, r.w, r.h);
       };
-    D(R, 1), D(G, n);
+    ws >= 1 ? (D(R, 1), D(G, n), ws > 1 && (g.save(), (g.globalCompositeOperation = "lighter"), D(G, (ws - 1) * 0.6), g.restore())) : ws > 0 && (D(R, ws), D(G, n * ws));
   }
   g.globalAlpha = 1;
   const i = !B.save.data.settings.reducedMotion;
@@ -9544,7 +9862,7 @@ function QC(e, A) {
     a = cA("front"),
     t = C.map((r) => {
       const Y = r.y + wA,
-        c = xA,
+        c = (xA * DV("welt", "cutout")),
         R = Y - BC,
         G = r.x - c - 2,
         n = r.x + c + 2,
@@ -9640,9 +9958,12 @@ function QC(e, A) {
   }
   g.save(), (g.globalCompositeOperation = "lighter");
   for (const [r, Y, c, R, G] of hofLights) {
-    const n = G ? 0.82 + Math.sin(L.t * 11.3 + r) * 0.08 + Math.sin(L.t * 23.7 + Y) * 0.06 + Math.sin(L.t * 3.1) * 0.04 : 0.96 + Math.sin(L.t * 1.7 + r) * 0.04;
-    (g.globalAlpha = (G ? 0.5 : 0.36) * n), g.drawImage(dA(R), r - c * n, Y - c * 0.75 * n, 2 * c * n, 1.5 * c * n);
-    G && ((g.globalAlpha = 0.35 * n), g.drawImage(dA("#ffe0a0"), r - c * 0.3, Y - c * 0.3, c * 0.6, c * 0.6));
+    const fk = DV("licht", "fackeln"),
+      lm = DV("licht", "lampen"),
+      n = G ? 0.82 + (Math.sin(L.t * 11.3 + r) * 0.08 + Math.sin(L.t * 23.7 + Y) * 0.06 + Math.sin(L.t * 3.1) * 0.04) * fk : 0.96 + Math.sin(L.t * 1.7 + r) * 0.04 * fk;
+    if (lm <= 0) continue;
+    (g.globalAlpha = Math.min(1, (G ? 0.5 : 0.36) * n * lm)), g.drawImage(dA(R), r - c * n, Y - c * 0.75 * n, 2 * c * n, 1.5 * c * n);
+    G && ((g.globalAlpha = Math.min(1, 0.35 * n * lm)), g.drawImage(dA("#ffe0a0"), r - c * 0.3, Y - c * 0.3, c * 0.6, c * 0.6));
   }
   g.restore();
   i && B.save.data.settings.particles > 0 && YC(e, Math.min(0.05, A));
@@ -9650,7 +9971,7 @@ function QC(e, A) {
 function JB(e) {
   const A = L.t,
     g = 0.65 + 0.35 * Math.sin(A * 0.37 - e.x * 0.002) + 0.2 * Math.sin(A * 0.91 + e.base * 0.01);
-  return e.amp * g * Math.sin(A * (e.k === "pine" ? 1.25 : 2.1) - e.x * 0.006 + e.base * 0.003);
+  return e.amp * DV("welt", "wiegen") * g * Math.sin(A * (e.k === "pine" ? 1.25 : 2.1) - e.x * 0.006 + e.base * 0.003);
 }
 function eC(e, A, g, B) {
   const E = g.base - g.swayY || 1;
@@ -9808,29 +10129,46 @@ function nsStage() {
 }
 // t101u: Hof-Partikel = feiner Staub im Sonnenlicht (weich, leicht hell, schwebt und driftet langsam, glimmt sanft auf).
 // Größe und Tempo in Bildschirm-Pixeln, damit der Staub bei jeder Zoomstufe gleich groß wirkt.
-let hofGlow;
-function hofGlowSprite() {
-  if (hofGlow || typeof document > "u") return hofGlow;
-  const c = document.createElement("canvas");
+const hofGlowC = new Map(),
+  HOF_FX = {
+    sonnenstaub: { stops: ["#fffae8", "#ffeec8", "#ffe2aa"], core: "#fffaf0", vy: 0, glow: 1 },
+    glut: { stops: ["#ffd08a", "#ff9a3c", "#e8622a"], core: "#fff0c8", vy: -16, glow: 1.1 },
+    asche: { stops: ["#eee8de", "#cfc8bd", "#a49c90"], core: "#ddd6cc", vy: 9, glow: 0.35 },
+  };
+function hofGlowSprite(typ = "sonnenstaub", w = 0.5) {
+  if (typeof document > "u") return null;
+  const key = typ + w;
+  if (hofGlowC.has(key)) return hofGlowC.get(key);
+  const m = HOF_FX[typ] || HOF_FX.sonnenstaub,
+    c = document.createElement("canvas");
   c.width = c.height = 64;
   const x = c.getContext("2d"),
-    r = x.createRadialGradient(32, 32, 0, 32, 32, 32);
-  r.addColorStop(0, "rgba(255,250,232,1)"), r.addColorStop(0.18, "rgba(255,238,200,0.85)"), r.addColorStop(0.45, "rgba(255,226,170,0.25)"), r.addColorStop(1, "rgba(255,220,160,0)");
-  return (x.fillStyle = r), x.fillRect(0, 0, 64, 64), (hofGlow = c);
+    r = x.createRadialGradient(32, 32, 0, 32, 32, 32),
+    rgb = (h, a) => `rgba(${[1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)).join(",")},${a})`,
+    [a, b, d] = m.stops.map((h) => devTint(h, w));
+  r.addColorStop(0, rgb(a, 1)), r.addColorStop(0.18, rgb(b, 0.85)), r.addColorStop(0.45, rgb(d, 0.25)), r.addColorStop(1, rgb(d, 0));
+  return (x.fillStyle = r), x.fillRect(0, 0, 64, 64), hofGlowC.size > 40 && hofGlowC.clear(), hofGlowC.set(key, c), c;
 }
 function YC(e, A) {
-  const g = e.c,
+  const H = DEV.v.hofFx,
+    typ = H.typ,
+    m = HOF_FX[typ] || HOF_FX.sonnenstaub,
+    g = e.c,
     B = e.game,
     E = kg(e),
     sp = 1 / E,
     o = e.w / E / 2,
     i = e.h / E / 2,
-    I = Math.round((B.mobile ? 55 : 85) * Math.min(1, B.save.data.settings.particles)),
+    I = typ === "aus" ? 0 : Math.round((B.mobile ? 55 : 85) * Math.min(1, B.save.data.settings.particles) * H.menge),
     C = e.camX - o,
     Q = e.camX + o,
     a = e.camY - i,
     t = e.camY + i,
-    glow = hofGlowSprite();
+    glow = hofGlowSprite(typ, H.waerme),
+    tp = H.tempo,
+    dr = H.drift,
+    op = H.deckkraft,
+    core = devTint(m.core, H.waerme);
   if (!glow) return;
   for (; L.motes.length < I; )
     L.motes.push({
@@ -9844,26 +10182,28 @@ function YC(e, A) {
       far: Math.random() < 0.3,
     });
   L.motes.length > I && (L.motes.length = I);
-  const gust = 1 + 0.35 * Math.sin(L.t * 0.21);
+  const gust = 1 + 0.35 * Math.sin(L.t * 0.21),
+    dt = A * tp;
   g.save();
   for (const s of L.motes) {
-    (s.ph += A),
-      (s.x += (s.vx * gust + Math.sin(s.ph * 0.7) * 5 + Math.sin(s.ph * 1.9) * 2) * sp * A),
-      (s.y += (s.vy + Math.cos(s.ph * 0.55) * 4) * sp * A),
+    (s.ph += dt),
+      (s.x += (s.vx * gust * (typ === "asche" ? 0.5 : 1) + (Math.sin(s.ph * 0.7) * 5 + Math.sin(s.ph * 1.9) * 2) * dr) * sp * dt),
+      (s.y += (s.vy + m.vy * (s.far ? 0.7 : 1) + Math.cos(s.ph * 0.55) * 4 * dr) * sp * dt),
       s.x > Q + 20 * sp && (s.x = C - 16 * sp),
       s.x < C - 22 * sp && (s.x = Q + 14 * sp),
       s.y < a - 20 * sp && (s.y = t + 14 * sp),
       s.y > t + 22 * sp && (s.y = a - 14 * sp);
     // sanftes Aufglimmen, wenn das Korn durchs Sonnenlicht dreht
     const lit = Math.max(0, Math.sin(s.ph * s.tw)) ** 6,
-      R = s.size * sp * 1.3 * (s.far ? 0.75 : 1),
+      R = s.size * sp * 1.3 * (s.far ? 0.75 : 1) * H.groesse,
       k = R * (3.2 + lit * 2.4);
     // ganz weicher dunkler Hof, damit das helle Korn auch auf hellem Pflaster lesbar bleibt
-    (g.globalCompositeOperation = "source-over"), (g.globalAlpha = s.far ? 0.07 : 0.12), (g.fillStyle = "#3a2a18"), g.beginPath(), g.arc(s.x, s.y + R * 0.3, R * 1.9, 0, Math.PI * 2), g.fill();
-    (g.globalCompositeOperation = "lighter"), (g.globalAlpha = (s.far ? 0.36 : 0.55) + lit * 0.45), g.drawImage(glow, s.x - k, s.y - k, k * 2, k * 2);
-    (g.globalCompositeOperation = "source-over"), (g.globalAlpha = (s.far ? 0.55 : 0.82) + lit * 0.18), (g.fillStyle = "#fffaf0"), g.beginPath(), g.arc(s.x, s.y, R * 0.55, 0, Math.PI * 2), g.fill();
+    (g.globalCompositeOperation = "source-over"), (g.globalAlpha = Math.min(1, (s.far ? 0.07 : 0.12) * op)), (g.fillStyle = "#3a2a18"), g.beginPath(), g.arc(s.x, s.y + R * 0.3, R * 1.9, 0, Math.PI * 2), g.fill();
+    (g.globalCompositeOperation = "lighter"), (g.globalAlpha = Math.min(1, ((s.far ? 0.36 : 0.55) + lit * 0.45) * op * m.glow)), g.drawImage(glow, s.x - k, s.y - k, k * 2, k * 2);
+    (g.globalCompositeOperation = "source-over"), (g.globalAlpha = Math.min(1, ((s.far ? 0.55 : 0.82) + lit * 0.18) * op)), (g.fillStyle = core), g.beginPath(), g.arc(s.x, s.y, R * 0.55, 0, Math.PI * 2), g.fill();
   }
   g.restore();
+  typeof window < "u" && (window.__hofMotes = { n: L.motes.length, typ });
 }
 function MC(e) {
   const A = e.game;
@@ -10753,9 +11093,7 @@ class FC {
   torchFlicker(A) {
     const g = this.game.time,
       B = A.y * 0.013 + A.x * 0.007;
-    return (
-      0.9 + Math.sin(g * 11.3 + B) * 0.07 + Math.sin(g * 23.7 + B * 2.1) * 0.05 + Math.sin(g * 3.1 + B) * 0.03
-    );
+    return devFlick(0.9 + Math.sin(g * 11.3 + B) * 0.07 + Math.sin(g * 23.7 + B * 2.1) * 0.05 + Math.sin(g * 3.1 + B) * 0.03);
   }
   torchStats = null;
   minePillar(A) {
@@ -10875,9 +11213,9 @@ class FC {
         A.save(), (A.lineWidth = 1.6);
         g.ripples.forEach((l, k) => {
           for (let j = 0; j < 2; j++) {
-            const ph = (T * 0.42 + k * 0.37 + j * 0.5) % 1,
+            const ph = (T * 0.42 * DV("welt", "wassertempo") + k * 0.37 + j * 0.5) % 1,
               R = 8 + ph * 44;
-            (A.strokeStyle = `rgba(160,200,255,${(0.32 * (1 - ph)).toFixed(3)})`),
+            (A.strokeStyle = `rgba(160,200,255,${Math.min(1, 0.32 * (1 - ph) * DV("welt", "wasser")).toFixed(3)})`),
               A.beginPath(),
               A.ellipse(l[0], l[1], R, R * 0.42, 0, 0, Math.PI * 2),
               A.stroke();
@@ -11354,12 +11692,12 @@ class FC {
     if (this.noCut) return C;
     for (const Q of this.cutHoles)
       Q.foot >= A ||
-        Q.x + xA < g ||
-        Q.x - xA > g + E ||
-        Q.y + xA < B ||
-        Q.y - xA > B + o ||
+        Q.x + (xA * DV("welt", "cutout")) < g ||
+        Q.x - (xA * DV("welt", "cutout")) > g + E ||
+        Q.y + (xA * DV("welt", "cutout")) < B ||
+        Q.y - (xA * DV("welt", "cutout")) > B + o ||
         (wB(qg(i, I[0], I[1], I[2], I[3], g, B, E, o, Q.x, Q.foot + 32, 80, 22), 80, 22) &&
-          C.push({ x: Q.x, y: Q.y, r: xA }));
+          C.push({ x: Q.x, y: Q.y, r: (xA * DV("welt", "cutout")) }));
     return C;
   }
   prepareCircles() {
@@ -12061,10 +12399,7 @@ class FC {
     }
     (
       (i.restore(),
-      this.vignette &&
-        (this.paintedPlate && (i.globalAlpha = 0.3),
-        i.drawImage(this.vignette, 0, 0, this.w, this.h),
-        (i.globalAlpha = 1)),
+      this.vignette && (devVig(i, this.vignette, this.w, this.h, this.paintedPlate ? 0.3 : 1), (i.globalAlpha = 1)),
       this.flashOverlay &&
         !I.save.data.settings.reducedMotion &&
         I.pulse > 0 &&
@@ -12122,58 +12457,70 @@ class FC {
   menuFx(A, i, I, E, B, G) {
     const S = this.mfx || (this.mfx = { t: B.time, emb: [], dust: [], glow: null }),
       ps = G ? G.ps : 1,
-      dt = Math.max(0, Math.min(0.05, B.time - S.t)),
+      dt = Math.max(0, Math.min(0.05, B.time - S.t)) * DEV.v.menuFx.tempo,
       W = this.w,
       H = this.h,
       P = Math.min(1, B.save.data.settings.particles),
+      D = DEV.v.menuFx,
+      typ = D.typ,
+      ash = typ === "asche",
       mob = B.mobile || W < 700,
-      nE = Math.round((mob ? 30 : 52) * P),
-      nD = Math.round((mob ? 46 : 80) * P),
+      nE = Math.round((mob ? 30 : 52) * P * D.menge * (typ === "glut-staub" || typ === "glut" ? 1 : 0)),
+      nD = Math.round((mob ? 46 : 80) * P * D.menge * (typ === "glut-staub" || typ === "staub" ? 1 : ash ? 1.4 : 0)),
+      dr = D.drift,
+      op = D.deckkraft,
+      wm = D.waerme,
       top = G ? G.top : -40,
       bot = G ? G.bot : I + 150,
       half = G ? G.half : (y) => 55 + ((y - top) / (bot - top)) * 140,
       ax = G ? G.ax : (y) => i + 20 + ((y - top) / (bot - top)) * 10;
     G && S.geo !== G.key && ((S.geo = G.key), (S.emb.length = 0), (S.dust.length = 0));
     S.t = B.time;
+    S.ash !== ash && ((S.ash = ash), (S.dust.length = 0));
+    S.glowW !== wm && ((S.glowW = wm), (S.glow = null));
     if (!S.glow) {
       const c = document.createElement("canvas");
       c.width = c.height = 64;
       const x = c.getContext("2d"),
         r = x.createRadialGradient(32, 32, 0, 32, 32, 32);
-      r.addColorStop(0, "rgba(255,200,120,1)"), r.addColorStop(0.22, "rgba(255,120,30,0.6)"), r.addColorStop(1, "rgba(200,60,10,0)");
+      const rgb = (h, a) => `rgba(${[1, 3, 5].map((i) => parseInt(devTint(h, wm).slice(i, i + 2), 16)).join(",")},${a})`;
+      r.addColorStop(0, rgb("#ffc878", 1)), r.addColorStop(0.22, rgb("#ff781e", 0.6)), r.addColorStop(1, rgb("#c83c0a", 0));
       (x.fillStyle = r), x.fillRect(0, 0, 64, 64), (S.glow = c);
     }
     const ember = (y) => ({
       x: G ? G.ex0 + Math.random() * (G.ex1 - G.ex0) : Math.random() * W,
       y: y ?? (G ? G.ey + Math.random() * 30 * ps : H + 10 + Math.random() * 40),
-      vx: (Math.random() - 0.5) * 14 * ps,
+      vx: (Math.random() - 0.5) * 14 * ps * dr,
       vy: -(26 + Math.random() * 46) * ps,
       ph: Math.random() * 6.28,
       age: 0,
       life: 4 + Math.random() * 5,
-      size: (1.9 + Math.random() * 2.2) * ps,
+      size: (1.9 + Math.random() * 2.2) * ps * D.groesse,
       hot: Math.random() < 0.3,
     });
     const dust = () => {
-      const y = top + Math.random() * (bot - top + 120);
-      return { x: ax(y) + (Math.random() * 2 - 1) * half(y) * 1.35, y, vx: (Math.random() - 0.5) * 8 * ps, vy: (Math.random() - 0.5) * 6 * ps, ph: Math.random() * 6.28, size: (1.1 + Math.random() * 1.6) * ps };
+      const y = ash ? Math.random() * H : top + Math.random() * (bot - top + 120);
+      return { x: ash ? Math.random() * W : ax(y) + (Math.random() * 2 - 1) * half(y) * 1.35, y, vx: (Math.random() - 0.5) * 8 * ps * dr, vy: (Math.random() - 0.5) * 6 * ps + (ash ? (10 + Math.random() * 10) * ps : 0), ph: Math.random() * 6.28, size: (1.1 + Math.random() * 1.6) * ps * D.groesse * (ash ? 1.2 : 1) };
     };
     for (; S.emb.length < nE; ) S.emb.push(ember(G ? G.top + Math.random() * (G.ey - G.top) : Math.random() * H));
     for (; S.dust.length < nD; ) S.dust.push(dust());
     S.emb.length > nE && (S.emb.length = nE), S.dust.length > nD && (S.dust.length = nD);
     A.save();
     for (const d of S.dust) {
-      (d.ph += dt * 0.9), (d.x += (d.vx + Math.sin(d.ph) * 4 * ps) * dt), (d.y += (d.vy + (Math.cos(d.ph * 0.7) * 3 + 2) * ps) * dt);
-      if (d.y > bot + 140 || d.y < top - 10 || Math.abs(d.x - ax(d.y)) > half(d.y) * 1.6) Object.assign(d, dust());
+      (d.ph += dt * 0.9), (d.x += (d.vx + Math.sin(d.ph) * 4 * ps * dr) * dt), (d.y += (d.vy + (Math.cos(d.ph * 0.7) * 3 * dr + 2) * ps) * dt);
+      if (ash ? d.y > H + 10 || d.x < -20 || d.x > W + 20 : d.y > bot + 140 || d.y < top - 10 || Math.abs(d.x - ax(d.y)) > half(d.y) * 1.6) {
+        Object.assign(d, dust()), ash && (d.y = -8);
+        continue;
+      }
       const k = Math.max(0, 1 - Math.abs(d.x - ax(d.y)) / half(Math.min(d.y, bot))),
-        f = d.y > bot ? Math.max(0, 1 - (d.y - bot) / 140) : 1,
-        a = Math.min(1, 0.1 + 1.1 * k) * f * (0.65 + 0.35 * Math.sin(d.ph * 3.1));
+        f = ash || d.y <= bot ? 1 : Math.max(0, 1 - (d.y - bot) / 140),
+        a = Math.min(1, (ash ? 0.38 : 0.1) + 1.1 * k) * f * (0.65 + 0.35 * Math.sin(d.ph * 3.1));
       if (a < 0.02) continue;
-      (A.globalAlpha = a * P), (A.fillStyle = "#ffe6bd"), A.beginPath(), A.arc(d.x, d.y, d.size, 0, Math.PI * 2), A.fill();
+      (A.globalAlpha = Math.min(1, a * P * op)), (A.fillStyle = devTint(ash ? "#cfc6ba" : "#ffe6bd", wm)), A.beginPath(), A.arc(d.x, d.y, d.size, 0, Math.PI * 2), A.fill();
     }
     A.globalCompositeOperation = "lighter";
     for (const e of S.emb) {
-      (e.age += dt), (e.ph += dt * (2 + e.size / ps)), (e.x += (e.vx + Math.sin(e.ph) * 12 * ps) * dt), (e.y += e.vy * dt), (e.vy *= 1 - dt * 0.05);
+      (e.age += dt), (e.ph += dt * (2 + e.size / ps)), (e.x += (e.vx + Math.sin(e.ph) * 12 * ps * dr) * dt), (e.y += e.vy * dt), (e.vy *= 1 - dt * 0.05);
       if (e.age > e.life || e.y < -20) {
         Object.assign(e, ember());
         continue;
@@ -12183,15 +12530,15 @@ class FC {
         a = Math.min(1, u * 6) * (1 - u) ** 1.3 * fl,
         r = e.size * (e.hot ? 1.5 : 1),
         k = r * 9;
-      (A.globalAlpha = a * P), A.drawImage(S.glow, e.x - k, e.y - k, k * 2, k * 2);
-      (A.globalAlpha = a * P),
-        (A.fillStyle = e.hot ? "#fff0c8" : u < 0.5 ? "#ffb35a" : "#e8622a"),
+      (A.globalAlpha = Math.min(1, a * P * op)), A.drawImage(S.glow, e.x - k, e.y - k, k * 2, k * 2);
+      (A.globalAlpha = Math.min(1, a * P * op)),
+        (A.fillStyle = devTint(e.hot ? "#fff0c8" : u < 0.5 ? "#ffb35a" : "#e8622a", wm)),
         A.beginPath(),
         A.ellipse(e.x, e.y, r * 0.8, r * 1.5, Math.sin(e.ph) * 0.4, 0, Math.PI * 2),
         A.fill();
     }
     A.restore();
-    typeof window < "u" && (window.__menuEmbers = { n: S.emb.length, d: S.dust.length });
+    typeof window < "u" && (window.__menuEmbers = { n: S.emb.length, d: S.dust.length, typ });
   }
   mnImage() {
     if (!this.mnImg) {
@@ -12236,8 +12583,9 @@ class FC {
     }
     const now = performance.now() / 1e3,
       F = this.wfl || (this.wfl = { next: now + 2.2 + Math.random() * 2.5, t0: -9, kind: 0 });
-    if (!red && now >= F.next) {
-      (F.t0 = now), (F.kind = Math.floor(Math.random() * 2)), (F.next = now + 4 + Math.random() * 6);
+    const flk = DV("licht", "flackern");
+    if (!red && flk > 0 && now >= F.next) {
+      (F.t0 = now), (F.kind = Math.floor(Math.random() * 2)), (F.next = now + (4 + Math.random() * 6) / Math.max(0.5, flk));
       try {
         !document.hidden && B.audio.buffers?.has("tb_flicker") && B.audio.sound("tb_flicker", 0.96 + Math.random() * 0.08, 0.3);
       } catch {}
@@ -12256,7 +12604,7 @@ class FC {
           dim = v0 + ((v1 - v0) * (pc - p0)) / Math.max(1e-3, p1 - p0);
           break;
         }
-    dim > 0 && ((A.globalAlpha = dim), (A.fillStyle = "#030303"), A.fillRect(0, 0, S.vw, S.vh), (A.globalAlpha = 1)), A.restore();
+    (dim = Math.min(0.92, dim * flk)) > 0 && ((A.globalAlpha = dim), (A.fillStyle = "#030303"), A.fillRect(0, 0, S.vw, S.vh), (A.globalAlpha = 1)), A.restore();
   }
   // t105u: Hauptmenü nach Konzept A – Schiefer, Glühbirne mit Lichtkegel (flackert dauerhaft), NS-Stempel, Held zwischen Schrotthaufen, Glut.
   menuNoir2(img) {
@@ -12289,7 +12637,7 @@ class FC {
       A.save(), A.translate(hx, hy), A.scale(z, z), this.player(0, 0, B.character, B.time * 0.75, !1, !1, this.previewFace), A.restore();
     }
     !B.save.data.settings.reducedMotion && B.save.data.settings.particles > 0 && this.menuFx(A, hero ? hx : dx + 0.731 * dw, hero ? hy : H * 0.45, phone, B);
-    this.vignette && A.drawImage(this.vignette, 0, 0, W, H);
+    this.vignette && devVig(A, this.vignette, W, H);
   }
   menuNoir(img) {
     const A = this.c,
@@ -12318,7 +12666,23 @@ class FC {
     const [gx, gy] = map(921, 516),
       gr = A.createRadialGradient(gx, gy, 0, gx, gy, 190 * sc);
     gr.addColorStop(0, "rgba(255,170,90,0.26)"), gr.addColorStop(1, "rgba(255,150,70,0)");
-    A.save(), A.translate(gx, gy), A.scale(1, 0.24), A.translate(-gx, -gy), (A.fillStyle = gr), A.fillRect(gx - 200 * sc, gy - 200 * sc, 400 * sc, 400 * sc), A.restore();
+    const kg2 = DV("licht", "kegel");
+    A.save(), A.translate(gx, gy), A.scale(1, 0.24), A.translate(-gx, -gy), (A.fillStyle = gr), (A.globalAlpha = Math.min(1, kg2)), A.fillRect(gx - 200 * sc, gy - 200 * sc, 400 * sc, 400 * sc);
+    kg2 > 1 && ((A.globalAlpha = kg2 - 1), A.fillRect(gx - 200 * sc, gy - 200 * sc, 400 * sc, 400 * sc));
+    A.restore();
+    if (kg2 !== 1) {
+      // Lichtkegel der Glühbirne (Konzept: Birne oben bei 935/30, Kegel bis zum Boden 560) verstärken oder abdunkeln
+      const [lx, ly] = map(935, 34),
+        [bx0, by] = map(935 - 230, 560),
+        [bx1] = map(935 + 250, 560);
+      A.save(), A.beginPath(), A.moveTo(lx - 14 * sc, ly), A.lineTo(lx + 14 * sc, ly), A.lineTo(bx1, by), A.lineTo(bx0, by), A.closePath();
+      if (kg2 > 1) {
+        const cg = A.createLinearGradient(0, ly, 0, by);
+        cg.addColorStop(0, "rgba(255,214,150,0.32)"), cg.addColorStop(1, "rgba(255,170,90,0.04)");
+        (A.globalCompositeOperation = "lighter"), (A.globalAlpha = Math.min(1, kg2 - 1)), (A.fillStyle = cg);
+      } else (A.globalAlpha = (1 - kg2) * 0.62), (A.fillStyle = "#050505");
+      A.fill(), A.restore();
+    }
     const [hx, hy] = map(921, 433),
       hs = 3.05 * sc;
     A.save(), A.translate(hx, hy), A.scale(hs, hs), this.player(0, 0, B.character, B.time * 0.75, !1, !1, this.previewFace), A.restore();
@@ -12345,8 +12709,9 @@ class FC {
     // dauerhaftes Lampenflackern wie im Talentbaum
     const now = performance.now() / 1e3,
       F = this.mfl || (this.mfl = { next: now + 1.8 + Math.random() * 2.5, t0: -9, kind: 0 });
-    if (!B.save.data.settings.reducedMotion && now >= F.next) {
-      (F.t0 = now), (F.kind = Math.floor(Math.random() * 3)), (F.next = now + 2.6 + Math.random() * 5.2);
+    const flk = DV("licht", "flackern");
+    if (!B.save.data.settings.reducedMotion && flk > 0 && now >= F.next) {
+      (F.t0 = now), (F.kind = Math.floor(Math.random() * 3)), (F.next = now + (2.6 + Math.random() * 5.2) / Math.max(0.5, flk));
       try {
         !document.hidden && B.audio.buffers?.has("tb_flicker") && B.audio.sound("tb_flicker", 0.94 + Math.random() * 0.12, 0.45 + Math.random() * 0.25);
       } catch {}
@@ -12367,7 +12732,7 @@ class FC {
           break;
         }
     const hum = B.save.data.settings.reducedMotion ? 0 : now % 4.7 > 4.6 || (now % 4.7 > 1.45 && now % 4.7 < 1.55) ? 0.06 : 0;
-    (dim = Math.max(dim, hum)) > 0 && ((A.globalAlpha = dim), (A.fillStyle = "#030303"), A.fillRect(0, 0, S.vw, S.vh), (A.globalAlpha = 1));
+    (dim = Math.min(0.92, Math.max(dim, hum) * flk)) > 0 && ((A.globalAlpha = dim), (A.fillStyle = "#030303"), A.fillRect(0, 0, S.vw, S.vh), (A.globalAlpha = 1));
     (this.mnDim = dim), A.restore();
   }
   menu() {
@@ -12437,7 +12802,7 @@ class FC {
       g.line(i + 70, -5, i + 76, 15, "#ffcd7b", 2),
       g.line(i + 80, 8, i + 92, 18, "#ffbb58", 1),
       (A.globalAlpha = 1)),
-      this.vignette && A.drawImage(this.vignette, 0, 0, this.w, this.h);
+      this.vignette && devVig(A, this.vignette, this.w, this.h);
   }
 }
 const tB = 8,
@@ -13321,30 +13686,36 @@ class wC {
   }
   settings() {
     const A = this.g.save.data.settings,
-      g = [
-        ["master", "Gesamtlautstärke"],
-        ["sfx", "Effektlautstärke"],
-        ["music", "Musiklautstärke"],
-        ["uiVolume", "Menülautstärke"],
-        ["cameraZoom", "Kamera-Zoom", 60, 120],
-        ["shake", "Bildschirmerschütterung"],
-        ["flashes", "Trefferblitze"],
-        ["particles", "Partikelstärke"],
-      ];
-    return `<section class="screen dim settings-screen">${this.header("Einstellungen", "Kamera, Klang & Effekte")}<div class="settings panel">${g.map(([B, E, o = 0, i = 100]) => `<label class="setting"><span>${E}</span><input data-setting="${B}" type="range" min="${o}" max="${i}" step="5" value="${Math.round(Number(A[B]) * 100)}"><output>${Math.round(Number(A[B]) * 100)} %</output></label>`).join("")}${[
-      ["numbers", "Schadenszahlen"],
-      ["manual", "Manuelles Zielen"],
-      ["reducedMotion", "Reduzierte Bewegung & Blitze"],
-      ["dangerContrast", "Gefahren: hoher Kontrast & Muster"],
-      ["muteUnfocused", "Ton im Hintergrund stummschalten"],
-    ]
-      .map(
-        ([B, E]) =>
-          `<label class="setting"><span>${E}</span><input data-setting="${B}" type="checkbox" ${A[B] ? "checked" : ""}><span></span></label>`,
-      )
-      .join(
-        "",
-      )}<div class="quality-setting"><b>Darstellungsqualität</b><div class="row">${["auto", "high", "low"].map((B, E) => this.button("quality", ["Automatisch", "Hoch", "Leistung"][E], "secondary compact " + (A.quality === B ? "selected" : ""), B)).join("")}</div></div><p class="notice">Alles wird sofort lokal gespeichert. Kamera-Zoom: 60 % = mehr Übersicht, 75 % = Standard, 120 % = näher. Wirkt sofort im Spielfeld; HUD und Menüs bleiben unverändert groß. Manuelles Zielen: Maus oder rechter Stick. Q / Controller Y schaltet auch im Kampf um. Gegner-Warnungen bleiben immer sichtbar. Kein großflächiges Stroboskop-Flackern.</p><div class="separator"></div><div class="row between"><span class="small muted">Klangprobe</span>${this.button("soundtest", "♪ Sammelton", "secondary compact")}</div><div class="separator"></div><h3>Dein Spielstand</h3><p class="notice">Automatische lokale Sicherung. Fortsetzen startet am letzten Wellenbeginn, nicht mitten im Kampf. Exportierte JSON-Dateien bleiben bei dir. Import ersetzt den lokalen Fortschritt; nur im Hauptmenü verfügbar.</p><div class="row save-actions">${this.button("exportSave", "Sicherung exportieren", "secondary compact")}${this.button("importSave", "Sicherung importieren", "secondary compact", "", this.returnScreen !== "home")}${this.button("showGuide", "Kurzanleitung zeigen", "secondary compact")}</div>${this.importError ? `<p class="notice danger-text" role="alert">${this.importError}</p>` : ""}${this.importCandidate ? `<div class="import-preview panel" role="alert"><b>Sicherung wirklich übernehmen?</b><p>${this.importCandidate.points} Talentpunkte · ${this.importCandidate.history.length} gespeicherte Runs. Der bisherige Spielstand wird ersetzt.</p><div class="row">${this.button("confirmImport", "Übernehmen", "danger compact")}${this.button("cancelImport", "Abbrechen", "secondary compact")}</div></div>` : ""}</div></section>`;
+      pct = (k) => Math.round(Number(A[k]) * 100),
+      slider = (k, l, h = "", o = 0, i = 100) => `<label class="setting set-row"><span class="set-l">${l}${h ? `<small>${h}</small>` : ""}</span><input data-setting="${k}" type="range" min="${o}" max="${i}" step="5" value="${pct(k)}" aria-label="${l}"><output>${pct(k)} %</output></label>`,
+      toggle = (k, l, h = "") => `<label class="setting set-row set-toggle"><span class="set-l">${l}${h ? `<small>${h}</small>` : ""}</span><input data-setting="${k}" type="checkbox" role="switch" ${A[k] ? "checked" : ""} aria-label="${l}"><span class="set-sw" aria-hidden="true"></span></label>`,
+      group = (id, n, title, body) => `<section class="set-group" id="set-${id}" aria-labelledby="set-${id}-h"><h3 id="set-${id}-h"><small>${n}</small>${title}</h3>${body}</section>`;
+    return `<section class="screen dim settings-screen set-v2">${this.header("Einstellungen", "Allgemein")}<div class="settings panel set-grid"><div class="set-col">${group(
+      "klang",
+      "01",
+      "Klang",
+      slider("master", "Gesamtlautstärke") + slider("sfx", "Effekte") + slider("music", "Musik") + slider("uiVolume", "Menütöne", "Klicks und Hinweise") + toggle("muteUnfocused", "Im Hintergrund stumm", "Wenn das Spiel nicht im Vordergrund ist") + `<div class="set-row set-act"><span class="set-l">Klangprobe</span>${this.button("soundtest", "♪ Sammelton", "secondary compact")}</div>`,
+    )}${group(
+      "hilfen",
+      "04",
+      "Spielhilfen",
+      toggle("numbers", "Schadenszahlen") + toggle("manual", "Manuelles Zielen", "Maus oder rechter Stick · Q / Controller Y schaltet um") + toggle("dangerContrast", "Gefahren deutlich", "Hoher Kontrast & Muster bei Gegnerangriffen"),
+    )}</div><div class="set-col">${group(
+      "bild",
+      "02",
+      "Bild & Kamera",
+      slider("cameraZoom", "Kamera-Zoom", "60 % Übersicht · 75 % Standard · 120 % näher", 60, 120) + `<div class="quality-setting set-row set-seg"><span class="set-l">Darstellungsqualität<small>Leistung hilft auf älteren Geräten</small></span><div class="row">${["auto", "high", "low"].map((B, E) => this.button("quality", ["Auto", "Hoch", "Leistung"][E], "secondary compact " + (A.quality === B ? "selected" : ""), B)).join("")}</div></div>`,
+    )}${group(
+      "effekte",
+      "03",
+      "Effekte",
+      slider("shake", "Bildschirmerschütterung") + slider("flashes", "Trefferblitze") + slider("particles", "Partikel") + toggle("reducedMotion", "Reduzierte Bewegung", "Weniger Wackeln, Blitze und Partikel"),
+    )}</div>${group(
+      "stand",
+      "05",
+      "Spielstand",
+      `<p class="set-note">Wird automatisch lokal gesichert. Fortsetzen startet am letzten Wellenbeginn. Import ersetzt den Fortschritt und geht nur im Hauptmenü.</p><div class="row save-actions">${this.button("exportSave", "Sicherung exportieren", "secondary compact")}${this.button("importSave", "Sicherung importieren", "secondary compact", "", this.returnScreen !== "home")}${this.button("showGuide", "Kurzanleitung", "secondary compact")}</div>${this.importError ? `<p class="notice danger-text" role="alert">${this.importError}</p>` : ""}${this.importCandidate ? `<div class="import-preview panel" role="alert"><b>Sicherung wirklich übernehmen?</b><p>${this.importCandidate.points} Talentpunkte · ${this.importCandidate.history.length} gespeicherte Runs. Der bisherige Spielstand wird ersetzt.</p><div class="row">${this.button("confirmImport", "Übernehmen", "danger compact")}${this.button("cancelImport", "Abbrechen", "secondary compact")}</div></div>` : ""}`,
+    )}<p class="set-foot">Alles wird sofort gespeichert. Gegner-Warnungen bleiben immer sichtbar, kein großflächiges Flackern.</p></div></section>`;
   }
   setting(A) {
     const g = A.dataset.setting;
@@ -13367,7 +13738,7 @@ class wC {
     const S = nsStage(),
       r = this.root;
     if (!r) return;
-    const hk = S.portrait ? 0.6 * (S.vw / 390) : S.flat ? Math.max(S.k, 0.64) : S.k;
+    const hk = (S.portrait ? 0.6 * (S.vw / 390) : S.flat ? Math.max(S.k, 0.64) : S.k) * DV("ui", "hud");
     const v = { "--nsq": S.q.toFixed(1), "--nhk": hk.toFixed(5), "--nk": S.k.toFixed(5), "--nsw": S.W.toFixed(1), "--nsh": S.H.toFixed(1), "--nox": S.ox.toFixed(1), "--noy": S.oy.toFixed(1) };
     for (const n in v) r.style.setProperty(n, v[n]);
     document.body.dataset.ns = S.portrait ? "portrait" : S.flat ? "flat" : "wide";
@@ -13634,6 +14005,7 @@ class wC {
   tbFlick(k = Math.floor(Math.random() * 3)) {
     const root = document.getElementById("tb-screen");
     if (!root) return;
+    if (DV("licht", "flackern") <= 0) return;
     root.classList.remove("tb-flick0", "tb-flick1", "tb-flick2"), void root.offsetWidth, root.classList.add("tb-flick" + k);
     this.tbSound("tb_flicker", 0.45 + Math.random() * 0.25, 0.94 + Math.random() * 0.12);
     setTimeout(() => root.classList.remove("tb-flick" + k), 900);

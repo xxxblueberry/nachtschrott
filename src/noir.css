@@ -1968,3 +1968,102 @@ html body[data-ns][data-motion="reduced"]:is([data-screen="settings"],[data-scre
 @keyframes nx-rise { from { opacity: 0; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
 @keyframes nx-hazard { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes nx-seal { from { scale: 0.3; rotate: -25deg; opacity: 0; } to { scale: 1; rotate: 0deg; opacity: 1; } }
+/* ===== t118u: Dev-Menü (nur PC) im Noir-Kreide-Stil ===== */
+#devmenu { position: fixed; top: 12px; right: 12px; bottom: 12px; width: 392px; z-index: 9000; display: none; flex-direction: column; box-sizing: border-box; color: #efe6d2; font: 500 13px/1.3 Figtree, Sora, sans-serif; background: radial-gradient(120% 60% at 70% 0%, rgba(255, 170, 90, 0.08), transparent 60%), linear-gradient(180deg, rgba(22, 21, 20, 0.97), rgba(12, 11, 11, 0.97)); border: 1px solid rgba(239, 230, 210, 0.16); border-radius: 6px; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(0, 0, 0, 0.6); overflow: hidden; }
+#devmenu.open { display: flex; animation: dev-in 0.18s ease-out; }
+@keyframes dev-in { from { opacity: 0; translate: 16px 0; } }
+#devmenu * { box-sizing: border-box; }
+#devmenu .dev-head { position: relative; padding: 14px 16px 12px; border-bottom: 1px dashed rgba(239, 230, 210, 0.16); }
+#devmenu .dev-head small { display: block; color: #ff8a2a; font: 800 10.5px/1 "Barlow Condensed", Figtree, sans-serif; letter-spacing: 0.16em; text-transform: uppercase; }
+#devmenu .dev-head h2 { margin: 4px 0 6px; font: 900 30px/0.95 "Barlow Condensed", Figtree, sans-serif; letter-spacing: 0.01em; text-transform: uppercase; color: #f3e9d4; text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6); }
+#devmenu .dev-hazard { display: block; width: 74px; height: 5px; background: repeating-linear-gradient(-45deg, #ff7a1a 0 7px, transparent 7px 12px); }
+#devmenu .dev-x { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; }
+#devmenu button { cursor: pointer; color: #efe6d2; font: 700 12px/1 Figtree, sans-serif; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(239, 230, 210, 0.2); border-radius: 4px; padding: 7px 9px; }
+#devmenu button:hover { border-color: #ff8a2a; color: #fff; }
+#devmenu button:focus-visible, #devmenu input:focus-visible, #devmenu summary:focus-visible { outline: 2px solid #ffb35a; outline-offset: 2px; }
+#devmenu .dev-tools { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 16px; border-bottom: 1px solid rgba(0, 0, 0, 0.5); }
+#devmenu .dev-tools .dev-warn { margin-left: auto; color: #ff8f80; border-color: rgba(255, 90, 70, 0.35); }
+#devmenu .dev-scroll { flex: 1; overflow: auto; padding: 6px 10px 12px; scrollbar-width: thin; scrollbar-color: #5a4a3a transparent; }
+#devmenu .dev-group { margin: 6px 0; border: 1px solid rgba(239, 230, 210, 0.1); border-radius: 5px; background: rgba(255, 255, 255, 0.02); }
+#devmenu .dev-group.dev-here > summary small::after { content: " · hier sichtbar"; color: #ffb35a; }
+#devmenu .dev-group[open] { background: rgba(255, 255, 255, 0.035); border-color: rgba(255, 138, 42, 0.28); }
+#devmenu summary { list-style: none; display: grid; grid-template-columns: 14px 1fr auto auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 9px 10px; cursor: pointer; user-select: none; }
+#devmenu summary::-webkit-details-marker { display: none; }
+#devmenu summary::before { content: "▸"; grid-row: 1 / 3; color: #ff8a2a; transition: rotate 0.15s; }
+#devmenu details[open] > summary::before { rotate: 90deg; }
+#devmenu summary b { font: 800 15px/1.1 "Barlow Condensed", Figtree, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: #f3e9d4; }
+#devmenu summary small { grid-column: 2; color: rgba(239, 230, 210, 0.5); font-size: 11px; }
+#devmenu summary .dev-count { grid-column: 3; grid-row: 1 / 3; font: 700 10.5px/1 Figtree, sans-serif; font-style: normal; color: #ffb35a; background: rgba(255, 122, 26, 0.12); border-radius: 10px; padding: 4px 7px; }
+#devmenu summary .dev-mini { grid-column: 4; grid-row: 1 / 3; width: 30px; height: 30px; padding: 0; font-size: 15px; }
+#devmenu .dev-body { padding: 2px 12px 10px 32px; }
+#devmenu .dev-row { display: grid; grid-template-columns: 1fr 128px 62px; align-items: center; gap: 8px; min-height: 32px; border-top: 1px dashed rgba(239, 230, 210, 0.08); }
+#devmenu .dev-row:first-child { border-top: 0; }
+#devmenu .dev-row .dev-l { color: rgba(239, 230, 210, 0.86); }
+#devmenu .dev-row.dev-changed .dev-l { color: #ffcf9a; }
+#devmenu .dev-row.dev-changed .dev-l::after { content: " •"; color: #ff8a2a; }
+#devmenu .dev-row output { text-align: right; font: 800 13px/1 "Barlow Condensed", Figtree, sans-serif; color: #ff9a3c; font-variant-numeric: tabular-nums; }
+#devmenu input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; margin: 0; cursor: pointer; }
+#devmenu input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, #6b5b4a, #3a332c); }
+#devmenu input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: #4a3f35; }
+#devmenu input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%; background: #ff7a1a; border: 2px solid #1a1512; box-shadow: 0 0 0 1px #ffb35a; }
+#devmenu input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: #ff7a1a; border: 2px solid #1a1512; }
+#devmenu .dev-choice { grid-template-columns: 1fr; gap: 6px; padding: 6px 0 8px; }
+#devmenu .dev-seg { display: flex; flex-wrap: wrap; gap: 4px; }
+#devmenu .dev-seg button { padding: 6px 8px; font-size: 11.5px; }
+#devmenu .dev-seg button.on { background: rgba(255, 122, 26, 0.18); border-color: #ff7a1a; color: #ffd2a4; }
+#devmenu .dev-foot { display: flex; justify-content: space-between; gap: 8px; padding: 8px 16px; font-size: 10.5px; color: rgba(239, 230, 210, 0.45); border-top: 1px dashed rgba(239, 230, 210, 0.14); }
+#devmenu .dev-msg { color: #ffb35a; }
+@media (hover: none) and (pointer: coarse) { #devmenu { display: none !important; } }
+#devfx-grain { position: fixed; inset: -40px; z-index: 8990; pointer-events: none; mix-blend-mode: overlay; background-size: 160px 160px; animation: dev-grain 0.5s steps(4) infinite; }
+@keyframes dev-grain { 0% { translate: 0 0; } 25% { translate: -23px 11px; } 50% { translate: 17px -19px; } 75% { translate: -9px -31px; } }
+html[data-dev-ink] body[data-ns] #ui:not(#_):not(#__)::after, html[data-dev-ink] body #ui:not(#_):not(#__) .nh .nh-ink { filter: opacity(var(--dev-ink, 1)); }
+html[data-dev-ns] body #ui:not(#_):not(#__) :is(.nl-ns, .nl-stampmark, .nw-soldstamp) { filter: opacity(var(--dev-ns, 1)); }
+html[data-dev-ns] body #ui:not(#_):not(#__) .modal::after, html[data-dev-ns] body #ui:not(#_):not(#__) .quit::after { filter: opacity(var(--dev-ns, 1)); }
+/* ===== t118u: Einstellungen › Allgemein aufgeräumt ===== */
+html body #ui:not(#_):not(#__) .set-v2 .settings.set-grid { display: grid !important; grid-template-columns: 1fr !important; gap: 12px !important; max-width: 640px !important; width: 100% !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; border-image: none !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-group { position: relative !important; padding: 12px 16px 6px !important; background: linear-gradient(180deg, rgba(30, 28, 25, 0.93), rgba(15, 14, 13, 0.95)) !important; border: 1px solid rgba(206, 194, 170, 0.14) !important; border-radius: 4px !important; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45) !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-group h3 { display: flex !important; align-items: baseline !important; gap: 9px !important; margin: 0 0 4px !important; padding: 0 0 8px !important; border-bottom: 1px dashed rgba(206, 194, 170, 0.22) !important; font: 800 19px/1 "Barlow Condensed", sans-serif !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; color: #efe6d2 !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-group h3 small { font: 800 12px/1 "Barlow Condensed", sans-serif !important; color: #e8852a !important; letter-spacing: 0.12em !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-row { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(110px, 190px) 50px !important; align-items: center !important; gap: 14px !important; min-height: 46px !important; padding: 6px 0 !important; margin: 0 !important; border: 0 !important; border-top: 1px solid rgba(206, 194, 170, 0.08) !important; box-shadow: none !important; background: none !important; font-size: 14px !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-group h3 + .set-row { border-top: 0 !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-l { display: flex !important; flex-direction: column !important; gap: 2px !important; color: #efe6d2 !important; font-weight: 600 !important; line-height: 1.2 !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-l small { color: rgba(207, 198, 180, 0.62) !important; font-size: 11.5px !important; font-weight: 500 !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-row output { text-align: right !important; font: 800 15px/1 "Barlow Condensed", sans-serif !important; color: #ff9a3c !important; font-variant-numeric: tabular-nums !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-row input[type="range"] { width: 100% !important; min-height: 36px !important; margin: 0 !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-toggle, html body #ui:not(#_):not(#__) .set-v2 .set-act, html body #ui:not(#_):not(#__) .set-v2 .set-seg { grid-template-columns: minmax(0, 1fr) auto !important; cursor: pointer !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-toggle { position: relative !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-toggle input[type="checkbox"] { position: absolute !important; right: 0 !important; top: 50% !important; translate: 0 -50% !important; width: 52px !important; height: 30px !important; margin: 0 !important; opacity: 0 !important; z-index: 2 !important; cursor: pointer !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-sw { position: relative !important; display: block !important; width: 52px !important; height: 28px !important; border-radius: 14px !important; background: #2a2622 !important; box-shadow: inset 0 0 0 1px rgba(206, 194, 170, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5) !important; transition: background 0.15s !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-sw::after { content: "" !important; position: absolute !important; left: 4px !important; top: 4px !important; width: 20px !important; height: 20px !important; border-radius: 50% !important; background: #a39886 !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important; transition: translate 0.15s, background 0.15s !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-toggle input:checked + .set-sw { background: linear-gradient(180deg, #b44c22, #8a3418) !important; box-shadow: inset 0 0 0 1px #e8852a !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-toggle input:checked + .set-sw::after { translate: 24px 0 !important; background: #f6e9d6 !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-toggle input:focus-visible + .set-sw { outline: 2px solid #ff9a3c !important; outline-offset: 3px !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-seg .row { display: flex !important; gap: 6px !important; flex-wrap: wrap !important; justify-content: flex-end !important; margin: 0 !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-seg .row button, html body #ui:not(#_):not(#__) .set-v2 .set-act button { min-height: 40px !important; min-width: 0 !important; padding: 0 14px !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-note { margin: 6px 0 10px !important; font-size: 12.5px !important; line-height: 1.45 !important; color: rgba(207, 198, 180, 0.78) !important; background: none !important; border: 0 !important; padding: 0 !important; }
+html body #ui:not(#_):not(#__) .set-v2 .save-actions { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 8px !important; margin: 0 0 10px !important; }
+html body #ui:not(#_):not(#__) .set-v2 .save-actions button { min-height: 42px !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-foot { grid-column: 1 / -1 !important; margin: 2px 2px 8px !important; font-size: 11.5px !important; color: rgba(207, 198, 180, 0.5) !important; background: none !important; border: 0 !important; padding: 0 !important; }
+html body #ui:not(#_):not(#__) .set-v2 .import-preview { margin: 0 0 10px !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-col { display: contents !important; }
+html body #ui:not(#_):not(#__) .set-v2 #set-klang { order: 1 !important; }
+html body #ui:not(#_):not(#__) .set-v2 #set-bild { order: 2 !important; }
+html body #ui:not(#_):not(#__) .set-v2 #set-effekte { order: 3 !important; }
+html body #ui:not(#_):not(#__) .set-v2 #set-hilfen { order: 4 !important; }
+html body #ui:not(#_):not(#__) .set-v2 #set-stand { order: 5 !important; }
+html body #ui:not(#_):not(#__) .set-v2 .set-foot { order: 6 !important; }
+@media (min-width: 1100px) and (min-height: 560px) {
+  html body #ui:not(#_):not(#__) .set-v2 .settings.set-grid { grid-template-columns: 1fr 1fr !important; max-width: 1080px !important; align-items: start !important; }
+  html body #ui:not(#_):not(#__) .set-v2 .set-col { display: flex !important; flex-direction: column !important; gap: 12px !important; min-width: 0 !important; }
+  html body #ui:not(#_):not(#__) .set-v2 #set-stand { grid-column: 1 / -1 !important; }
+  html body #ui:not(#_):not(#__) .set-v2 #set-stand .set-note { margin-bottom: 8px !important; }
+}
+@media (max-width: 520px) {
+  html body #ui:not(#_):not(#__) .set-v2 .set-group { padding: 10px 12px 4px !important; }
+  html body #ui:not(#_):not(#__) .set-v2 .set-row { grid-template-columns: minmax(0, 1fr) 118px 44px !important; gap: 10px !important; font-size: 13.5px !important; }
+  html body #ui:not(#_):not(#__) .set-v2 .set-toggle, html body #ui:not(#_):not(#__) .set-v2 .set-act { grid-template-columns: minmax(0, 1fr) auto !important; }
+  html body #ui:not(#_):not(#__) .set-v2 .set-seg { grid-template-columns: 1fr !important; gap: 8px !important; padding: 10px 0 !important; }
+  html body #ui:not(#_):not(#__) .set-v2 .set-seg .row { justify-content: stretch !important; }
+  html body #ui:not(#_):not(#__) .set-v2 .set-seg .row button { flex: 1 !important; }
+  html body #ui:not(#_):not(#__) .set-v2 .save-actions button { flex: 1 1 140px !important; height: auto !important; max-height: 48px !important; }
+}
