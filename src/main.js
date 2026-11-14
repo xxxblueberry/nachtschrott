@@ -31,11 +31,11 @@ const DEV_KEY = "nachtschrott-dev-v1",
       { k: "kontrast", label: "Kontrast", min: 0.5, max: 1.5, def: 1 },
       { k: "saettigung", label: "Sättigung", min: 0, max: 2, def: 1 },
       { k: "farbton", label: "Farbstich kalt ↔ warm", min: 0, max: 1, step: 0.02, def: 0.5, fmt: "temp" },
-      { k: "vignette", label: "Vignette", min: 0, max: 2, def: 1 },
+      { k: "vignette", label: "Vignette", min: 0, max: 2, def: 0.1 },
       { k: "koernung", label: "Filmkorn", min: 0, max: 1, def: 0 },
     ] },
     { id: "noir", name: "Noir-Rahmen & Stempel", hint: "Tintenrand und roter NS-Stempel", items: [
-      { k: "tinte", label: "Tintenrahmen", min: 0, max: 1, def: 1 },
+      { k: "tinte", label: "Tintenrahmen", min: 0, max: 1, def: 0.1 },
       { k: "stempel", label: "NS-Stempel Deckkraft", min: 0, max: 1, def: 1 },
     ] },
     { id: "welt", name: "Welt & Kamera", hint: "Kampf und Hof", items: [
@@ -79,7 +79,10 @@ function devSanitize(src) {
   return o;
 }
 try {
-  DEV.v = devSanitize(JSON.parse(localStorage.getItem(DEV_KEY) || "{}"));
+  // t126u: Rand-Texturen + Vignette standardmäßig nur noch 10 %. Alte Speicherstände mit dem alten Standard (1) übernehmen den neuen.
+  const raw = JSON.parse(localStorage.getItem(DEV_KEY) || "{}");
+  raw && !(raw._v >= 2) && (raw.noir?.tinte === 1 && delete raw.noir.tinte, raw.bild?.vignette === 1 && delete raw.bild.vignette);
+  DEV.v = devSanitize(raw);
 } catch {
   DEV.v = devDefaults();
 }
@@ -164,7 +167,7 @@ function devAnimRate() {
 }
 function devSave() {
   try {
-    localStorage.setItem(DEV_KEY, JSON.stringify(DEV.v));
+    localStorage.setItem(DEV_KEY, JSON.stringify({ ...DEV.v, _v: 2 }));
   } catch {}
 }
 function devIsPC() {

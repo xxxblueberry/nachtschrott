@@ -2083,3 +2083,6 @@ body #ui:not(#_):not(#__) .tb-screen.tb-intro .tb-bulb { animation: tb-on 1.1s l
 body[data-motion="reduced"] #ui:not(#_):not(#__) .tb-screen .tb-bulb { animation: none !important; }
 @media (max-width: 600px) and (orientation: portrait) { body #ui:not(#_):not(#__) .tb-screen .tb-bulb { left: 63px; } }
 @keyframes tb-fade { from { opacity: 0; } to { opacity: 1; } }
+/* t126u: Tintenrand auch im Levelaufstieg nur in Stärke „Tintenrahmen" (Standard 10 %); die Abdunklung selbst bleibt */
+body #ui:not(#_):not(#__) .nl .nl-shade { border-image: none !important; }
+body #ui:not(#_):not(#__) .nl .nl-shade::before { content: "" !important; position: absolute !important; inset: calc(-101px * var(--nk, 1)) calc(-115px * var(--nk, 1)) !important; pointer-events: none !important; box-sizing: border-box !important; border-style: solid !important; border-color: transparent !important; border-width: calc(101px * var(--nk, 1)) calc(115px * var(--nk, 1)) !important; border-image: var(--ns-ink) 126 144 fill / calc(101px * var(--nk, 1)) calc(115px * var(--nk, 1)) / 0 stretch !important; opacity: var(--dev-ink, 1) !important; }
