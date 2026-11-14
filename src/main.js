@@ -2549,6 +2549,13 @@ class No {
 const d = new No(),
   bo = {
     sounds: {
+      tb_chalk: { bank: "core", files: ["tb_chalk-0", "tb_chalk-1", "tb_chalk-2"] },
+      tb_stamp: { bank: "core", files: ["tb_stamp-0", "tb_stamp-1"] },
+      tb_locked: { bank: "core", files: ["tb_locked-0", "tb_locked-1"] },
+      tb_paper: { bank: "core", files: ["tb_paper-0", "tb_paper-1", "tb_paper-2"] },
+      tb_reset: { bank: "core", files: ["tb_reset-0"] },
+      tb_flicker: { bank: "core", files: ["tb_flicker-0", "tb_flicker-1", "tb_flicker-2"] },
+      tb_open: { bank: "core", files: ["tb_open-0"] },
       shot: { bank: "combat", files: ["shot-0", "shot-1", "shot-2", "shot-3"] },
       shotgun: { bank: "combat", files: ["shotgun-0", "shotgun-1", "shotgun-2", "shotgun-3"] },
       turret: { bank: "combat", files: ["turret-0", "turret-1", "turret-2"] },
@@ -2617,6 +2624,13 @@ const d = new No(),
     },
   },
   vo = {
+    tb_chalk: { gain: 0.34, prio: 5, max: 2, gap: 0.08, bus: "ui", legacy: "hover" },
+    tb_stamp: { gain: 0.85, prio: 5, max: 1, gap: 0.12, bus: "ui", duck: 0.2, legacy: "buy" },
+    tb_locked: { gain: 0.6, prio: 5, max: 1, gap: 0.15, bus: "ui", legacy: "click" },
+    tb_paper: { gain: 0.42, prio: 5, max: 1, gap: 0.06, bus: "ui", legacy: "hover" },
+    tb_reset: { gain: 0.75, prio: 5, max: 1, gap: 0.4, bus: "ui", legacy: "upgrade" },
+    tb_flicker: { gain: 0.16, prio: 2, max: 1, gap: 0.3, bus: "ui", legacy: "" },
+    tb_open: { gain: 0.5, prio: 5, max: 1, gap: 0.5, bus: "ui", legacy: "" },
     shot: { gain: 0.42, prio: 3, max: 3, gap: 0.045, legacy: "shot" },
     shotgun: { gain: 0.5, prio: 3, max: 2, gap: 0.07, legacy: "shotgun" },
     turret: { gain: 0.3, prio: 2, max: 2, gap: 0.06, legacy: "shot" },
@@ -12373,7 +12387,7 @@ class wC {
           (o &&
             !o.hasAttribute("disabled") &&
             (g.audio.init(),
-            g.audio.sound("click", Ag(g.save.data.settings.uiTheme).pitch),
+            (o.dataset.action.startsWith("tb") || g.audio.sound("click", Ag(g.save.data.settings.uiTheme).pitch)),
             this.action(o.dataset.action, o.dataset.id || "", o)));
       }),
       A.addEventListener("mouseover", (E) => {
@@ -12418,6 +12432,7 @@ class wC {
   }
   render() {
     const A = this.g;
+    (this.tbIntro = this.screen === "talents" && this.tbWas !== "talents"), (this.tbWas = this.screen);
     (this.r.mode =
       [
         "home",
@@ -12535,14 +12550,14 @@ class wC {
             : !Q.shiftKey && document.activeElement === h && (t?.focus(), Q.preventDefault());
         });
     }
-    this.screen === "talents" && this.bindTree(),
+    this.screen === "talents" && this.tbBind(),
       ["combat", "level", "pause"].includes(this.screen) && this.updateHUD(!0),
       A.save.error && this.screen === "home" && this.toast(A.save.error);
   }
   credits() {
     const A = JSON.parse(document.getElementById("font-licenses")?.textContent || "{}"),
       g = (B) => B.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
-    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
+    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Talentbaum (Werkstatt): Schiefer-Hintergrund, Wachssiegel und NS-Stempel für dieses Spiel erzeugt und nachbearbeitet. Klänge eigene Synthese (Kreide, Röhrenbrummen, Flackern, Siegel-Schlag, Bröseln), geschichtet mit „RPG Sounds“ von Kenney (kenney.nl, CC0 1.0, über OpenGameArt.org).</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
       A,
     )
       .map(
@@ -13067,31 +13082,235 @@ class wC {
       (g === "master" || g === "sfx") && this.g.audio.sound("pickup"),
       g === "uiVolume" && this.g.audio.sound("click");
   }
+  // ===== t97u: Talentbaum im Noir-Kreide-Stil (Konzept B) – nur Präsentation, Talent-Logik/Speicherstand unverändert =====
+  tbLayout() {
+    // Weltkoordinaten (1000 × 640); drei Zweige = die drei Äste unter "Nachtwache" (Schlagkraft · Schnelle Hände · Altmetall)
+    const P = {
+      root: [55, 320],
+      might: [250, 105], vigor: [480, 22], dash: [480, 105], crit: [480, 188], armor: [715, 22], leech: [715, 188],
+      haste: [250, 320], feet: [480, 320], regen: [715, 320], crown: [940, 320],
+      wealth: [250, 535], collect: [480, 452], luck: [715, 452], tech: [480, 618], spark: [715, 535], coil: [715, 618],
+    };
+    for (const t of b) P[t.id] || (P[t.id] = t.parent && P[t.parent] ? [Math.min(960, P[t.parent][0] + 190), P[t.parent][1]] : [500, 320]);
+    const rows = ["might", "haste", "wealth"].filter((h) => b.some((t) => t.id === h));
+    const branch = {};
+    for (const t of b) {
+      let c = t;
+      while (c && c.parent && c.parent !== "root") c = b.find((o) => o.id === c.parent);
+      branch[t.id] = t.id === "root" ? -1 : rows.indexOf(c ? c.id : "");
+    }
+    const depth = (t) => (t.parent ? 1 + depth(b.find((o) => o.id === t.parent)) : 0);
+    return { P, rows, branch, depth };
+  }
+  tbState(t) {
+    const s = this.g.save.data,
+      r = s.talents[t.id] || 0,
+      open = !t.parent || (s.talents[t.parent] || 0) > 0;
+    return { r, open, cls: r >= t.max ? "maxed" : r > 0 ? "learned" : open ? "available" : "locked" };
+  }
   talents() {
-    const A = this.g.save.data;
-    return `<section class="screen dim">${this.header("Talentbaum", "Was die Nacht dich lehrt", `<span class="pill gold">✦ ${A.points} PUNKTE</span>${this.button("resetTalents", "Kostenlos zurücksetzen", "secondary compact")}`)}<div class="talent-layout"><div class="tree-viewport" id="tree-viewport"><div class="tree-world" id="tree-world"><svg width="1200" height="1000">${b
-      .filter((g) => g.parent)
-      .map((g) => {
-        const B = b.find((o) => o.id === g.parent),
-          E = (A.talents[B.id] || 0) > 0;
-        return `<path d="M ${B.x + 600} ${B.y + 850} C ${B.x + 600} ${B.y + 790}, ${g.x + 600} ${g.y + 910}, ${g.x + 600} ${g.y + 850}" stroke="${E ? "#f1c365" : "#8a7143"}" stroke-width="${E ? 4 : 2}" fill="none" ${E ? "" : 'stroke-dasharray="4 7"'}/>`;
+    const A = this.g.save.data,
+      L = this.tbLayout(),
+      pct = (p) => `left:${(p[0] / 10).toFixed(2)}%;top:${((p[1] / 640) * 100).toFixed(2)}%`;
+    b.some((t) => t.id === this.selectedTalent) || (this.selectedTalent = "root");
+    const edges = b
+      .filter((t) => t.parent)
+      .map((t, i) => {
+        const a = L.P[t.parent],
+          c = L.P[t.id],
+          dx = (c[0] - a[0]) * 0.5,
+          d = `M ${a[0]} ${a[1]} C ${a[0] + dx} ${a[1]}, ${c[0] - dx} ${c[1]}, ${c[0]} ${c[1]}`;
+        return `<g class="tb-edge" data-from="${t.parent}" data-to="${t.id}" style="--d:${(0.25 + L.depth(t) * 0.22 + i * 0.025).toFixed(3)}s"><path class="tb-dust" d="${d}" pathLength="1"/><path class="tb-chalk" d="${d}" pathLength="1"/><path class="tb-run" d="${d}" pathLength="1"/></g>`;
       })
-      .join("")}</svg>${b
-      .map((g) => {
-        const B = A.talents[g.id] || 0,
-          E = !g.parent || (A.talents[g.parent] || 0) > 0;
-        return `<button data-action="talent" data-id="${g.id}" title="${g.name}: ${lA(g.stat, g.value, !0)} je Rang · ${g.cost} Punkte" class="talent-node ${B >= g.max ? "maxed" : B > 0 ? "learned" : E ? "available" : "locked"} ${this.selectedTalent === g.id ? "selected" : ""}" style="left:${g.x + 600}px;top:${g.y + 850}px">${x(g.stat)}<span class="rank">${B}/${g.max}</span><span class="name">${g.name}</span></button>`;
+      .join("");
+    const nodes = b
+      .map((t) => {
+        const S = this.tbState(t),
+          p = L.P[t.id];
+        return `<button class="tb-node ${S.cls} ${t.id === "root" ? "tb-rootnode" : ""} ${t.max === 1 && t.cost >= 4 ? "tb-cap" : ""} ${this.selectedTalent === t.id ? "selected" : ""}" data-action="tbNode" data-id="${t.id}" style="${pct(p)};--d:${(0.35 + L.depth(t) * 0.22).toFixed(2)}s" aria-label="${t.name}, Stufe ${S.r} von ${t.max}"><span class="tb-seal"></span><span class="tb-ring"></span>${x(t.stat)}<span class="tb-rank">${S.r}/${t.max}</span><span class="tb-name">${t.name}</span></button>`;
       })
-      .join(
-        "",
-      )}</div><div class="tree-tip">ZIEHEN ZUM VERSCHIEBEN · MAUSRAD ZOOMT · CONTROLLER: RICHTUNG + A</div><div class="tree-toolbar">${this.button("zoomOut", "−", "")}${this.button("centerTree", "Zentrieren", "")}${this.button("zoomIn", "+", "")}</div></div><aside class="talent-detail panel" id="talent-detail">${this.talentDetail()}</aside></div></section>`;
+      .join("");
+    const labels = L.rows
+      .map((h, i) => `<div class="tb-rowlabel" style="${pct(L.P[h])};--d:${(0.2 + i * 0.12).toFixed(2)}s">${b.find((t) => t.id === h).name.toUpperCase()}</div>`)
+      .join("");
+    return `<section class="screen tb-screen ${this.tbIntro ? "tb-intro" : ""}" id="tb-screen"><div class="tb-cone"></div><div class="tb-lamp" aria-hidden="true"><svg viewBox="0 0 120 120"><path class="tb-cable" d="M60 0 V34"/><path class="tb-shade" d="M44 34 h32 l4 10 h-40 z M30 62 Q60 34 90 62 z"/><rect class="tb-cap" x="54" y="26" width="12" height="10" rx="2"/><ellipse class="tb-bulb" cx="60" cy="63" rx="12" ry="6"/></svg></div><div class="tb-dim"></div><header class="tb-head"><div class="tb-eyebrow">NACHTSCHROTT / WERKSTATT</div><h2>TALENTBAUM</h2><i class="tb-hazard"></i></header><div class="tb-wallet" title="Talentpunkte"><span>✦</span><b id="tb-points">${A.points}</b><small>PUNKTE</small></div><div class="tb-main"><div class="tb-board" id="tb-board"><div class="tb-stamp"></div><svg class="tb-lines" viewBox="0 0 1000 640" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="tb-chalkf" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="2.4"/></filter></defs>${edges}</svg>${labels}${nodes}<div class="tb-fx" id="tb-fx"></div></div><div class="tb-side"><aside class="tb-detail" id="tb-detail">${this.talentDetail()}</aside><footer class="tb-foot"><button class="tb-key" data-action="tbReset" data-id=""><i>↺</i>Zurücksetzen</button><button class="tb-key" data-action="back" data-id=""><i>←</i>Zurück</button></footer></div></div></section>`;
   }
   talentDetail() {
-    const A = b.find((o) => o.id === this.selectedTalent),
+    const A = b.find((o) => o.id === this.selectedTalent) || b[0],
       g = this.g.save.data,
-      B = g.talents[A.id] || 0,
-      E = !A.parent || (g.talents[A.parent] || 0) > 0;
-    return `<div class="card-icon">${x(A.stat)}</div><div class="eyebrow">${B >= A.max ? "VOLL ERLERNT" : E ? "VERFÜGBAR" : "GESPERRT"}</div><h3 style="margin-top:9px">${A.name}</h3><p class="sub">Dauerhafter Vorteil für jeden neuen Run.</p><p class="exact">${lA(A.stat, A.value, !0)} ${A.desc}</p><p class="small muted">Pro Rang · maximal ${A.max} Ränge<br>Aktuell: ${lA(A.stat, A.value * B, !0)}<br>Nächster Rang: ${lA(A.stat, A.value * Math.min(A.max, B + 1), !0)}</p><div class="progress-dots">${Array.from({ length: A.max }, (o, i) => `<i class="${i < B ? "on" : ""}"></i>`).join("")}</div>${this.button("learnTalent", B >= A.max ? "Bereits gemeistert" : `Erlernen · ✦ ${A.cost}`, "primary", A.id, !E || B >= A.max || g.points < A.cost)}<p class="notice">${E ? (g.points < A.cost && B < A.max ? "Weitere Punkte verdienst du nach jedem Run." : "Kostenloser Reset. Keine endgültigen Entscheidungen.") : "Benötigt: " + b.find((o) => o.id === A.parent).name + " (1 Rang)."}</p><div class="separator"></div><p class="notice">✦ ${g.points} Punkte verfügbar<br>Alle Änderungen werden sofort gespeichert. Wirksam ab dem nächsten Run.</p>`;
+      S = this.tbState(A),
+      par = A.parent ? b.find((o) => o.id === A.parent) : null,
+      per = `${lA(A.stat, A.value, !0)} ${A.desc}`,
+      max = S.r >= A.max,
+      enough = g.points >= A.cost;
+    let act;
+    max
+      ? (act = `<div class="tb-done">VOLL ERLERNT</div>`)
+      : !S.open
+        ? (act = `<div class="tb-warn" id="tb-warn">ANFORDERUNGEN NICHT ERFÜLLT</div>`)
+        : !enough
+          ? (act = `<div class="tb-warn" id="tb-warn">ZU WENIG TALENTPUNKTE</div>`)
+          : (act = `<button class="tb-learn" data-action="tbLearn" data-id="${A.id}">ERLERNEN · ✦ ${A.cost}</button>`);
+    return `<div class="tb-d-state">${max ? "VOLL ERLERNT" : S.open ? "VERFÜGBAR" : "GESPERRT"}</div><h3 class="tb-d-name">${A.name}</h3><div class="tb-d-level">Stufe <b class="tb-cnt" id="tb-rank">${S.r}</b> <b>/ ${A.max}</b><span class="tb-d-pips">${Array.from({ length: A.max }, (o, i) => `<i class="${i < S.r ? "on" : ""}"></i>`).join("")}</span></div><p class="tb-d-eff">${per}${A.max > 1 ? " pro Stufe" : ""}</p><p class="tb-d-now">Aktuell ${lA(A.stat, A.value * S.r, !0)}${max ? "" : ` · nächste Stufe ${lA(A.stat, A.value * (S.r + 1), !0)}`}</p><div class="tb-d-hero"><img src="${d.thumb("hero" + this.g.character)}" alt="" draggable="false"><span class="tb-d-badge">${x(A.stat)}</span></div><ul class="tb-d-req"><li class="${!par || (g.talents[par.id] || 0) > 0 ? "ok" : "no"}"><i></i>${par ? "Voraussetzung: " + par.name : "Startpunkt · keine Voraussetzung"}</li><li class="${enough || max ? "ok" : "no"}"><i></i>Kosten: ✦ ${A.cost} ${A.cost === 1 ? "Punkt" : "Punkte"} je Stufe</li></ul><div class="tb-d-act">${act}</div><p class="tb-d-note">Kostenloser Reset · wirksam ab dem nächsten Run</p>`;
+  }
+  tbSound(n, v = 1, r = 1) {
+    try {
+      const au = this.g.audio;
+      if (!au.buffers?.has(n) && ["tb_flicker", "tb_open", "tb_chalk"].includes(n)) return;
+      au.sound(n, r, v);
+    } catch {}
+  }
+  tbRefresh(opts = {}) {
+    const s = this.g.save.data,
+      root = document.getElementById("tb-screen");
+    if (!root) return;
+    for (const t of b) {
+      const el = root.querySelector(`.tb-node[data-id="${t.id}"]`);
+      if (!el) continue;
+      const S = this.tbState(t);
+      el.classList.remove("locked", "available", "learned", "maxed"),
+        el.classList.add(S.cls),
+        el.classList.toggle("selected", t.id === this.selectedTalent),
+        (el.querySelector(".tb-rank").textContent = `${S.r}/${t.max}`),
+        el.setAttribute("aria-label", `${t.name}, Stufe ${S.r} von ${t.max}`);
+    }
+    root.querySelectorAll(".tb-edge").forEach((e) => {
+      const pf = (s.talents[e.dataset.from] || 0) > 0,
+        pt = (s.talents[e.dataset.to] || 0) > 0;
+      e.classList.toggle("on", pf && pt), e.classList.toggle("open", pf && !pt);
+    });
+    const pts = document.getElementById("tb-points");
+    pts && (pts.textContent = String(s.points));
+    opts.detail !== !1 && (document.getElementById("tb-detail").innerHTML = this.talentDetail());
+  }
+  tbPop(el) {
+    el && (el.classList.remove("tb-pop"), void el.offsetWidth, el.classList.add("tb-pop"));
+  }
+  tbSelect(id, how = "click") {
+    const t = b.find((o) => o.id === id);
+    if (!t) return;
+    const changed = this.selectedTalent !== id;
+    (this.selectedTalent = id), this.tbRefresh();
+    const S = this.tbState(t),
+      el = document.querySelector(`.tb-node[data-id="${id}"]`);
+    if (how === "click" && !S.open) {
+      this.tbSound("tb_locked", 0.9), el && (el.classList.remove("tb-nope"), void el.offsetWidth, el.classList.add("tb-nope"));
+      const w = document.getElementById("tb-warn");
+      w && (w.classList.remove("tb-blink"), void w.offsetWidth, w.classList.add("tb-blink"));
+    } else changed && this.tbSound("tb_paper", how === "focus" ? 0.55 : 0.85);
+    const d = document.getElementById("tb-detail");
+    d && changed && (d.classList.remove("tb-swap"), void d.offsetWidth, d.classList.add("tb-swap"));
+    how === "click" && document.querySelector(".tb-learn")?.focus({ preventScroll: !0 });
+  }
+  tbFx(el, kind) {
+    const fx = document.getElementById("tb-fx"),
+      board = document.getElementById("tb-board");
+    if (!fx || !el || document.body.dataset.motion === "reduced") return;
+    const br = board.getBoundingClientRect(),
+      r = el.getBoundingClientRect(),
+      cx = r.left + r.width / 2 - br.left,
+      cy = r.top + r.height / 2 - br.top,
+      n = kind === "ink" ? 16 : 12;
+    for (let i = 0; i < n; i++) {
+      const p = document.createElement("i"),
+        a = Math.random() * Math.PI * 2,
+        dist = (kind === "ink" ? 26 : 10) + Math.random() * (kind === "ink" ? 42 : 30);
+      (p.className = kind === "ink" ? "tb-ink" : "tb-crumb"),
+        p.style.setProperty("--x", cx + "px"),
+        p.style.setProperty("--y", cy + "px"),
+        p.style.setProperty("--dx", Math.cos(a) * dist + "px"),
+        p.style.setProperty("--dy", (kind === "ink" ? Math.sin(a) * dist * 0.8 : 30 + Math.random() * 46) + "px"),
+        p.style.setProperty("--s", (kind === "ink" ? 3 + Math.random() * 6 : 3 + Math.random() * 5).toFixed(1) + "px"),
+        p.style.setProperty("--rot", (Math.random() * 360 - 180).toFixed(0) + "deg"),
+        fx.append(p),
+        setTimeout(() => p.remove(), 950);
+    }
+  }
+  tbShake() {
+    const b2 = document.getElementById("tb-board");
+    b2 && document.body.dataset.motion !== "reduced" && (b2.classList.remove("tb-shake"), void b2.offsetWidth, b2.classList.add("tb-shake"));
+  }
+  tbLearn(id) {
+    const o = b.find((C) => C.id === id),
+      i = this.g.save.data;
+    if (!o) return;
+    if (!((!o.parent || i.talents[o.parent] > 0) && i.points >= o.cost && (i.talents[id] || 0) < o.max)) {
+      this.tbSound("tb_locked", 0.9);
+      return;
+    }
+    (i.points -= o.cost), (i.talents[id] = (i.talents[id] || 0) + 1), this.g.save.write();
+    const el = document.querySelector(`.tb-node[data-id="${id}"]`);
+    this.tbRefresh(),
+      this.tbSound("tb_stamp", 1),
+      el && (el.classList.remove("tb-stamped"), void el.offsetWidth, el.classList.add("tb-stamped")),
+      this.tbFx(el, "ink"),
+      this.tbShake(),
+      this.tbPop(document.getElementById("tb-rank")),
+      this.tbPop(document.getElementById("tb-points")),
+      document.querySelectorAll(`.tb-edge[data-from="${id}"], .tb-edge[data-to="${id}"]`).forEach((e, k) => {
+        e.classList.remove("tb-glow"), void e.getBoundingClientRect(), e.classList.add("tb-glow");
+      }),
+      (document.querySelector(".tb-learn") || el)?.focus({ preventScroll: !0 });
+  }
+  tbReset() {
+    const o = this.g.save.data,
+      learned = b.filter((t) => (o.talents[t.id] || 0) > 0);
+    if (!learned.length) {
+      this.tbSound("tb_locked", 0.7);
+      return;
+    }
+    this.tbSound("tb_reset", 1);
+    const reduced = document.body.dataset.motion === "reduced";
+    learned.forEach((t, k) => {
+      const el = document.querySelector(`.tb-node[data-id="${t.id}"]`);
+      el &&
+        (el.style.setProperty("--k", k * 0.04 + "s"),
+        el.classList.add("tb-crumble"),
+        setTimeout(() => this.tbFx(el, "crumb"), k * 40));
+    });
+    for (const i of b) o.points += (o.talents[i.id] || 0) * i.cost;
+    (o.talents = {}), this.g.save.write();
+    setTimeout(
+      () => {
+        document.querySelectorAll(".tb-crumble").forEach((e) => e.classList.remove("tb-crumble")),
+          this.tbRefresh(),
+          this.tbPop(document.getElementById("tb-points"));
+      },
+      reduced ? 0 : 520 + learned.length * 40,
+    );
+  }
+  tbBind() {
+    const root = document.getElementById("tb-screen");
+    if (!root) return;
+    root.querySelectorAll(".tb-node").forEach((n) => {
+      n.addEventListener("focus", () => {
+        n.matches(":focus-visible") && this.selectedTalent !== n.dataset.id && this.tbSelect(n.dataset.id, "focus");
+      });
+    });
+    if (this.tbIntro) {
+      this.tbSound("tb_open", 0.9);
+      if (document.body.dataset.motion !== "reduced")
+        for (let k = 0; k < 5; k++) setTimeout(() => document.getElementById("tb-screen") && this.tbSound("tb_chalk", 0.55, 0.92 + Math.random() * 0.16), 320 + k * 190);
+      setTimeout(() => root.classList.remove("tb-intro"), 2600);
+    }
+    this.tbFlickerLoop();
+  }
+  tbFlick(k = Math.floor(Math.random() * 3)) {
+    const root = document.getElementById("tb-screen");
+    if (!root) return;
+    root.classList.remove("tb-flick0", "tb-flick1", "tb-flick2"), void root.offsetWidth, root.classList.add("tb-flick" + k);
+    this.tbSound("tb_flicker", 0.45 + Math.random() * 0.25, 0.94 + Math.random() * 0.12);
+    setTimeout(() => root.classList.remove("tb-flick" + k), 900);
+  }
+  tbFlickerLoop() {
+    clearTimeout(this.tbFlickT);
+    const next = () => {
+      const root = document.getElementById("tb-screen");
+      if (!root) return;
+      document.body.dataset.motion !== "reduced" && !document.hidden && this.tbFlick();
+      this.tbFlickT = setTimeout(next, 2600 + Math.random() * 5200);
+    };
+    this.tbFlickT = setTimeout(next, this.tbIntro ? 3800 : 1800 + Math.random() * 2500);
   }
   bindTree() {
     const A = document.getElementById("tree-viewport"),
@@ -13280,9 +13499,9 @@ class wC {
         this.render();
       return;
     }
-    if (this.screen === "talents" && document.activeElement?.closest(".talent-detail")) {
+    if (this.screen === "talents" && document.activeElement?.closest(".tb-detail")) {
       this.root
-        .querySelector(`[data-action=talent][data-id="${this.selectedTalent}"]`)
+        .querySelector(`[data-action=tbNode][data-id="${this.selectedTalent}"]`)
         ?.focus({ preventScroll: !0 });
       return;
     }
@@ -13602,6 +13821,15 @@ class wC {
             .forEach((o) => o.classList.toggle("selected", o.dataset.id === g)),
           (document.getElementById("talent-detail").innerHTML = this.talentDetail()),
           this.root.querySelector("[data-action=learnTalent]:not(:disabled)")?.focus({ preventScroll: !0 });
+        break;
+      case "tbNode":
+        this.tbSelect(g, "click");
+        break;
+      case "tbLearn":
+        this.tbLearn(g);
+        break;
+      case "tbReset":
+        this.tbReset();
         break;
       case "learnTalent": {
         const o = b.find((C) => C.id === g),
