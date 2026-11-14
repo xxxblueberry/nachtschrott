@@ -9902,16 +9902,16 @@ function UC(e, A) {
   }
   e.restore();
 }
-const rC = ["#ffd23a", "#ffb6cb", "#fffaf0", "#fff6e2"];
-// t99u: Hof-Partikel (Pollen, Blütenblätter, Samenflusen) – Größe und Tempo in Bildschirm-Pixeln, damit sie bei jeder Zoomstufe sichtbar bleiben.
+// t101u: Hof-Partikel = feiner Staub im Sonnenlicht (weich, leicht hell, schwebt und driftet langsam, glimmt sanft auf).
+// Größe und Tempo in Bildschirm-Pixeln, damit der Staub bei jeder Zoomstufe gleich groß wirkt.
 let hofGlow;
 function hofGlowSprite() {
   if (hofGlow || typeof document > "u") return hofGlow;
   const c = document.createElement("canvas");
-  (c.width = c.height = 64);
+  c.width = c.height = 64;
   const x = c.getContext("2d"),
     r = x.createRadialGradient(32, 32, 0, 32, 32, 32);
-  r.addColorStop(0, "rgba(255,246,200,1)"), r.addColorStop(0.25, "rgba(255,214,90,0.55)"), r.addColorStop(1, "rgba(255,200,60,0)");
+  r.addColorStop(0, "rgba(255,250,232,1)"), r.addColorStop(0.18, "rgba(255,238,200,0.85)"), r.addColorStop(0.45, "rgba(255,226,170,0.25)"), r.addColorStop(1, "rgba(255,220,160,0)");
   return (x.fillStyle = r), x.fillRect(0, 0, 64, 64), (hofGlow = c);
 }
 function YC(e, A) {
@@ -9921,72 +9921,43 @@ function YC(e, A) {
     sp = 1 / E,
     o = e.w / E / 2,
     i = e.h / E / 2,
-    I = Math.round((B.mobile ? 60 : 96) * Math.min(1, B.save.data.settings.particles)),
+    I = Math.round((B.mobile ? 55 : 85) * Math.min(1, B.save.data.settings.particles)),
     C = e.camX - o,
     Q = e.camX + o,
     a = e.camY - i,
     t = e.camY + i,
     glow = hofGlowSprite();
-  for (; L.motes.length < I; ) {
-    const r = Math.random(),
-      s = r < 0.4 ? 0 : r < 0.56 ? 1 : r < 0.68 ? 2 : r < 0.86 ? 3 : 4;
+  if (!glow) return;
+  for (; L.motes.length < I; )
     L.motes.push({
       x: C + Math.random() * (Q - C),
       y: a + Math.random() * (t - a),
-      vx: 12 + Math.random() * 20,
-      vy: -3 - Math.random() * 8,
+      vx: 3 + Math.random() * 7,
+      vy: -1.5 - Math.random() * 3,
       ph: Math.random() * 6.28,
-      size: s === 1 || s === 2 ? 4.6 + Math.random() * 2.6 : s === 0 ? 2.4 + Math.random() * 1.4 : s === 4 ? 5 + Math.random() * 4 : 2.2 + Math.random() * 1.2,
-      kind: s,
-      near: s === 0 && Math.random() < 0.14,
-      spin: Math.random() * 6.28,
-      fall: 9 + Math.random() * 10,
+      tw: 0.25 + Math.random() * 0.5,
+      size: 2 + Math.random() * 2,
+      far: Math.random() < 0.3,
     });
-  }
   L.motes.length > I && (L.motes.length = I);
-  const h = 1 + 0.45 * Math.sin(L.t * 0.37);
+  const gust = 1 + 0.35 * Math.sin(L.t * 0.21);
   g.save();
   for (const s of L.motes) {
-    const n = s.near ? 1.6 : 1;
-    (s.ph += A * 1.3),
-      (s.spin += A * 2.2),
-      (s.x += (s.vx * h + Math.sin(s.ph) * 9) * n * sp * A),
-      (s.y += (s.vy + Math.cos(s.ph * 0.8) * 7) * n * sp * A),
-      s.x > Q + 30 * sp && (s.x = C - 20 * sp),
-      s.x < C - 32 * sp && (s.x = Q + 18 * sp),
-      s.y < a - 30 * sp && (s.y = t + 18 * sp),
-      s.y > t + 32 * sp && (s.y = a - 18 * sp);
-    const U = 0.6 + 0.4 * Math.sin(s.ph * 2.3),
-      R = s.size * sp * 1.35 * (s.near ? 2.2 : 1);
-    if (s.kind === 1 || s.kind === 2) {
-      const ry = R * (0.35 + 0.35 * Math.abs(Math.sin(s.spin))),
-        d = s.fall * sp;
-      (g.globalAlpha = 0.3), (g.fillStyle = "#2a1a10"), g.beginPath(), g.ellipse(s.x + d * 0.4, s.y + d, R, ry, s.spin, 0, Math.PI * 2), g.fill();
-      (g.globalAlpha = 0.95), (g.fillStyle = rC[s.kind]), g.beginPath(), g.ellipse(s.x, s.y, R, ry, s.spin, 0, Math.PI * 2), g.fill();
-      (g.globalAlpha = 0.45), (g.lineWidth = 0.9 * sp), (g.strokeStyle = s.kind === 1 ? "#b2566c" : "#9a8a70"), g.stroke();
-    } else if (s.kind === 4) {
-      const w = Math.max(0, Math.sin(s.ph * 1.7)) ** 3;
-      if (w > 0.02) {
-        const k = R * (0.5 + 0.5 * w);
-        glow && ((g.globalCompositeOperation = "lighter"), (g.globalAlpha = 0.6 * w), g.drawImage(glow, s.x - k * 1.4, s.y - k * 1.4, k * 2.8, k * 2.8), (g.globalCompositeOperation = "source-over"));
-        (g.globalAlpha = 0.95 * w), (g.fillStyle = "#fffdf2"), g.beginPath();
-        const q = k * 0.16;
-        g.moveTo(s.x, s.y - k), g.lineTo(s.x + q, s.y - q), g.lineTo(s.x + k, s.y), g.lineTo(s.x + q, s.y + q), g.lineTo(s.x, s.y + k), g.lineTo(s.x - q, s.y + q), g.lineTo(s.x - k, s.y), g.lineTo(s.x - q, s.y - q), g.closePath(), g.fill();
-      }
-    } else if (s.kind === 0) {
-      const k = R * (s.near ? 5 : 4.4);
-      s.near || ((g.globalAlpha = 0.3), (g.fillStyle = "#3a2410"), g.beginPath(), g.arc(s.x + s.fall * sp * 0.4, s.y + s.fall * sp, R, 0, Math.PI * 2), g.fill());
-      glow && ((g.globalCompositeOperation = "lighter"), (g.globalAlpha = (s.near ? 0.3 : 0.42) * U), g.drawImage(glow, s.x - k, s.y - k, k * 2, k * 2), (g.globalCompositeOperation = "source-over"));
-      s.near ||
-        ((g.globalAlpha = 0.95 * U), (g.fillStyle = rC[0]), g.beginPath(), g.arc(s.x, s.y, R, 0, Math.PI * 2), g.fill(),
-        (g.globalAlpha = 0.5 * U), (g.lineWidth = 0.8 * sp), (g.strokeStyle = "#a8661a"), g.stroke(),
-        (g.globalAlpha = 0.9 * U), (g.fillStyle = "#fffbe8"), g.beginPath(), g.arc(s.x, s.y, R * 0.45, 0, Math.PI * 2), g.fill());
-    } else {
-      const d = s.fall * sp;
-      (g.globalAlpha = 0.26), (g.fillStyle = "#2a1a10"), g.beginPath(), g.arc(s.x + d * 0.4, s.y + d, R, 0, Math.PI * 2), g.fill();
-      (g.globalAlpha = 0.3 * U), (g.fillStyle = rC[3]), g.beginPath(), g.arc(s.x, s.y, R * 2.4, 0, Math.PI * 2), g.fill();
-      (g.globalAlpha = 0.95), (g.fillStyle = "#ffffff"), g.beginPath(), g.arc(s.x, s.y, R, 0, Math.PI * 2), g.fill();
-    }
+    (s.ph += A),
+      (s.x += (s.vx * gust + Math.sin(s.ph * 0.7) * 5 + Math.sin(s.ph * 1.9) * 2) * sp * A),
+      (s.y += (s.vy + Math.cos(s.ph * 0.55) * 4) * sp * A),
+      s.x > Q + 20 * sp && (s.x = C - 16 * sp),
+      s.x < C - 22 * sp && (s.x = Q + 14 * sp),
+      s.y < a - 20 * sp && (s.y = t + 14 * sp),
+      s.y > t + 22 * sp && (s.y = a - 14 * sp);
+    // sanftes Aufglimmen, wenn das Korn durchs Sonnenlicht dreht
+    const lit = Math.max(0, Math.sin(s.ph * s.tw)) ** 6,
+      R = s.size * sp * 1.3 * (s.far ? 0.75 : 1),
+      k = R * (3.2 + lit * 2.4);
+    // ganz weicher dunkler Hof, damit das helle Korn auch auf hellem Pflaster lesbar bleibt
+    (g.globalCompositeOperation = "source-over"), (g.globalAlpha = s.far ? 0.07 : 0.12), (g.fillStyle = "#3a2a18"), g.beginPath(), g.arc(s.x, s.y + R * 0.3, R * 1.9, 0, Math.PI * 2), g.fill();
+    (g.globalCompositeOperation = "lighter"), (g.globalAlpha = (s.far ? 0.36 : 0.55) + lit * 0.45), g.drawImage(glow, s.x - k, s.y - k, k * 2, k * 2);
+    (g.globalCompositeOperation = "source-over"), (g.globalAlpha = (s.far ? 0.55 : 0.82) + lit * 0.18), (g.fillStyle = "#fffaf0"), g.beginPath(), g.arc(s.x, s.y, R * 0.55, 0, Math.PI * 2), g.fill();
   }
   g.restore();
 }
@@ -12640,7 +12611,7 @@ class wC {
   credits() {
     const A = JSON.parse(document.getElementById("font-licenses")?.textContent || "{}"),
       g = (B) => B.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
-    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Talentbaum (Werkstatt): Schiefer-Hintergrund, Wachssiegel und NS-Stempel für dieses Spiel erzeugt und nachbearbeitet. Klänge eigene Synthese (Kreide, Röhrenbrummen, Flackern, Siegel-Schlag, Bröseln), geschichtet mit „RPG Sounds“ von Kenney (kenney.nl, CC0 1.0, über OpenGameArt.org).</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
+    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Talentbaum (Werkstatt): Hintergrund mit Spotlicht und NS-Stempel, Kreide- und Wachssiegel-Knoten, Schrotthaufen für dieses Spiel nach Konzept B erzeugt und nachbearbeitet. Klänge eigene Synthese (Kreide, Röhrenbrummen, Flackern, Siegel-Schlag, Bröseln), geschichtet mit „RPG Sounds“ von Kenney (kenney.nl, CC0 1.0, über OpenGameArt.org).</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
       A,
     )
       .map(
@@ -13167,23 +13138,44 @@ class wC {
   }
   // ===== t97u: Talentbaum im Noir-Kreide-Stil (Konzept B) – nur Präsentation, Talent-Logik/Speicherstand unverändert =====
   tbLayout() {
-    // Weltkoordinaten (1000 × 640); drei Zweige = die drei Äste unter "Nachtwache" (Schlagkraft · Schnelle Hände · Altmetall)
-    const P = {
-      root: [55, 320],
-      might: [250, 105], vigor: [480, 22], dash: [480, 105], crit: [480, 188], armor: [715, 22], leech: [715, 188],
-      haste: [250, 320], feet: [480, 320], regen: [715, 320], crown: [940, 320],
-      wealth: [250, 535], collect: [480, 452], luck: [715, 452], tech: [480, 618], spark: [715, 535], coil: [715, 618],
-    };
-    for (const t of b) P[t.id] || (P[t.id] = t.parent && P[t.parent] ? [Math.min(960, P[t.parent][0] + 190), P[t.parent][1]] : [500, 320]);
-    const rows = ["might", "haste", "wealth"].filter((h) => b.some((t) => t.id === h));
-    const branch = {};
-    for (const t of b) {
-      let c = t;
-      while (c && c.parent && c.parent !== "root") c = b.find((o) => o.id === c.parent);
-      branch[t.id] = t.id === "root" ? -1 : rows.indexOf(c ? c.id : "");
-    }
-    const depth = (t) => (t.parent ? 1 + depth(b.find((o) => o.id === t.parent)) : 0);
-    return { P, rows, branch, depth };
+    // t100u: 1:1 nach Konzept B – 3 Reihen × 7 Plätze (Stage 1280 × 720). Die echten 17 Talente, 4 Plätze bleiben leer (Schloss).
+    const rows = [
+        { name: "FEUERKRAFT", ids: ["might", "crit", "haste", "leech", "dash", "crown", null] },
+        { name: "PANZERUNG", ids: ["root", "vigor", "feet", "armor", "regen", null, null] },
+        { name: "SCHROTT & GLÜCK", ids: ["wealth", "collect", "luck", "tech", "spark", "coil", null] },
+      ],
+      icon = { might: 0, crit: 1, haste: 2, spark: 3, coil: 4, dash: 5, crown: 6, root: 7, vigor: 8, feet: 9, armor: 10, leech: 11, regen: 12, wealth: 13, collect: 14, luck: 15, tech: 16 },
+      placed = new Set(rows.flatMap((r) => r.ids));
+    // unbekannte (neue) Talente füllen freie Plätze, damit nichts verloren geht
+    for (const t of b)
+      if (!placed.has(t.id))
+        for (const r of rows) {
+          const k = r.ids.indexOf(null);
+          if (k >= 0) {
+            (r.ids[k] = t.id), placed.add(t.id);
+            break;
+          }
+        }
+    const X = (c) => 206 + c * 115.7,
+      Y = [216, 379, 542],
+      PX = (c) => 30 + c * 55,
+      PY = [166, 300, 434],
+      cells = [];
+    rows.forEach((r, ri) => r.ids.forEach((id, c) => cells.push({ id, ri, c, x: X(c), y: Y[ri], px: PX(c), py: PY[ri] })));
+    const at = (ri, c) => cells.find((o) => o.ri === ri && o.c === c),
+      segs = [];
+    // waagerechte gestrichelte Linien (Knotenrand zu Knotenrand)
+    rows.forEach((r, ri) => {
+      for (let c = 0; c < 6; c++) segs.push({ a: at(ri, c), b: at(ri, c + 1), p: [[X(c) + 37, Y[ri]], [X(c + 1) - 37, Y[ri]]], q: [[PX(c) + 26, PY[ri]], [PX(c + 1) - 26, PY[ri]]] });
+      // V-Verzweigung unter Platz 1/2
+      const vx = (X(0) + X(1)) / 2 + 3,
+        pvx = (PX(0) + PX(1)) / 2 + 1;
+      segs.push({ a: at(ri, 0), b: at(ri, 1), v: 1, p: [[X(0) + 13, Y[ri] + 31], [vx, Y[ri] + 84]], q: [[PX(0) + 9, PY[ri] + 22], [pvx, PY[ri] + 56]] });
+      segs.push({ a: at(ri, 0), b: at(ri, 1), v: 1, p: [[vx, Y[ri] + 84], [X(1) - 9, Y[ri] + 31]], q: [[pvx, PY[ri] + 56], [PX(1) - 8, PY[ri] + 22]] });
+    });
+    // Diagonale wie im Konzept: Reihe 2 Platz 5 -> Reihe 3 Platz 6
+    segs.push({ a: at(1, 4), b: at(2, 5), p: [[X(4) + 8, Y[1] + 37], [X(5) - 26, Y[2] - 26]], q: [[PX(4) + 6, PY[1] + 25], [PX(5) - 17, PY[2] - 19]] });
+    return { rows, icon, cells, segs, Y, PY };
   }
   tbState(t) {
     const s = this.g.save.data,
@@ -13191,32 +13183,37 @@ class wC {
       open = !t.parent || (s.talents[t.parent] || 0) > 0;
     return { r, open, cls: r >= t.max ? "maxed" : r > 0 ? "learned" : open ? "available" : "locked" };
   }
+  tbSegStyle(s) {
+    const f = (p) => {
+      const [[x1, y1], [x2, y2]] = p,
+        len = Math.hypot(x2 - x1, y2 - y1),
+        ang = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
+      return [x1.toFixed(1), y1.toFixed(1), len.toFixed(1), ang.toFixed(2)];
+    };
+    const [x, y, w, a] = f(s.p),
+      [px, py, pw, pa] = f(s.q);
+    return `--x:${x}px;--y:${y}px;--w:${w}px;--a:${a}deg;--px:${px}px;--py:${py}px;--pw:${pw}px;--pa:${pa}deg`;
+  }
   talents() {
     const A = this.g.save.data,
       L = this.tbLayout(),
-      pct = (p) => `left:${(p[0] / 10).toFixed(2)}%;top:${((p[1] / 640) * 100).toFixed(2)}%`;
+      byId = (id) => b.find((t) => t.id === id);
     b.some((t) => t.id === this.selectedTalent) || (this.selectedTalent = "root");
-    const edges = b
-      .filter((t) => t.parent)
-      .map((t, i) => {
-        const a = L.P[t.parent],
-          c = L.P[t.id],
-          dx = (c[0] - a[0]) * 0.5,
-          d = `M ${a[0]} ${a[1]} C ${a[0] + dx} ${a[1]}, ${c[0] - dx} ${c[1]}, ${c[0]} ${c[1]}`;
-        return `<g class="tb-edge" data-from="${t.parent}" data-to="${t.id}" style="--d:${(0.25 + L.depth(t) * 0.22 + i * 0.025).toFixed(3)}s"><path class="tb-dust" d="${d}" pathLength="1"/><path class="tb-chalk" d="${d}" pathLength="1"/><path class="tb-run" d="${d}" pathLength="1"/></g>`;
+    const segs = L.segs
+      .map((s, i) => `<i class="tb-seg${s.v ? " tb-v" : ""}${!s.a.id || !s.b.id ? " tb-empty" : ""}" data-a="${s.a.id || ""}" data-b="${s.b.id || ""}" style="${this.tbSegStyle(s)};--d:${(0.25 + (s.a.c + s.a.ri * 0.5) * 0.13 + (s.v ? 0.1 : 0)).toFixed(2)}s"></i>`)
+      .join("");
+    const nodes = L.cells
+      .map((o) => {
+        const pos = `--x:${o.x.toFixed(1)}px;--y:${o.y}px;--px:${o.px}px;--py:${o.py}px;--d:${(0.3 + o.c * 0.13 + o.ri * 0.08).toFixed(2)}s`;
+        if (!o.id) return `<div class="tb-node tb-slot" style="${pos};--i:17" aria-hidden="true" title="Noch kein Talent an diesem Platz"><span class="tb-spr"></span></div>`;
+        const t = byId(o.id),
+          S = this.tbState(t);
+        return `<button class="tb-node ${S.cls} ${this.selectedTalent === t.id ? "selected" : ""}" data-action="tbNode" data-id="${t.id}" style="${pos};--i:${L.icon[t.id] ?? 17}" aria-label="${t.name}, Stufe ${S.r} von ${t.max}"><span class="tb-spr"></span><span class="tb-tip">${t.name}</span></button>`;
       })
       .join("");
-    const nodes = b
-      .map((t) => {
-        const S = this.tbState(t),
-          p = L.P[t.id];
-        return `<button class="tb-node ${S.cls} ${t.id === "root" ? "tb-rootnode" : ""} ${t.max === 1 && t.cost >= 4 ? "tb-cap" : ""} ${this.selectedTalent === t.id ? "selected" : ""}" data-action="tbNode" data-id="${t.id}" style="${pct(p)};--d:${(0.35 + L.depth(t) * 0.22).toFixed(2)}s" aria-label="${t.name}, Stufe ${S.r} von ${t.max}"><span class="tb-seal"></span><span class="tb-ring"></span>${x(t.stat)}<span class="tb-rank">${S.r}/${t.max}</span><span class="tb-name">${t.name}</span></button>`;
-      })
-      .join("");
-    const labels = L.rows
-      .map((h, i) => `<div class="tb-rowlabel" style="${pct(L.P[h])};--d:${(0.2 + i * 0.12).toFixed(2)}s">${b.find((t) => t.id === h).name.toUpperCase()}</div>`)
-      .join("");
-    return `<section class="screen tb-screen ${this.tbIntro ? "tb-intro" : ""}" id="tb-screen"><div class="tb-cone"></div><div class="tb-lamp" aria-hidden="true"><svg viewBox="0 0 120 120"><path class="tb-cable" d="M60 0 V34"/><path class="tb-shade" d="M44 34 h32 l4 10 h-40 z M30 62 Q60 34 90 62 z"/><rect class="tb-cap" x="54" y="26" width="12" height="10" rx="2"/><ellipse class="tb-bulb" cx="60" cy="63" rx="12" ry="6"/></svg></div><div class="tb-dim"></div><header class="tb-head"><div class="tb-eyebrow">NACHTSCHROTT / WERKSTATT</div><h2>TALENTBAUM</h2><i class="tb-hazard"></i></header><div class="tb-wallet" title="Talentpunkte"><span>✦</span><b id="tb-points">${A.points}</b><small>PUNKTE</small></div><div class="tb-main"><div class="tb-board" id="tb-board"><div class="tb-stamp"></div><svg class="tb-lines" viewBox="0 0 1000 640" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="tb-chalkf" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="2.4"/></filter></defs>${edges}</svg>${labels}${nodes}<div class="tb-fx" id="tb-fx"></div></div><div class="tb-side"><aside class="tb-detail" id="tb-detail">${this.talentDetail()}</aside><footer class="tb-foot"><button class="tb-key" data-action="tbReset" data-id=""><i>↺</i>Zurücksetzen</button><button class="tb-key" data-action="back" data-id=""><i>←</i>Zurück</button></footer></div></div></section>`;
+    const labels = L.rows.map((r, i) => `<div class="tb-rowlabel${r.name.length > 12 ? " tb-long" : ""}" style="--y:${L.Y[i]}px;--py:${L.PY[i] - 44}px;--d:${(0.15 + i * 0.12).toFixed(2)}s">${r.name}</div>`).join("");
+    const gear = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 1.5h3.4l.5 2.6a8.3 8.3 0 0 1 2.1.9l2.2-1.5 2.4 2.4-1.5 2.2c.4.7.7 1.4.9 2.1l2.6.5v3.4l-2.6.5a8.3 8.3 0 0 1-.9 2.1l1.5 2.2-2.4 2.4-2.2-1.5a8.3 8.3 0 0 1-2.1.9l-.5 2.6h-3.4l-.5-2.6a8.3 8.3 0 0 1-2.1-.9l-2.2 1.5-2.4-2.4 1.5-2.2a8.3 8.3 0 0 1-.9-2.1l-2.6-.5v-3.4l2.6-.5c.2-.7.5-1.4.9-2.1L3.1 5.9l2.4-2.4 2.2 1.5c.7-.4 1.4-.7 2.1-.9zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>`;
+    return `<section class="screen tb-screen ${this.tbIntro ? "tb-intro" : ""}" id="tb-screen"><div class="tb-dim"></div><div class="tb-fit"><div class="tb-stage" id="tb-stage"><div class="tb-cone"></div><div class="tb-board" id="tb-board"><header class="tb-head"><div class="tb-eyebrow">NACHTSCHROTT / WERKSTATT</div><h2>TALENTBAUM</h2><i class="tb-hazard"></i></header>${labels}${segs}${nodes}<div class="tb-fx" id="tb-fx"></div></div><div class="tb-wallet" title="Talentpunkte"><b id="tb-points">${A.points}</b>${gear}</div><div class="tb-side"><aside class="tb-detail" id="tb-detail">${this.talentDetail()}</aside><footer class="tb-foot"><button class="tb-key" data-action="tbReset" data-id=""><i>▼</i>Zurücksetzen</button><button class="tb-key" data-action="back" data-id=""><i>←</i>Zurück</button></footer></div></div></div></section>`;
   }
   talentDetail() {
     const A = b.find((o) => o.id === this.selectedTalent) || b[0],
@@ -13225,7 +13222,8 @@ class wC {
       par = A.parent ? b.find((o) => o.id === A.parent) : null,
       per = `${lA(A.stat, A.value, !0)} ${A.desc}`,
       max = S.r >= A.max,
-      enough = g.points >= A.cost;
+      enough = g.points >= A.cost,
+      L = this.tbLayout();
     let act;
     max
       ? (act = `<div class="tb-done">VOLL ERLERNT</div>`)
@@ -13233,8 +13231,9 @@ class wC {
         ? (act = `<div class="tb-warn" id="tb-warn">ANFORDERUNGEN NICHT ERFÜLLT</div>`)
         : !enough
           ? (act = `<div class="tb-warn" id="tb-warn">ZU WENIG TALENTPUNKTE</div>`)
-          : (act = `<button class="tb-learn" data-action="tbLearn" data-id="${A.id}">ERLERNEN · ✦ ${A.cost}</button>`);
-    return `<div class="tb-d-state">${max ? "VOLL ERLERNT" : S.open ? "VERFÜGBAR" : "GESPERRT"}</div><h3 class="tb-d-name">${A.name}</h3><div class="tb-d-level">Stufe <b class="tb-cnt" id="tb-rank">${S.r}</b> <b>/ ${A.max}</b><span class="tb-d-pips">${Array.from({ length: A.max }, (o, i) => `<i class="${i < S.r ? "on" : ""}"></i>`).join("")}</span></div><p class="tb-d-eff">${per}${A.max > 1 ? " pro Stufe" : ""}</p><p class="tb-d-now">Aktuell ${lA(A.stat, A.value * S.r, !0)}${max ? "" : ` · nächste Stufe ${lA(A.stat, A.value * (S.r + 1), !0)}`}</p><div class="tb-d-hero"><img src="${d.thumb("hero" + this.g.character)}" alt="" draggable="false"><span class="tb-d-badge">${x(A.stat)}</span></div><ul class="tb-d-req"><li class="${!par || (g.talents[par.id] || 0) > 0 ? "ok" : "no"}"><i></i>${par ? "Voraussetzung: " + par.name : "Startpunkt · keine Voraussetzung"}</li><li class="${enough || max ? "ok" : "no"}"><i></i>Kosten: ✦ ${A.cost} ${A.cost === 1 ? "Punkt" : "Punkte"} je Stufe</li></ul><div class="tb-d-act">${act}</div><p class="tb-d-note">Kostenloser Reset · wirksam ab dem nächsten Run</p>`;
+          : (act = `<button class="tb-learn" data-action="tbLearn" data-id="${A.id}">ERLERNEN · ${A.cost} ${A.cost === 1 ? "PUNKT" : "PUNKTE"}</button>`);
+    const ic = (i) => `<i class="tb-ri" style="--i:${i}"></i>`;
+    return `<h3 class="tb-d-name">${A.name}</h3><div class="tb-d-level">Stufe <b class="tb-cnt" id="tb-rank">${S.r}</b> <b>/ ${A.max}</b></div><p class="tb-d-eff">${per}${A.max > 1 ? " pro Stufe" : ""}</p><div class="tb-d-hero"><i class="tb-junk l"></i><img src="${d.thumb("hero" + this.g.character)}" alt="" draggable="false"><i class="tb-junk r"></i></div><ul class="tb-d-req"><li class="${!par || (g.talents[par.id] || 0) > 0 ? "ok" : "no"}">${ic(par ? (L.icon[par.id] ?? 17) : 7)}${par ? "Voraussetzung: " + par.name : "Startpunkt · keine Voraussetzung"}</li><li class="${enough || max ? "ok" : "no"}">${ic(16)}Kosten: ${A.cost} ${A.cost === 1 ? "Talentpunkt" : "Talentpunkte"} je Stufe</li></ul><div class="tb-d-act">${act}</div>`;
   }
   tbSound(n, v = 1, r = 1) {
     try {
@@ -13254,13 +13253,10 @@ class wC {
       el.classList.remove("locked", "available", "learned", "maxed"),
         el.classList.add(S.cls),
         el.classList.toggle("selected", t.id === this.selectedTalent),
-        (el.querySelector(".tb-rank").textContent = `${S.r}/${t.max}`),
         el.setAttribute("aria-label", `${t.name}, Stufe ${S.r} von ${t.max}`);
     }
-    root.querySelectorAll(".tb-edge").forEach((e) => {
-      const pf = (s.talents[e.dataset.from] || 0) > 0,
-        pt = (s.talents[e.dataset.to] || 0) > 0;
-      e.classList.toggle("on", pf && pt), e.classList.toggle("open", pf && !pt);
+    root.querySelectorAll(".tb-seg").forEach((e) => {
+      e.classList.toggle("on", (s.talents[e.dataset.a] || 0) > 0 && (s.talents[e.dataset.b] || 0) > 0);
     });
     const pts = document.getElementById("tb-points");
     pts && (pts.textContent = String(s.points));
@@ -13291,8 +13287,9 @@ class wC {
     if (!fx || !el || document.body.dataset.motion === "reduced") return;
     const br = board.getBoundingClientRect(),
       r = el.getBoundingClientRect(),
-      cx = r.left + r.width / 2 - br.left,
-      cy = r.top + r.height / 2 - br.top,
+      k = br.width / (board.offsetWidth || 1) || 1,
+      cx = (r.left + r.width / 2 - br.left) / k,
+      cy = (r.top + r.height / 2 - br.top) / k,
       n = kind === "ink" ? 16 : 12;
     for (let i = 0; i < n; i++) {
       const p = document.createElement("i"),
@@ -13330,7 +13327,7 @@ class wC {
       this.tbShake(),
       this.tbPop(document.getElementById("tb-rank")),
       this.tbPop(document.getElementById("tb-points")),
-      document.querySelectorAll(`.tb-edge[data-from="${id}"], .tb-edge[data-to="${id}"]`).forEach((e, k) => {
+      document.querySelectorAll(`.tb-seg[data-a="${id}"], .tb-seg[data-b="${id}"]`).forEach((e, k) => {
         e.classList.remove("tb-glow"), void e.getBoundingClientRect(), e.classList.add("tb-glow");
       }),
       (document.querySelector(".tb-learn") || el)?.focus({ preventScroll: !0 });
@@ -13362,9 +13359,29 @@ class wC {
       reduced ? 0 : 520 + learned.length * 40,
     );
   }
+  tbFit() {
+    const sc = document.getElementById("tb-screen"),
+      st = document.getElementById("tb-stage");
+    if (!sc || !st) return;
+    const vw = sc.clientWidth || innerWidth,
+      vh = sc.clientHeight || innerHeight,
+      portrait = matchMedia("(max-width: 600px) and (orientation: portrait)").matches;
+    let k, W, H, oy = 0, ex = 0;
+    if (portrait) (k = vw / 390), (W = 390), (H = Math.max(vh / k, 790));
+    else {
+      (k = Math.min(vw / 1280, vh / 720)), (W = vw / k), (H = vh / k), (oy = Math.max(0, (H - 720) / 2)), (ex = W - 1280);
+    }
+    const flat = !portrait && vh < 560,
+      fz = flat ? 1.68 : 1,
+      ex2 = flat ? Math.max(0, Math.min(ex - 20, 230)) : Math.min(Math.max(0, ex) * 0.3, 80),
+      v = { "--k": k.toFixed(5), "--sw": W.toFixed(1), "--sh": H.toFixed(1), "--oy": oy.toFixed(1), "--oyb": oy.toFixed(1), "--ex2": ex2.toFixed(1) + "px", "--fz": fz };
+    for (const n in v) sc.style.setProperty(n, v[n]);
+  }
   tbBind() {
     const root = document.getElementById("tb-screen");
     if (!root) return;
+    this.tbFit();
+    this.tbFitBound || ((this.tbFitBound = !0), addEventListener("resize", () => this.tbFit()), addEventListener("orientationchange", () => setTimeout(() => this.tbFit(), 120)));
     root.querySelectorAll(".tb-node").forEach((n) => {
       n.addEventListener("focus", () => {
         n.matches(":focus-visible") && this.selectedTalent !== n.dataset.id && this.tbSelect(n.dataset.id, "focus");
