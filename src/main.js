@@ -11785,6 +11785,13 @@ class FC {
       this.menu(), (this.frameMs = performance.now() - o);
       return;
     }
+    if (I.phase === "shop" && this.wsOn) {
+      const wi = this.wsImage();
+      if (wi) {
+        this.wsNoir(wi), (this.frameMs = performance.now() - o);
+        return;
+      }
+    }
     if (I.phase === "hub") {
       IC(this, A), (this.frameMs = performance.now() - o);
       return;
@@ -12259,6 +12266,63 @@ class FC {
     }
     return this.mnImg.complete && this.mnImg.naturalWidth ? this.mnImg : null;
   }
+  wsImage() {
+    if (!this.wsImg) {
+      const u = getComputedStyle(document.documentElement).getPropertyValue("--ws-bg").trim().replace(/^url\(["']?/, "").replace(/["']?\)$/, "");
+      if (!u) return null;
+      (this.wsImg = new Image()), (this.wsImg.src = u);
+    }
+    return this.wsImg.complete && this.wsImg.naturalWidth ? this.wsImg : null;
+  }
+  // t115u: Werkstatt nach Konzept B – Werkzeugwand mit Glühbirne (flackert), NS-Stempel, Werkbank; der Held steht auf der Bank.
+  wsNoir(img) {
+    const A = this.c,
+      B = this.game,
+      S = nsStage(),
+      k = S.k;
+    A.save(), A.setTransform(this.dpr, 0, 0, this.dpr, 0, 0), (A.fillStyle = "#050505"), A.fillRect(0, 0, S.vw, S.vh);
+    const red = B.save.data.settings.reducedMotion;
+    if (S.portrait) {
+      const sc = Math.max(S.vw / 1280, S.vh / 720);
+      A.drawImage(img, S.vw / 2 - 640 * sc, 0, 1280 * sc, 720 * sc), (A.fillStyle = "rgba(5,5,5,0.35)"), A.fillRect(0, 0, S.vw, S.vh);
+    } else {
+      const X0 = S.ox * k,
+        Y0 = S.oy * k,
+        map = (x, y) => [X0 + x * k, Y0 + y * k];
+      A.drawImage(img, X0, Y0, 1280 * k, 720 * k);
+      const [gx, gy] = map(940, 596),
+        gr = A.createRadialGradient(gx, gy, 0, gx, gy, 120 * k);
+      gr.addColorStop(0, "rgba(255,170,90,0.22)"), gr.addColorStop(1, "rgba(255,150,70,0)");
+      A.save(), A.translate(gx, gy), A.scale(1, 0.22), A.translate(-gx, -gy), (A.fillStyle = gr), A.fillRect(gx - 130 * k, gy - 130 * k, 260 * k, 260 * k), A.restore();
+      const ch = B.coop ? (B.coop.snapshot()[B.actorIndex ?? 0]?.character ?? B.character) : B.character,
+        [hx, hy] = map(this.wsHX ?? 940, this.wsHY ?? 527),
+        hs = (this.wsHS ?? 2.1) * k;
+      A.save(), A.translate(hx, hy), A.scale(hs, hs), this.player(0, 0, ch, B.time * 0.75 + performance.now() / 1e3, !1, !1, 1), A.restore();
+    }
+    const now = performance.now() / 1e3,
+      F = this.wfl || (this.wfl = { next: now + 2.2 + Math.random() * 2.5, t0: -9, kind: 0 });
+    if (!red && now >= F.next) {
+      (F.t0 = now), (F.kind = Math.floor(Math.random() * 2)), (F.next = now + 4 + Math.random() * 6);
+      try {
+        !document.hidden && B.audio.buffers?.has("tb_flicker") && B.audio.sound("tb_flicker", 0.96 + Math.random() * 0.08, 0.3);
+      } catch {}
+    }
+    const KF = [
+        [[0, 0], [10, 0.3], [18, 0], [28, 0.36], [36, 0.04], [100, 0]],
+        [[0, 0], [14, 0.42], [28, 0.42], [34, 0], [62, 0.12], [68, 0], [100, 0]],
+      ][F.kind],
+      pc = ((now - F.t0) / 0.8) * 100;
+    let dim = 0;
+    if (pc >= 0 && pc <= 100)
+      for (let n = 1; n < KF.length; n++)
+        if (pc <= KF[n][0]) {
+          const [p0, v0] = KF[n - 1],
+            [p1, v1] = KF[n];
+          dim = v0 + ((v1 - v0) * (pc - p0)) / Math.max(1e-3, p1 - p0);
+          break;
+        }
+    dim > 0 && ((A.globalAlpha = dim), (A.fillStyle = "#030303"), A.fillRect(0, 0, S.vw, S.vh), (A.globalAlpha = 1)), A.restore();
+  }
   // t105u: Hauptmenü nach Konzept A – Schiefer, Glühbirne mit Lichtkegel (flackert dauerhaft), NS-Stempel, Held zwischen Schrotthaufen, Glut.
   menuNoir(img) {
     const A = this.c,
@@ -12710,6 +12774,8 @@ class wC {
     }
     this.nsFit(),
       (this.nmLast = this.screen),
+      this.screen === "shop" ? this.nwBind() : ((this.wsWas = this.screen), (this.wsSel = this.wsInfo = void 0), (this.wsBuildOpen = !1)),
+      (this.r.wsOn = this.screen === "shop"),
       this.screen === "level" && this.nlBind(),
       this.screen === "talents" && this.tbBind(),
       ["combat", "level", "pause"].includes(this.screen) && this.updateHUD(!0),
@@ -12718,7 +12784,7 @@ class wC {
   credits() {
     const A = JSON.parse(document.getElementById("font-licenses")?.textContent || "{}"),
       g = (B) => B.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
-    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Talentbaum (Werkstatt): Hintergrund mit Spotlicht und NS-Stempel, Kreide- und Wachssiegel-Knoten, Schrotthaufen für dieses Spiel nach Konzept B erzeugt und nachbearbeitet. Klänge eigene Synthese (Kreide, Röhrenbrummen, Flackern, Siegel-Schlag, Bröseln), geschichtet mit „RPG Sounds“ von Kenney (kenney.nl, CC0 1.0, über OpenGameArt.org).</p><p style="margin:0 0 15px">Hauptmenü, Kampf-HUD und Levelaufstieg (Noir-Kreide): Menü-Hintergrund mit Schrotthaufen, Tuscherahmen, Kartenrücken, Wachssiegel und HUD-Symbole für dieses Spiel nach den eigenen Konzepten erzeugt und nachbearbeitet.</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
+    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Talentbaum (Werkstatt): Hintergrund mit Spotlicht und NS-Stempel, Kreide- und Wachssiegel-Knoten, Schrotthaufen für dieses Spiel nach Konzept B erzeugt und nachbearbeitet. Klänge eigene Synthese (Kreide, Röhrenbrummen, Flackern, Siegel-Schlag, Bröseln), geschichtet mit „RPG Sounds“ von Kenney (kenney.nl, CC0 1.0, über OpenGameArt.org).</p><p style="margin:0 0 15px">Hauptmenü, Kampf-HUD und Levelaufstieg (Noir-Kreide): Menü-Hintergrund mit Schrotthaufen, Tuscherahmen, Kartenrücken, Wachssiegel und HUD-Symbole für dieses Spiel nach den eigenen Konzepten erzeugt und nachbearbeitet.</p><p style="margin:0 0 15px">Werkstatt (Noir-Kreide, Konzept B): Werkzeugwand mit Glühbirne und Werkbank, hängende Preis-Etiketten und das Klemmbrett für „Dein Build“ für dieses Spiel nach dem eigenen Konzept erzeugt und nachbearbeitet; Siegel, Stempel und Tuscherahmen aus Stufe 14.7 wiederverwendet. Klänge: dieselben CC0-Aufnahmen und eigene Synthese (Papier, Stempel, Kreide, Münzen) – keine neuen Quellen.</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
       A,
     )
       .map(
@@ -13154,68 +13220,126 @@ class wC {
     });
   }
   shop() {
+    // t115u: Werkstatt 1:1 nach Konzept B – Angebote als Etiketten an der Werkzeugwand, Arsenal + Held auf der Werkbank, Build als Klemmbrett.
+    // Shop-Logik (Kaufen, Halten, Neu würfeln, Verkaufen, Kombinieren, Mutation, Weiter) unverändert; nur Darstellung + Animation.
     const A = this.g,
       g = pB(A.wave),
-      B = A.shopOffers
-        .map((o, i) => {
-          const I = o.kind === "weapon" ? j.find((M) => M.id === o.id) : void 0,
-            C = I || _.find((M) => M.id === o.id),
-            Q = o.sold
-              ? o.result?.upgraded
-                ? { from: o.result.from, to: o.result.tier }
-                : void 0
-              : I
-                ? A.upgradePreview(o.id, o.tier)
-                : void 0,
-            a = !!I && !Q && A.weapons.length >= 6,
-            t = I && Q ? I.damage * ZA(Q.from) * A.damageScale() : 0,
-            h = I
-              ? I.damage * ZA(o.sold ? (o.result?.tier ?? o.tier) : (Q?.to ?? o.tier)) * A.damageScale()
-              : 0,
-            s = h - t,
-            U = I
-              ? Q
-                ? `<div class="upgrade-preview"><span>${o.sold ? "AUFGEWERTET" : "AUFWERTUNG"}</span><strong>Stufe ${iA[Q.from]} <b>→</b> ${iA[Q.to]}</strong><small>Schaden ${Math.round(t)} → ${Math.round(h)} <em>+${Math.round((s / Math.max(1, t)) * 100)} %</em></small></div>`
-                : `<div class="new-preview"><span>${o.sold ? "KAUF ABGESCHLOSSEN" : A.weapons.some((M) => M.id === o.id) ? "ZUSÄTZLICHES EXEMPLAR" : "NEUE WAFFE"}</span><strong>${Math.round(h)} Schaden</strong><small>${((1 / I.cooldown) * A.stats.attackSpeed).toFixed(1).replace(".", ",")} Angriffe / Sek.</small></div>`
-              : o.sold
-                ? '<div class="new-preview"><span>GEGENSTAND AUSGERÜSTET</span><strong>Im Build aktiv</strong></div>'
-                : `<div class="item-preview">${Object.entries(_.find((M) => M.id === o.id).stats)
-                    .slice(0, 2)
-                    .map(
-                      ([M, r]) =>
-                        `<span>${_A[M]}<b>${lA(M, A.stats[M])} → ${lA(M, A.stats[M] + r)}</b></span>`,
-                    )
-                    .join("")}</div>`;
-          return `<article class="offer rarity-${I ? o.tier : 1} ${o.sold ? "sold" : ""}" style="--rarity:${SA[I ? o.tier : 1]};--i:${i}"><div class="offer-top"><span class="rarity">${I ? `STUFE ${iA[o.tier]} · ${BB[o.tier]}` : "GEGENSTAND"}</span>${this.button("lock", o.locked ? x("lock") + "GEHALTEN" : x("lock") + "HALTEN", "lock " + (o.locked ? "locked" : ""), String(i), o.sold)}</div><div class="offer-art">${I ? x(C.id, C.color) : cg(C.id, C.color)}${I ? `<b class="tier-badge">${iA[o.tier]}</b>` : ""}</div><h3>${C.name}</h3><p class="desc">${C.desc}</p>${U}<div class="buy">${this.button("buy", `<span>▱ ${A.price(o)}</span><b>${o.sold ? "GEKAUFT" : a ? "ARSENAL VOLL" : Q ? "AUFWERTEN ↑" : "KAUFEN +"}</b>`, "primary", String(i), o.sold || A.money < A.price(o) || a)}</div></article>`;
-        })
-        .join(""),
-      E = Array.from({ length: 6 }, (o, i) => {
-        const I = A.weapons[i];
-        if (!I) return `<div class="empty-inv"><b>0${i + 1}</b><span>Freier Platz</span></div>`;
-        const C = j.find((a) => a.id === I.id),
-          Q =
-            A.weapons.some((a, t) => t !== i && a.id === I.id && a.tier === I.tier && !a.mutation) &&
-            I.tier < 4 &&
-            !I.mutation;
-        return `<article class="inv-weapon ${I.glow > 0 ? "inventory-upgrade" : ""}" data-weapon-slot="${i}" style="--rarity:${SA[I.tier]}">${x(I.id)}<div><h4>${I.mutation || C.name}</h4><span class="small">STUFE ${iA[I.tier]} <b>·</b> ${Math.round(C.damage * ZA(I.tier) * A.damageScale())} Schaden</span></div><div class="inv-actions">${this.button("sell", "Verkaufen", "textbtn", String(i), A.weapons.length === 1)}${Q ? this.button("combine", "↑ Kombinieren", "textbtn", String(i)) : ""}${A.canMutate(I) ? this.button("mutation", x("mutation") + "Mutation", "textbtn mutate", String(i)) : ""}</div></article>`;
-      }).join("");
-    return `<section class="screen dim shop-screen">${this.header(
-      "Die Werkstatt.",
-      "Welle " + A.wave + " überlebt · " + A.rules.name,
-      `<div class="currency">${x("economy")} ${Math.floor(A.money)}</div>`,
-    )
-      .replace('data-action="back"', 'data-action="shopHelp"')
-      .replace(
-        "← Zurück",
-        "? Regeln",
-      )}<div class="shop-layout"><main><div class="section-title">ANGEBOTE <span>KEIN ZEITLIMIT · DOPPELTE WERTEN AUTOMATISCH AUF</span></div><div class="shop-offers">${B}</div><div class="shop-reroll"><small>Waffen-Chancen: ${g.map((o, i) => iA[i + 1] + " " + Math.round(o * 100) + " %").join(" · ")}</small>${this.button("reroll", `${x("reroll")}<span>Neu würfeln · ▱ ${A.rerollCost}</span>`, "secondary compact", "", A.money < A.rerollCost)}</div><section class="inventory"><div class="section-title">DEIN ARSENAL <span>${A.weapons.length} / 6 PLÄTZE</span></div><div class="inventory-list">${E}</div></section><div class="shop-footer"><p>Doppelte Waffe = mindestens +1 Stufe, maximal IV.<br><span>${Math.round(A.rules.waveHeal * 100)} % Wellenheilung · Mutationen bleiben erhalten.</span></p>${this.button("next", A.coop ? (A.actorIndex === 0 ? "Bereit · weiter zu Spieler 2 →" : `Gemeinsam in Welle ${A.wave + 1} →`) : `Welle ${A.wave + 1} starten →`, "primary")}</div></main><aside class="stat-panel panel"><div class="section-title">DEIN BUILD</div><div class="stat-list">${["hp", "damage", "range", "attackSpeed", "crit", "armor", "speed", "lifesteal", "bleed", "burn", "chain", "economy", "engineering"].map((o) => `<div class="stat-line"><span>${x(o)}${_A[o]}</span><b>${lA(o, A.stats[o])}</b></div>`).join("")}</div><div class="section-title">GEGENSTÄNDE</div><div class="owned-items">${
-      Object.entries(A.items)
+      seen = this.wsSeen || (this.wsSeen = new WeakSet()),
+      soldSeen = this.wsSoldSeen || (this.wsSoldSeen = new WeakSet()),
+      lockSeen = this.wsLockSeen || (this.wsLockSeen = new WeakMap()),
+      fresh = this.wsWas !== "shop",
+      X = [340, 526, 720, 909],
+      money = Math.floor(A.money);
+    this.wsFx = { deal: 0, sold: 0, lock: 0, unlock: 0, fresh };
+    const tags = A.shopOffers
+      .map((o, i) => {
+        const I = o.kind === "weapon" ? j.find((M) => M.id === o.id) : void 0,
+          C = I || _.find((M) => M.id === o.id),
+          Q = o.sold ? (o.result?.upgraded ? { from: o.result.from, to: o.result.tier } : void 0) : I ? A.upgradePreview(o.id, o.tier) : void 0,
+          full = !!I && !Q && A.weapons.length >= 6,
+          t = I && Q ? I.damage * ZA(Q.from) * A.damageScale() : 0,
+          h = I ? I.damage * ZA(o.sold ? (o.result?.tier ?? o.tier) : (Q?.to ?? o.tier)) * A.damageScale() : 0,
+          price = A.price(o),
+          poor = !o.sold && A.money < price,
+          info = I
+            ? Q
+              ? `<b>${o.sold ? "AUFGEWERTET" : "AUFWERTUNG"} · STUFE ${iA[Q.from]} → ${iA[Q.to]}</b><span>Schaden ${Math.round(t)} → ${Math.round(h)} (+${Math.round(((h - t) / Math.max(1, t)) * 100)} %)</span>`
+              : `<b>${o.sold ? "KAUF ABGESCHLOSSEN" : A.weapons.some((M) => M.id === o.id) ? "ZUSÄTZLICHES EXEMPLAR" : "NEUE WAFFE"}</b><span>${Math.round(h)} Schaden · ${((1 / I.cooldown) * A.stats.attackSpeed).toFixed(1).replace(".", ",")} Angriffe / Sek.</span>`
+            : o.sold
+              ? "<b>GEGENSTAND AUSGERÜSTET</b><span>Im Build aktiv</span>"
+              : Object.entries(C.stats)
+                  .slice(0, 2)
+                  .map(([M, r]) => `<span>${_A[M]}: ${lA(M, A.stats[M])} → ${lA(M, A.stats[M] + r)}</span>`)
+                  .join(""),
+          deal = !seen.has(o),
+          justSold = o.sold && !soldSeen.has(o),
+          prevLock = lockSeen.get(o),
+          justLock = !deal && o.locked && prevLock === !1,
+          justUnlock = !deal && !o.locked && prevLock === !0;
+        deal && this.wsFx.deal++, justSold && this.wsFx.sold++, justLock && this.wsFx.lock++, justUnlock && this.wsFx.unlock++;
+        const label = o.sold ? "GEKAUFT" : full ? "ARSENAL VOLL" : Q ? "AUFWERTEN" : "KAUFEN";
+        return `<article class="nw-tag ${o.sold ? "sold" : ""} ${o.locked ? "locked" : ""} ${poor ? "poor" : ""} ${deal ? "nw-deal" : ""} ${justSold ? "nw-justsold" : ""} ${justLock ? "nw-justlock" : ""} ${this.wsInfo === i ? "nw-info-open" : ""}" style="--i:${i};--x:${X[i] ?? 340 + i * 190}px;--r:${[-1.2, 0.8, -0.6, 1.1][i % 4]}deg" data-offer="${i}"><button class="nw-seal" data-action="wsInfo" data-id="${i}" aria-label="${C.name}: Details" title="${C.desc}"><i class="nw-wax"></i>${I ? x(C.id, C.color) : cg(C.id, C.color)}</button><h3 class="${C.name.length > 13 ? "nw-long" : ""}">${C.name}</h3><p class="nw-sub">${I ? `STUFE ${iA[o.tier]} · ${BB[o.tier].toUpperCase()}` : "GEGENSTAND"}</p>${this.button("buy", `<b class="nw-price">${price}</b><span>${label}</span>`, "nw-buy", String(i), o.sold || poor || full)}${this.button("lock", o.locked ? "GEHALTEN" : "HALTEN", "nw-lock " + (o.locked ? "locked" : ""), String(i), o.sold)}<i class="nw-lockseal" aria-hidden="true"></i><i class="nw-soldstamp" aria-hidden="true"></i><div class="nw-info" role="tooltip"><p>${C.desc}</p>${info}</div></article>`;
+      })
+      .join("");
+    const slots = Array.from({ length: 6 }, (o, i) => {
+      const I = A.weapons[i];
+      if (!I) return `<div class="nw-slotwrap"><div class="nw-slot empty"><span>Freier Platz</span></div></div>`;
+      const C = j.find((a) => a.id === I.id),
+        comb = A.weapons.some((a, t) => t !== i && a.id === I.id && a.tier === I.tier && !a.mutation) && I.tier < 4 && !I.mutation,
+        mut = A.canMutate(I),
+        sellP = Math.round(C.price * (1 + (I.tier - 1) * 1.2) * 0.45),
+        dmg = Math.round(C.damage * ZA(I.tier) * A.damageScale()),
+        open = this.wsSel === i;
+      return `<div class="nw-slotwrap ${open ? "open" : ""}"><button class="nw-slot inv-weapon ${I.glow > 0 ? "inventory-upgrade" : ""} ${comb ? "nw-can" : ""} ${mut ? "nw-mut" : ""}" data-action="wsSlot" data-id="${i}" data-weapon-slot="${i}" aria-expanded="${open}" title="${I.mutation || C.name} · Stufe ${iA[I.tier]} · ${dmg} Schaden">${x(I.id)}<span class="nw-sname">${I.mutation || C.name}</span><small>${iA[I.tier]}</small></button>${open ? `<div class="nw-pop"><b>${I.mutation || C.name}</b><span>STUFE ${iA[I.tier]} · ${dmg} SCHADEN</span><div>${this.button("sell", `Verkaufen +${sellP}`, "nw-mini", String(i), A.weapons.length === 1)}${comb ? this.button("combine", "↑ Kombinieren", "nw-mini hot", String(i)) : ""}${mut ? this.button("mutation", "Mutation", "nw-mini mut", String(i)) : ""}</div></div>` : ""}</div>`;
+    }).join("");
+    const st = (o) => `<div class="nw-row"><span>${_A[o]}</span><b>${lA(o, A.stats[o])}</b></div>`,
+      all = ["hp", "damage", "range", "attackSpeed", "crit", "armor", "speed", "lifesteal", "bleed", "burn", "chain", "economy", "engineering"],
+      items = Object.entries(A.items)
         .map(([o, i]) => {
           const I = _.find((C) => C.id === o);
-          return this.button("sellItem", cg(o, I.color) + (i > 1 ? `<b>${i}</b>` : ""), "owned-item", o);
+          return this.button("sellItem", cg(o, I.color) + `<span>${I.name}</span>` + (i > 1 ? `<b>×${i}</b>` : "") + `<em>+${Math.round(I.price * 0.45)}</em>`, "nw-item", o);
         })
-        .join("") || '<p class="small muted">Noch keine Gegenstände.</p>'
-    }</div><p class="notice">Antippen: ein Exemplar verkaufen.</p><div class="separator"></div><p class="notice">Mutationen ab III:<br>Nietenspucker: ≥12 % Krit.<br>Mondspalter: ≥3 Blutung<br>Schraubenknecht: ≥140 % Technik<br>Lichtgabel: ≥2 Blitzsprünge</p></aside></div></section>`;
+        .join("");
+    const next = A.coop ? (A.actorIndex === 0 ? "BEREIT · WEITER ZU SPIELER 2" : `GEMEINSAM IN WELLE ${A.wave + 1}`) : `WELLE ${A.wave + 1} STARTEN`;
+    return `<section class="screen shop-screen nw ${fresh ? "nw-fresh" : ""} ${fresh && performance.now() - (globalThis.nsMomentAt ?? -1e9) < 1200 ? "nw-late" : ""}" id="nw-screen"><div class="nw-stage ns-stage"><div class="nw-box"><div class="nw-eyebrow">NACHTSCHROTT / WELLE ${A.wave}${A.coop ? ` · SPIELER ${(A.actorIndex ?? 0) + 1}` : ""}</div><h1 class="nw-title">DIE WERKSTATT</h1><i class="nw-hazard" aria-hidden="true"></i><p class="nw-tagline">Welle ${A.wave} überlebt · ${A.rules.name}</p><div class="nw-money currency"><i class="nsi" style="--i:1"></i><b id="nw-money" data-from="${this.wsMoney ?? money}" data-to="${money}">${this.wsMoney ?? money}</b><span class="nw-chip">SCHROTT</span></div>${this.button("shopHelp", "? REGELN", "nw-help")}<div class="nw-tags shop-offers">${tags}</div>${this.button("reroll", `NEU WÜRFELN <small>· ${A.rerollCost}</small>`, "nw-reroll", "", A.money < A.rerollCost)}<p class="nw-odds" title="Waffen-Chancen">WAFFEN-CHANCEN ${g.map((o, i) => iA[i + 1] + " " + Math.round(o * 100) + " %").join(" · ")}</p><section class="nw-arsenal inventory"><div class="nw-ahead"><i></i><span>DEIN ARSENAL</span><b>${A.weapons.length} / 6 PLÄTZE</b></div><div class="nw-slots">${slots}</div></section><aside class="nw-board owned-items"><h4>DEIN BUILD</h4>${["hp", "damage", "range", "armor", "engineering"].map(st).join("")}${this.button("wsBuild", this.wsBuildOpen ? "ZU ×" : "ALLE ▸", "nw-more")}</aside>${this.button("next", next, A.coop ? "nw-next nw-long" : "nw-next")}<p class="nw-hint">KEIN ZEITLIMIT</p>${
+      this.wsBuildOpen
+        ? `<div class="nw-sheet" role="dialog" aria-label="Dein Build"><h4>DEIN BUILD · ALLE WERTE</h4><div class="nw-cols">${all.map(st).join("")}</div><h5>GEGENSTÄNDE <small>ANTIPPEN: EIN EXEMPLAR VERKAUFEN</small></h5><div class="nw-items">${items || '<p class="nw-none">Noch keine Gegenstände.</p>'}</div><p class="nw-note">Doppelte Waffe = mindestens +1 Stufe, maximal IV. ${Math.round(A.rules.waveHeal * 100)} % Wellenheilung · Mutationen bleiben erhalten.<br>Mutationen ab III: Nietenspucker ≥12 % Krit. · Mondspalter ≥3 Blutung · Schraubenknecht ≥140 % Technik · Lichtgabel ≥2 Blitzsprünge</p>${this.button("wsBuild", "SCHLIESSEN ×", "nw-close")}</div>`
+        : ""
+    }</div></div></section>`;
+  }
+  nwBind() {
+    // t115u: Etiketten einhängen, Stempel/Siegel, Münzzähler, Klänge.
+    const root = document.getElementById("nw-screen"),
+      A = this.g,
+      fx = this.wsFx || {};
+    if (!root) return;
+    // t115u: Controller/Tastatur – Fokus über Neuaufbau hinweg halten.
+    this.wsFocusOn ||
+      ((this.wsFocusOn = !0),
+      document.addEventListener("focusin", (e) => {
+        const t = e.target;
+        t?.closest?.("#nw-screen") && (this.wsFocus = { a: t.dataset.action || "", id: t.dataset.id ?? "", offer: t.closest(".nw-tag")?.dataset.offer });
+      }));
+    const pad = document.body.classList.contains("ns-pad"),
+      act = document.activeElement;
+    if (pad && (!act || act === document.body || !act.isConnected)) {
+      const w = this.wsFocus,
+        q = (s) => [...root.querySelectorAll(s)].find((e) => !e.disabled && e.getClientRects().length && getComputedStyle(e).visibility !== "hidden");
+      (fx.fresh || !w
+        ? q(".nw-buy:not(:disabled)") || q(".nw-next")
+        : (w.a && q(`[data-action="${w.a}"][data-id="${w.id}"]:not(:disabled)`)) ||
+          (w.offer !== void 0 && (q(`.nw-tag[data-offer="${w.offer}"] .nw-lock`) || q(".nw-tag .nw-buy") || q(".nw-reroll"))) ||
+          (w.a === "sell" || w.a === "combine" || w.a === "mutation" ? q(".nw-slot") : null) ||
+          q(".nw-next")
+      )?.focus({ preventScroll: !0 });
+    }
+    for (const o of A.shopOffers) this.wsSeen.add(o), o.sold && this.wsSoldSeen.add(o), this.wsLockSeen.set(o, !!o.locked);
+    const S = (n, v = 1, r = 1, d = 0) => (d ? setTimeout(() => this.screen === "shop" && this.tbSound(n, v, r), d) : this.tbSound(n, v, r));
+    if (fx.fresh) S("tb_open", 0.6);
+    // Nach dem „Welle überstanden“-Band teilen sich die Etiketten erst aus, wenn das Band abklingt (nw-late).
+    if (fx.deal) for (let i = 0; i < Math.min(4, fx.deal); i++) S("tb_paper", 0.55, 0.92 + i * 0.07, (root.classList.contains("nw-late") ? 1100 : fx.fresh ? 140 : 40) + i * 95);
+    fx.sold && S("tb_stamp", 1, 1, 60);
+    fx.lock && S("tb_stamp", 0.55, 1.35);
+    fx.unlock && S("tb_paper", 0.5, 1.2);
+    // Münzzähler
+    const m = document.getElementById("nw-money"),
+      to = Math.floor(A.money),
+      from = this.wsMoney ?? to;
+    this.wsMoney = to;
+    if (m && from !== to && document.body.dataset.motion !== "reduced") {
+      const t0 = performance.now(),
+        dur = 520;
+      m.classList.add(to > from ? "up" : "down");
+      for (let k = 0; k < 3; k++) S("pickup", 0.22, to > from ? 1.5 + k * 0.08 : 1.1 - k * 0.06, k * 110);
+      const step = (t) => {
+        if (!m.isConnected) return;
+        const u = Math.min(1, (t - t0) / dur),
+          e = 1 - Math.pow(1 - u, 3);
+        (m.textContent = String(Math.round(from + (to - from) * e))), u < 1 ? requestAnimationFrame(step) : m.classList.remove("up", "down");
+      };
+      requestAnimationFrame(step);
+    } else m && (m.textContent = String(to));
+    this.wsWas = "shop";
   }
   pause() {
     return `<div class="modal-wrap pause-wrap"><div class="modal narrow panel pause-modal"><div class="eyebrow">ATME KURZ DURCH</div><h2>Die Nacht pausiert.</h2><p class="sub">Welle ${this.g.wave} · Stufe ${this.g.level}</p><div class="menu-buttons">${this.button("resume", "Weiterkämpfen", "primary")}${this.button("settings", "Einstellungen")}${this.button("help", "Steuerung & Regeln")}${this.button("abandon", "Run beenden", "danger")}</div><p class="notice">${this.g.coop ? "Gemeinsamer Lauf: diese Sitzung. P1 WASD / LEER / E · P2 Pfeile oder IJKL / O / U. Zum Beleben 3 Sekunden beim Partner bleiben." : "Wellenbeginn automatisch gesichert. Nach Neuladen im Hauptmenü fortsetzen; Fortschritt seit Wellenbeginn entfällt."} ESC / Controller B setzt fort.</p></div></div>`;
@@ -13766,6 +13890,12 @@ class wC {
       this.g.pause();
       return;
     }
+    if (this.screen === "shop" && (this.wsSel !== void 0 || this.wsInfo !== void 0 || this.wsBuildOpen)) {
+      // t115u: B/Esc schließt zuerst Platz-Menü, Details oder Werte-Blatt der Werkstatt.
+      const f = this.wsBuildOpen ? ".nw-more" : this.wsSel !== void 0 ? `.nw-slot[data-id="${this.wsSel}"]` : `.nw-tag[data-offer="${this.wsInfo}"] .nw-seal`;
+      (this.wsSel = this.wsInfo = void 0), (this.wsBuildOpen = !1), this.render(), this.tbSound("tb_paper", 0.45, 1.2), this.root.querySelector(f)?.focus({ preventScroll: !0 });
+      return;
+    }
     ["level", "risk", "mutation", "shop", "defeat", "victory"].includes(this.screen) ||
       ((this.screen = "home"), (this.g.phase = "menu"), this.render());
   }
@@ -14009,7 +14139,16 @@ class wC {
         break;
       }
       case "reroll":
-        E.reroll();
+        (this.wsSel = this.wsInfo = void 0), E.reroll();
+        break;
+      case "wsInfo":
+        (this.wsInfo = this.wsInfo === Number(g) ? void 0 : Number(g)), (this.wsSel = void 0), this.render(), this.tbSound("tb_chalk", 0.4), this.root.querySelector(`.nw-tag[data-offer="${g}"] .nw-seal`)?.focus({ preventScroll: !0 });
+        break;
+      case "wsSlot":
+        (this.wsSel = this.wsSel === Number(g) ? void 0 : Number(g)), (this.wsInfo = void 0), this.render(), this.tbSound("tb_chalk", 0.45), this.root.querySelector(this.wsSel === void 0 ? `.nw-slot[data-id="${g}"]` : ".nw-pop button:not(:disabled)")?.focus({ preventScroll: !0 });
+        break;
+      case "wsBuild":
+        (this.wsBuildOpen = !this.wsBuildOpen), (this.wsSel = this.wsInfo = void 0), this.render(), this.tbSound("tb_paper", 0.6), this.root.querySelector(this.wsBuildOpen ? ".nw-close" : ".nw-more")?.focus({ preventScroll: !0 });
         break;
       case "lock":
         (E.shopOffers[Number(g)].locked = !E.shopOffers[Number(g)].locked), this.render();
@@ -14018,12 +14157,15 @@ class wC {
         E.sellItem(g);
         break;
       case "sell":
+        this.wsSel = void 0;
         E.sell(Number(g));
         break;
       case "combine":
+        this.wsSel = void 0;
         E.combine(Number(g));
         break;
       case "mutation":
+        this.wsSel = void 0;
         E.openMutation(Number(g));
         break;
       case "mutate":
@@ -14189,7 +14331,9 @@ class wC {
         ? this.root.querySelector("[data-action=continueRun],button.play")
         : this.screen === "characters"
           ? this.root.querySelector("[data-action=start]")
-          : B[0]
+          : this.screen === "shop"
+            ? this.root.querySelector(".nw-buy:not(:disabled),.nw-next")
+            : B[0]
       )?.focus();
       return;
     }
@@ -14286,12 +14430,14 @@ window.addEventListener("keydown", (e) => {
       !v())
     ) {
       const A = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
-      A[e.code] && O.focusMove(...A[e.code]),
+      (A[e.code] || e.code === "Tab") && document.body.classList.add("ns-pad"),
+        A[e.code] && O.focusMove(...A[e.code]),
         e.code === "Enter" && document.activeElement === document.body && O.focusMove(0, 1);
     }
   }
 });
 window.addEventListener("keyup", (e) => RA.delete(e.code));
+window.addEventListener("pointerdown", () => document.body.classList.remove("ns-pad"), !0);
 window.addEventListener("blur", () => {
   (T.focused = !1), T.update(), RA.clear(), v() && K.pause();
 });
@@ -14342,7 +14488,7 @@ function YB(e, A = 0) {
     i = E(1),
     I = E(2),
     C = E(3);
-  (o || i || I || C || B.buttons.some((a) => a.pressed)) && (TA = !0);
+  (o || i || I || C || B.buttons.some((a) => a.pressed)) && ((TA = !0), document.body.classList.add("ns-pad"));
   const Q = (a) => B.buttons[a]?.pressed && !g.has(a);
   if (
     (Q(9) && (T.init(), (v() || O.screen === "pause") && K.pause()),
@@ -14570,7 +14716,8 @@ function nsMoment(title, sub = "", reduced = !1) {
   if (typeof document > "u") return;
   document.querySelector(".ns-moment")?.remove();
   const el = document.createElement("div");
-  (el.className = "ns-moment" + (reduced ? " reduced" : "")),
+  (globalThis.nsMomentAt = performance.now()),
+    (el.className = "ns-moment" + (reduced ? " reduced" : "")),
     (el.innerHTML = `<div class="ns-moment-band"><i></i><b></b><small></small><i></i></div>`),
     (el.querySelector("b").textContent = title),
     (el.querySelector("small").textContent = sub),
