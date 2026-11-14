@@ -9902,67 +9902,91 @@ function UC(e, A) {
   }
   e.restore();
 }
-const rC = ["#ffe18a", "#ffc6d6", "#fffaf0", "#fff2d2"];
+const rC = ["#ffd23a", "#ffb6cb", "#fffaf0", "#fff6e2"];
+// t99u: Hof-Partikel (Pollen, Blütenblätter, Samenflusen) – Größe und Tempo in Bildschirm-Pixeln, damit sie bei jeder Zoomstufe sichtbar bleiben.
+let hofGlow;
+function hofGlowSprite() {
+  if (hofGlow || typeof document > "u") return hofGlow;
+  const c = document.createElement("canvas");
+  (c.width = c.height = 64);
+  const x = c.getContext("2d"),
+    r = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, "rgba(255,246,200,1)"), r.addColorStop(0.25, "rgba(255,214,90,0.55)"), r.addColorStop(1, "rgba(255,200,60,0)");
+  return (x.fillStyle = r), x.fillRect(0, 0, 64, 64), (hofGlow = c);
+}
 function YC(e, A) {
   const g = e.c,
     B = e.game,
     E = kg(e),
+    sp = 1 / E,
     o = e.w / E / 2,
     i = e.h / E / 2,
-    I = Math.round((B.mobile ? 26 : 44) * Math.min(1, B.save.data.settings.particles)),
+    I = Math.round((B.mobile ? 60 : 96) * Math.min(1, B.save.data.settings.particles)),
     C = e.camX - o,
     Q = e.camX + o,
     a = e.camY - i,
-    t = e.camY + i;
+    t = e.camY + i,
+    glow = hofGlowSprite();
   for (; L.motes.length < I; ) {
-    const s = Math.random() < 0.45 ? 0 : Math.random() < 0.5 ? 3 : Math.random() < 0.6 ? 1 : 2;
+    const r = Math.random(),
+      s = r < 0.4 ? 0 : r < 0.56 ? 1 : r < 0.68 ? 2 : r < 0.86 ? 3 : 4;
     L.motes.push({
       x: C + Math.random() * (Q - C),
       y: a + Math.random() * (t - a),
-      vx: 8 + Math.random() * 14,
-      vy: -2 - Math.random() * 5,
+      vx: 12 + Math.random() * 20,
+      vy: -3 - Math.random() * 8,
       ph: Math.random() * 6.28,
-      size: s === 1 || s === 2 ? 2.6 + Math.random() * 1.4 : 1.2 + Math.random() * 1.3,
+      size: s === 1 || s === 2 ? 4.6 + Math.random() * 2.6 : s === 0 ? 2.4 + Math.random() * 1.4 : s === 4 ? 5 + Math.random() * 4 : 2.2 + Math.random() * 1.2,
       kind: s,
+      near: s === 0 && Math.random() < 0.14,
       spin: Math.random() * 6.28,
+      fall: 9 + Math.random() * 10,
     });
   }
   L.motes.length > I && (L.motes.length = I);
-  const h = 1 + 0.5 * Math.sin(L.t * 0.37);
+  const h = 1 + 0.45 * Math.sin(L.t * 0.37);
   g.save();
   for (const s of L.motes) {
+    const n = s.near ? 1.6 : 1;
     (s.ph += A * 1.3),
       (s.spin += A * 2.2),
-      (s.x += (s.vx * h + Math.sin(s.ph) * 6) * A),
-      (s.y += (s.vy + Math.cos(s.ph * 0.8) * 5) * A),
-      s.x > Q + 10 && (s.x = C - 10),
-      s.x < C - 12 && (s.x = Q + 8),
-      s.y < a - 10 && (s.y = t + 8),
-      s.y > t + 12 && (s.y = a - 8);
-    const U = 0.55 + 0.45 * Math.sin(s.ph * 2.3);
-    (g.fillStyle = rC[s.kind]),
-      s.kind === 1 || s.kind === 2
-        ? ((g.globalAlpha = 0.8),
-          g.beginPath(),
-          g.ellipse(
-            s.x,
-            s.y,
-            s.size,
-            s.size * (0.35 + 0.3 * Math.abs(Math.sin(s.spin))),
-            s.spin,
-            0,
-            Math.PI * 2,
-          ),
-          g.fill())
-        : ((g.globalAlpha = (s.kind === 0 ? 0.75 : 0.45) * U),
-          g.beginPath(),
-          g.arc(s.x, s.y, s.size, 0, Math.PI * 2),
-          g.fill(),
-          s.kind === 0 &&
-            ((g.globalAlpha = 0.18 * U),
-            g.beginPath(),
-            g.arc(s.x, s.y, s.size * 3, 0, Math.PI * 2),
-            g.fill()));
+      (s.x += (s.vx * h + Math.sin(s.ph) * 9) * n * sp * A),
+      (s.y += (s.vy + Math.cos(s.ph * 0.8) * 7) * n * sp * A),
+      s.x > Q + 30 * sp && (s.x = C - 20 * sp),
+      s.x < C - 32 * sp && (s.x = Q + 18 * sp),
+      s.y < a - 30 * sp && (s.y = t + 18 * sp),
+      s.y > t + 32 * sp && (s.y = a - 18 * sp);
+    const U = 0.6 + 0.4 * Math.sin(s.ph * 2.3),
+      R = s.size * sp * 1.35 * (s.near ? 2.2 : 1);
+    if (s.kind === 1 || s.kind === 2) {
+      const ry = R * (0.35 + 0.35 * Math.abs(Math.sin(s.spin))),
+        d = s.fall * sp;
+      (g.globalAlpha = 0.3), (g.fillStyle = "#2a1a10"), g.beginPath(), g.ellipse(s.x + d * 0.4, s.y + d, R, ry, s.spin, 0, Math.PI * 2), g.fill();
+      (g.globalAlpha = 0.95), (g.fillStyle = rC[s.kind]), g.beginPath(), g.ellipse(s.x, s.y, R, ry, s.spin, 0, Math.PI * 2), g.fill();
+      (g.globalAlpha = 0.45), (g.lineWidth = 0.9 * sp), (g.strokeStyle = s.kind === 1 ? "#b2566c" : "#9a8a70"), g.stroke();
+    } else if (s.kind === 4) {
+      const w = Math.max(0, Math.sin(s.ph * 1.7)) ** 3;
+      if (w > 0.02) {
+        const k = R * (0.5 + 0.5 * w);
+        glow && ((g.globalCompositeOperation = "lighter"), (g.globalAlpha = 0.6 * w), g.drawImage(glow, s.x - k * 1.4, s.y - k * 1.4, k * 2.8, k * 2.8), (g.globalCompositeOperation = "source-over"));
+        (g.globalAlpha = 0.95 * w), (g.fillStyle = "#fffdf2"), g.beginPath();
+        const q = k * 0.16;
+        g.moveTo(s.x, s.y - k), g.lineTo(s.x + q, s.y - q), g.lineTo(s.x + k, s.y), g.lineTo(s.x + q, s.y + q), g.lineTo(s.x, s.y + k), g.lineTo(s.x - q, s.y + q), g.lineTo(s.x - k, s.y), g.lineTo(s.x - q, s.y - q), g.closePath(), g.fill();
+      }
+    } else if (s.kind === 0) {
+      const k = R * (s.near ? 5 : 4.4);
+      s.near || ((g.globalAlpha = 0.3), (g.fillStyle = "#3a2410"), g.beginPath(), g.arc(s.x + s.fall * sp * 0.4, s.y + s.fall * sp, R, 0, Math.PI * 2), g.fill());
+      glow && ((g.globalCompositeOperation = "lighter"), (g.globalAlpha = (s.near ? 0.3 : 0.42) * U), g.drawImage(glow, s.x - k, s.y - k, k * 2, k * 2), (g.globalCompositeOperation = "source-over"));
+      s.near ||
+        ((g.globalAlpha = 0.95 * U), (g.fillStyle = rC[0]), g.beginPath(), g.arc(s.x, s.y, R, 0, Math.PI * 2), g.fill(),
+        (g.globalAlpha = 0.5 * U), (g.lineWidth = 0.8 * sp), (g.strokeStyle = "#a8661a"), g.stroke(),
+        (g.globalAlpha = 0.9 * U), (g.fillStyle = "#fffbe8"), g.beginPath(), g.arc(s.x, s.y, R * 0.45, 0, Math.PI * 2), g.fill());
+    } else {
+      const d = s.fall * sp;
+      (g.globalAlpha = 0.26), (g.fillStyle = "#2a1a10"), g.beginPath(), g.arc(s.x + d * 0.4, s.y + d, R, 0, Math.PI * 2), g.fill();
+      (g.globalAlpha = 0.3 * U), (g.fillStyle = rC[3]), g.beginPath(), g.arc(s.x, s.y, R * 2.4, 0, Math.PI * 2), g.fill();
+      (g.globalAlpha = 0.95), (g.fillStyle = "#ffffff"), g.beginPath(), g.arc(s.x, s.y, R, 0, Math.PI * 2), g.fill();
+    }
   }
   g.restore();
 }
@@ -12170,6 +12194,79 @@ class FC {
     for (const I of [...sB].sort((C, Q) => C.y - Q.y)) d.image(o, IB(I), I.x, I.y);
     return o.restore(), Z.has("floor-" + aB) && ((this.menuCache = E), (this.menuCacheKey = B)), E;
   }
+  // t99u: Noir-Partikel im Hauptmenü – aufsteigende Rostfunken/Glut + feiner Staub, der nur im Lichtkegel aufleuchtet.
+  menuFx(A, i, I, E, B) {
+    const S = this.mfx || (this.mfx = { t: B.time, emb: [], dust: [], glow: null }),
+      dt = Math.max(0, Math.min(0.05, B.time - S.t)),
+      W = this.w,
+      H = this.h,
+      P = Math.min(1, B.save.data.settings.particles),
+      mob = B.mobile || W < 700,
+      nE = Math.round((mob ? 30 : 52) * P),
+      nD = Math.round((mob ? 46 : 80) * P),
+      top = -40,
+      bot = I + 150,
+      half = (y) => 55 + ((y - top) / (bot - top)) * 140,
+      ax = (y) => i + 20 + ((y - top) / (bot - top)) * 10;
+    S.t = B.time;
+    if (!S.glow) {
+      const c = document.createElement("canvas");
+      c.width = c.height = 64;
+      const x = c.getContext("2d"),
+        r = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+      r.addColorStop(0, "rgba(255,200,120,1)"), r.addColorStop(0.22, "rgba(255,120,30,0.6)"), r.addColorStop(1, "rgba(200,60,10,0)");
+      (x.fillStyle = r), x.fillRect(0, 0, 64, 64), (S.glow = c);
+    }
+    const ember = (y) => ({
+      x: Math.random() * W,
+      y: y ?? H + 10 + Math.random() * 40,
+      vx: (Math.random() - 0.5) * 14,
+      vy: -(26 + Math.random() * 46),
+      ph: Math.random() * 6.28,
+      age: 0,
+      life: 4 + Math.random() * 5,
+      size: 1.9 + Math.random() * 2.2,
+      hot: Math.random() < 0.3,
+    });
+    const dust = () => {
+      const y = top + Math.random() * (bot - top + 120);
+      return { x: ax(y) + (Math.random() * 2 - 1) * half(y) * 1.35, y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 6, ph: Math.random() * 6.28, size: 1.1 + Math.random() * 1.6 };
+    };
+    for (; S.emb.length < nE; ) S.emb.push(ember(Math.random() * H));
+    for (; S.dust.length < nD; ) S.dust.push(dust());
+    S.emb.length > nE && (S.emb.length = nE), S.dust.length > nD && (S.dust.length = nD);
+    A.save();
+    for (const d of S.dust) {
+      (d.ph += dt * 0.9), (d.x += (d.vx + Math.sin(d.ph) * 4) * dt), (d.y += (d.vy + Math.cos(d.ph * 0.7) * 3 + 2) * dt);
+      if (d.y > bot + 140 || d.y < top - 10 || Math.abs(d.x - ax(d.y)) > half(d.y) * 1.6) Object.assign(d, dust());
+      const k = Math.max(0, 1 - Math.abs(d.x - ax(d.y)) / half(Math.min(d.y, bot))),
+        f = d.y > bot ? Math.max(0, 1 - (d.y - bot) / 140) : 1,
+        a = Math.min(1, 0.1 + 1.1 * k) * f * (0.65 + 0.35 * Math.sin(d.ph * 3.1));
+      if (a < 0.02) continue;
+      (A.globalAlpha = a * P), (A.fillStyle = "#ffe6bd"), A.beginPath(), A.arc(d.x, d.y, d.size, 0, Math.PI * 2), A.fill();
+    }
+    A.globalCompositeOperation = "lighter";
+    for (const e of S.emb) {
+      (e.age += dt), (e.ph += dt * (2 + e.size)), (e.x += (e.vx + Math.sin(e.ph) * 12) * dt), (e.y += e.vy * dt), (e.vy *= 1 - dt * 0.05);
+      if (e.age > e.life || e.y < -20) {
+        Object.assign(e, ember());
+        continue;
+      }
+      const u = e.age / e.life,
+        fl = 0.7 + 0.3 * Math.sin(e.ph * 4.3) * Math.sin(e.ph * 1.7),
+        a = Math.min(1, u * 6) * (1 - u) ** 1.3 * fl,
+        r = e.size * (e.hot ? 1.5 : 1),
+        k = r * 9;
+      (A.globalAlpha = a * P), A.drawImage(S.glow, e.x - k, e.y - k, k * 2, k * 2);
+      (A.globalAlpha = a * P),
+        (A.fillStyle = e.hot ? "#fff0c8" : u < 0.5 ? "#ffb35a" : "#e8622a"),
+        A.beginPath(),
+        A.ellipse(e.x, e.y, r * 0.8, r * 1.5, Math.sin(e.ph) * 0.4, 0, Math.PI * 2),
+        A.fill();
+    }
+    A.restore();
+    typeof window < "u" && (window.__menuEmbers = { n: S.emb.length, d: S.dust.length });
+  }
   menu() {
     const A = this.c,
       g = new X(A),
@@ -12223,21 +12320,7 @@ class FC {
       A.restore(),
       !B.save.data.settings.reducedMotion && B.save.data.settings.particles > 0)
     ) {
-      for (let t = 0; t < 24; t++) {
-        const h = (t * 79.1 + B.time * (t % 2 ? 9 : -4) + 9e3) % this.w,
-          s = (t * 113.7 - B.time * (8 + (t % 4)) + 9e3) % this.h;
-        (A.globalAlpha = (0.16 + Math.sin(B.time * 2 + t) * 0.12) * B.save.data.settings.particles),
-          g.ellipse(
-            h,
-            s,
-            t % 4 === 0 ? 1.6 : 0.8,
-            t % 4 === 0 ? 2 : 0.8,
-            t % 3 ? "#e9bd79" : "#ffab39",
-            F,
-            0,
-          );
-      }
-      A.globalAlpha = 1;
+      this.menuFx(A, i, I, E, B);
     }
     !B.save.data.settings.reducedMotion &&
       B.time % 3.7 < 0.2 &&
