@@ -2301,3 +2301,54 @@ body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-board { top: 1180px !i
 body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-next { top: 1436px !important; }
 body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-stage, body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-box { overflow-x: clip !important; overflow-y: visible !important; }
 body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-seal.nw-gun .icon { overflow: clip !important; overflow-clip-margin: 14px !important; }
+/* ===== t138: Waffenstufen-Rahmen I–VI (Ausnahme von der Farbregel nur für diese Rahmen) ===== */
+body #ui .lv1 { --lvc: #cfc6b4; --lvg: rgba(207, 198, 180, 0); }
+body #ui .lv2 { --lvc: #7fae63; --lvg: rgba(127, 174, 99, 0.42); }
+body #ui .lv3 { --lvc: #5f9ed6; --lvg: rgba(95, 158, 214, 0.45); }
+body #ui .lv4 { --lvc: #a983dc; --lvg: rgba(169, 131, 220, 0.5); }
+body #ui .lv5 { --lvc: #e5b54e; --lvg: rgba(229, 181, 78, 0.6); }
+body #ui .lv6 { --lvc: #e2493b; --lvg: rgba(226, 73, 59, 0.65); }
+@property --lvspin { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes lv-spin { to { --lvspin: 360deg; } }
+@keyframes lv-pulse { 0%, 100% { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 8px var(--lvg), inset 0 0 8px var(--lvg); } 50% { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 18px var(--lvg), inset 0 0 12px var(--lvg); } }
+@keyframes lv-pop { 0% { transform: scale(1); filter: brightness(1); } 18% { transform: scale(1.22); filter: brightness(1.8); } 45% { transform: scale(0.95); } 70% { transform: scale(1.06); } 100% { transform: scale(1); filter: brightness(1); } }
+@keyframes lv-burst { 0% { opacity: 0.95; transform: scale(0.7); } 100% { opacity: 0; transform: scale(2.3); } }
+@keyframes lv-sweep { 0% { background-position: 160% 0; } 55%, 100% { background-position: -60% 0; } }
+@keyframes lv-cardpop { 0% { transform: translateY(0) scale(1); filter: brightness(1); } 20% { transform: translateY(-10px) scale(1.04); filter: brightness(1.45); } 100% { transform: translateY(0) scale(1); filter: brightness(1); } }
+@keyframes heat-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+/* HUD-Slots oben links */
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot:is(.lv2, .lv3, .lv4, .lv5, .lv6) { border: 3px solid var(--lvc) !important; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 9px var(--lvg), inset 0 0 8px var(--lvg) !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot:is(.lv5, .lv6) { animation: lv-pulse 1.8s ease-in-out infinite !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot:is(.lv5, .lv6)::after { content: "" !important; display: block !important; position: absolute !important; inset: -6px !important; border-radius: 50% !important; pointer-events: none !important; background: conic-gradient(from var(--lvspin), transparent 0 70%, rgba(255, 246, 220, 0.95) 80%, transparent 90%) !important; -webkit-mask: radial-gradient(closest-side, transparent 78%, #000 80%, #000 98%, transparent 100%) !important; mask: radial-gradient(closest-side, transparent 78%, #000 80%, #000 98%, transparent 100%) !important; animation: lv-spin 2.4s linear infinite !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot.lv6::after { background: conic-gradient(from var(--lvspin), transparent 0 55%, rgba(255, 120, 70, 0.95) 70%, rgba(255, 230, 190, 1) 78%, transparent 88%) !important; animation-duration: 1.5s !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot .nh-lv { position: absolute !important; right: -5px !important; bottom: -5px !important; min-width: 17px !important; height: 17px !important; padding: 0 3px !important; box-sizing: border-box !important; border-radius: 9px !important; background: #15110e !important; border: 1.5px solid var(--lvc, #cfc6b4) !important; color: var(--lvc, #cfc6b4) !important; font: 800 10px/14px "Barlow Condensed", sans-serif !important; font-style: normal !important; text-align: center !important; letter-spacing: 0.02em !important; z-index: 2 !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot.lv1 .nh-lv { opacity: 0.8 !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot.lv-up { animation: lv-pop 0.9s cubic-bezier(0.2, 0.8, 0.3, 1.2) !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot.lv-up::before { content: "" !important; display: block !important; position: absolute !important; inset: -4px !important; border-radius: 50% !important; border: 3px solid var(--lvc) !important; box-shadow: 0 0 16px var(--lvg) !important; animation: lv-burst 0.9s ease-out forwards !important; pointer-events: none !important; }
+/* Gatling-Hitze im Slot */
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot .nh-heat { position: absolute !important; left: 50% !important; bottom: -11px !important; translate: -50% 0 !important; width: 44px !important; height: 6px !important; border-radius: 3px !important; background: #15110e !important; border: 1px solid rgba(222, 208, 182, 0.55) !important; overflow: hidden !important; opacity: 0 !important; transition: opacity 0.25s !important; z-index: 3 !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot .nh-heat b { position: absolute !important; left: 0 !important; top: 0 !important; bottom: 0 !important; width: calc(var(--heat, 0) * 100%) !important; background: linear-gradient(90deg, #e9dcc6, #f0a25a 60%, #ff6a2e) !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot.heat-on .nh-heat { opacity: 1 !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot.heat-warn .nh-heat b { background: linear-gradient(90deg, #f0a25a, #ff5a2e) !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot.heat-lock .nh-heat { border-color: #ff5a3c !important; box-shadow: 0 0 8px rgba(255, 70, 40, 0.8) !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot.heat-lock .nh-heat b { background: #e2302a !important; animation: heat-blink 0.35s steps(2) infinite !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot.heat-lock { border-color: #e2302a !important; }
+body #ui:not(#_):not(#__):not(#___) .nh .nh-slot.heat-lock .icon { filter: brightness(0.55) sepia(1) saturate(3) hue-rotate(-25deg) !important; }
+
+/* Werkstatt-Arsenal */
+body #ui:not(#_):not(#__):not(#___) .nw .nw-slot:is(.lv2, .lv3, .lv4, .lv5, .lv6) { border: 2px solid var(--lvc) !important; box-shadow: inset 0 0 14px var(--lvg), 0 0 8px var(--lvg) !important; }
+body #ui:not(#_):not(#__):not(#___) .nw .nw-slot:is(.lv5, .lv6) { background-image: linear-gradient(105deg, transparent 40%, rgba(255, 244, 214, 0.22) 50%, transparent 60%) !important; background-size: 260% 100% !important; animation: lv-sweep 2.8s ease-in-out infinite !important; }
+body #ui:not(#_):not(#__):not(#___) .nw .nw-slot.lv6 { background-image: linear-gradient(105deg, transparent 38%, rgba(255, 140, 90, 0.3) 50%, transparent 62%) !important; animation-duration: 1.9s !important; }
+body #ui:not(#_):not(#__):not(#___) .nw .nw-slot.lv-up { animation: lv-pop 0.9s cubic-bezier(0.2, 0.8, 0.3, 1.2) !important; }
+
+/* Laden-Karten */
+body #ui:not(#_):not(#__):not(#___) .nw.nwa .nw-tag:is(.lv2, .lv3, .lv4, .lv5, .lv6) { border: 3px solid var(--lvc) !important; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55), inset 0 0 26px var(--lvg), 0 0 14px var(--lvg), 0 10px 20px rgba(0, 0, 0, 0.73) !important; }
+body #ui:not(#_):not(#__):not(#___) .nw.nwa .nw-tag:is(.lv2, .lv3, .lv4, .lv5, .lv6).locked { box-shadow: 0 0 0 3px #c4542a, inset 0 0 26px var(--lvg), 0 10px 20px rgba(0, 0, 0, 0.73) !important; }
+body #ui:not(#_):not(#__):not(#___) .nw.nwa .nw-tag:is(.lv5, .lv6)::after { content: "" !important; display: block !important; position: absolute !important; inset: 0 !important; border-radius: 6px !important; pointer-events: none !important; background: linear-gradient(105deg, transparent 42%, rgba(255, 240, 200, 0.16) 50%, transparent 58%) !important; background-size: 260% 100% !important; animation: lv-sweep 3.2s ease-in-out infinite !important; z-index: 3 !important; }
+body #ui:not(#_):not(#__):not(#___) .nw.nwa .nw-tag.lv6::after { background: linear-gradient(105deg, transparent 38%, rgba(255, 110, 70, 0.2) 48%, rgba(255, 230, 200, 0.18) 52%, transparent 62%) !important; background-size: 260% 100% !important; animation-duration: 2.2s !important; }
+body #ui:not(#_):not(#__):not(#___) .nw.nwa .nw-tag.lv-up { animation: lv-cardpop 0.8s ease-out !important; }
+@media (prefers-reduced-motion: reduce) {
+  body #ui:not(#_):not(#__):not(#___) :is(.nh-slot, .nw-slot, .nw-tag):is(.lv5, .lv6, .lv-up), body #ui:not(#_):not(#__):not(#___) :is(.nh-slot, .nw-tag):is(.lv5, .lv6)::after { animation: none !important; }
+}
+body #ui:not(#_):not(#__):not(#___) .nw .nw-slot[class*="lv"] small { color: var(--lvc, #cfc6b4) !important; }

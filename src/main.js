@@ -59,6 +59,14 @@ const DEV_KEY = "nachtschrott-dev-v1",
       { k: "marker", label: "Spawn-Markierung Dauer", min: 0.4, max: 2, def: 1 },
       { k: "xpfx", label: "EP-Einsammel-Effekt", min: 0, max: 2, def: 1 },
     ] },
+    { id: "stufen", name: "Waffenstufen", hint: "Preise, Seltenheit und Effekte der Stufen I–VI", items: [
+      { k: "kurve", label: "Preis-Faktor je Stufe", min: 1.4, max: 3, def: 2.1 },
+      { k: "merge", label: "Kombinieren-Kosten (× Stufenpreis)", min: 0, max: 1.5, def: 0.5 },
+      { k: "angebot", label: "Angebotschance Stufe III/IV", min: 0, max: 1.5, def: 0.5 },
+      { k: "effekte", label: "Stufen-Effekte (Mündung, Spur, Treffer)", min: 0, max: 2, def: 1 },
+      { k: "hitze", label: "Gatling: Sekunden bis Überhitzung", min: 2, max: 10, def: 4.6 },
+      { k: "kuehl", label: "Gatling: Zwangspause (s)", min: 0.5, max: 3, def: 1.5 },
+    ] },
     { id: "ton", name: "Soundmix", hint: "Zusätzlich zu den normalen Lautstärken", items: [
       { k: "musik", label: "Musik", min: 0, max: 2, def: 1 },
       { k: "effekte", label: "Effekte", min: 0, max: 2, def: 1 },
@@ -1857,7 +1865,7 @@ j.push(
     id: "summon",
     name: "Mottenlaterne",
     tag: "Beschwörung · Begleiter",
-    desc: "Nur Motten kreisen sichtbar um dich. Stufen I–IV: 2/3/4/6 Tiere, mehr Schaden. Reichweite vergrößert Orbit und Jagdradius.",
+    desc: "Nur Motten kreisen sichtbar um dich. Stufen I–VI: 2/3/4/6/7/8 Tiere, mehr Schaden. Reichweite vergrößert Orbit und Jagdradius.",
     damage: 15,
     cooldown: 1,
     range: 380,
@@ -1869,7 +1877,7 @@ j.push(
     id: "saw",
     name: "Kreissäge",
     tag: "Wurf · Zielsuchend",
-    desc: "Wirft ein reines Sägeblatt und fängt es wieder. Stufen I–IV: 1/2/3/3 Blätter, 1/2/3/4 Kettenziele. Reichweite verlängert den Flug.",
+    desc: "Wirft ein reines Sägeblatt und fängt es wieder. Stufen I–VI: 1/2/3/3/3/3 Blätter, 1–6 Kettenziele. Reichweite verlängert den Flug.",
     damage: 22,
     cooldown: 0.65,
     range: 380,
@@ -1905,7 +1913,7 @@ j.push(
     id: "boomerang",
     name: "Mondsichel",
     tag: "Wurf · Rückkehr",
-    desc: "Fliegt im Bogen zum Ziel und zurück. Stufen I–IV: 1/2/3/3 Sicheln mit 1/2/3/4 Kettenzielen. Reichweite verlängert den Flug.",
+    desc: "Fliegt im Bogen zum Ziel und zurück. Stufen I–VI: 1/2/3/3/3/3 Sicheln mit 1–6 Kettenzielen. Reichweite verlängert den Flug.",
     damage: 20,
     cooldown: 1.15,
     range: 430,
@@ -1930,7 +1938,7 @@ j.push(
     id: "nailer",
     name: "Nagelfeger",
     tag: "Dauerfeuer · Schnellfeuer",
-    desc: "Kompakte Nagel-MP: tackert 6 Nägel pro Sekunde mit leichter Streuung. Jeder 8. Nagel durchschlägt (ab Stufe III jeder 5.). Stufen I–IV: Schaden 4 / 6 / 9 / 13.",
+    desc: "Kompakte Nagel-MP: tackert 6 Nägel pro Sekunde mit leichter Streuung. Jeder 8. Nagel durchschlägt (ab Stufe III jeder 5.). Stufen I–VI: Schaden 4 / 6 / 9 / 13 / 17 / 22.",
     damage: 4,
     cooldown: 0.16,
     range: 430,
@@ -1942,7 +1950,7 @@ j.push(
     id: "thunder",
     name: "Donnerbüchse",
     tag: "Schrot · Nahkampf-Wumms",
-    desc: "Pump-Flinte: 7 Schrotkugeln im breiten 50°-Kegel, riesiger Rückstoß – Gegner fliegen weg, du rutschst beim Schuss ein Stück zurück. Stufen I–IV: 7 / 8 / 9 / 11 Kugeln, Schaden 7 / 9 / 12 / 16.",
+    desc: "Pump-Flinte: 7 Schrotkugeln im breiten 50°-Kegel, riesiger Rückstoß – Gegner fliegen weg, du rutschst beim Schuss ein Stück zurück. Stufen I–VI: 7 / 8 / 9 / 11 / 12 / 14 Kugeln, Schaden 7 / 9 / 12 / 16 / 20 / 25.",
     damage: 7,
     cooldown: 1.3,
     range: 240,
@@ -1954,7 +1962,7 @@ j.push(
     id: "riveter",
     name: "Nietenrepetierer",
     tag: "Salve · Präzision",
-    desc: "Trommel-MP: feuert 3er-Salven glühender Nieten. Jede Niete durchschlägt einen Gegner. Lange Reichweite. Stufen I–IV: Schaden 11 / 14 / 18 / 24, ab Stufe IV 4er-Salve.",
+    desc: "Trommel-MP: feuert 3er-Salven glühender Nieten. Jede Niete durchschlägt einen Gegner. Lange Reichweite. Stufen I–VI: Schaden 11 / 14 / 18 / 24 / 30 / 37, ab Stufe IV 4er-, ab VI 5er-Salve.",
     damage: 11,
     cooldown: 1.05,
     range: 560,
@@ -1966,7 +1974,7 @@ j.push(
     id: "crank",
     name: "Kurbelkanone",
     tag: "Anlaufen · Mini-Gatling",
-    desc: "Zahnrad-Gatling: startet mit 3 Schuss/s und kurbelt sich in 2 Sek. auf 12 Schuss/s hoch – die Drehzahl-Anzeige zeigt das Tempo. Erst nach 1 Sek. ohne Ziel kühlt sie ab. Stufen I–IV: Schaden 4 / 5 / 7 / 9, Anlauf 2,0 → 1,2 Sek.",
+    desc: "Zahnrad-Gatling: startet mit 3 Schuss/s und kurbelt sich in 2 Sek. auf 12 Schuss/s hoch – nach rund 5 Sek. Dauerfeuer überhitzt sie und pausiert 1,5 Sek. (Hitze im Waffen-Slot oben links). Stufen I–VI: Schaden 4 / 5 / 7 / 9 / 12 / 15, Anlauf 2,0 → 0,9 Sek.",
     damage: 4,
     cooldown: 0.34,
     range: 470,
@@ -2945,6 +2953,9 @@ const d = new No(),
       crank_fire: { bank: "combat", files: ["crank_fire-0", "crank_fire-1", "crank_fire-2", "crank_fire-3"] },
       crank_wind: { bank: "combat", files: ["crank_wind-0", "crank_wind-1"] },
       casing: { bank: "combat", files: ["casing-0", "casing-1", "casing-2", "casing-3"] },
+      vent: { bank: "combat", files: ["vent-0", "vent-1"] },
+      tier_shot: { bank: "combat", files: ["tier_shot-0", "tier_shot-1"] },
+      tier_up: { bank: "core", files: ["tier_up-0", "tier_up-1"] },
       turret: { bank: "combat", files: ["turret-0", "turret-1", "turret-2"] },
       axe: { bank: "combat", files: ["axe-0", "axe-1", "axe-2"] },
       saw_throw: { bank: "combat", files: ["saw_throw-0", "saw_throw-1", "saw_throw-2"] },
@@ -3027,6 +3038,9 @@ const d = new No(),
     crank_fire: { gain: 0.24, prio: 3, max: 3, gap: 0.03, legacy: "shot" },
     crank_wind: { gain: 0.3, prio: 2, max: 1, gap: 0.5, legacy: "deploy" },
     casing: { gain: 0.32, prio: 0, max: 2, gap: 0.07, legacy: "" },
+    vent: { gain: 0.7, prio: 4, max: 1, gap: 0.4, legacy: "" },
+    tier_shot: { gain: 0.6, prio: 2, max: 2, gap: 0.06, legacy: "" },
+    tier_up: { gain: 0.75, prio: 6, max: 1, gap: 0.15, duck: 0.45, legacy: "upgrade" },
     turret: { gain: 0.3, prio: 2, max: 2, gap: 0.06, legacy: "shot" },
     axe: { gain: 0.55, prio: 3, max: 2, gap: 0.06, legacy: "axe" },
     saw_throw: { gain: 0.38, prio: 2, max: 2, gap: 0.08, legacy: "axe" },
@@ -3783,7 +3797,7 @@ function Ug(e) {
         Q.some((h) => h.id === t.id) ||
         Q.push({
           id: t.id,
-          tier: N(t.tier, 1, 1, 4),
+          tier: N(t.tier, 1, 1, 6),
           mutation: (dg[t.id] || []).some((h) => h.name === t.mutation) ? t.mutation : "",
         });
     }
@@ -4641,7 +4655,7 @@ class Ii {
 }
 const y = {
   base: 108,
-  tierScale: [1, 1, 1.22, 1.46, 1.72],
+  tierScale: [1, 1, 1.22, 1.46, 1.72, 1.92, 2.12],
   rangeGain: 1.6,
   rangeCap: 2.4,
   reachMax: 340,
@@ -4655,7 +4669,7 @@ function Qi(e) {
   return Math.min(y.rangeCap, Math.max(0.6, 1 + (e - 1) * y.rangeGain));
 }
 function ei(e, A, g) {
-  const B = Math.max(1, Math.min(4, Math.floor(e || 1)));
+  const B = Math.max(1, Math.min(6, Math.floor(e || 1)));
   return Math.min(y.reachMax, y.base * y.tierScale[B] * Qi(A)) + (g === "Blutmond" ? y.blutmond : 0);
 }
 const ai = (e) => 1 + 2.4 * (e - 1) ** 3 + 1.4 * (e - 1) ** 2,
@@ -5359,16 +5373,23 @@ function Gi(e) {
     y: e.y + Cg * (-13 + Math.sin(A) * 53 - Math.sin(e.angle) * e.kick * 4),
   };
 }
-const SA = ["", "#a9b4c5", "#70b1ff", "#b995ff", "#ffc36f"],
-  BB = ["", "Standard", "Veredelt", "Prototyp", "Meisterwerk"],
-  iA = ["", "I", "II", "III", "IV"],
-  // t132: eigene Stufentabellen für die neuen Schusswaffen (I–IV)
-  wTier = { nailer: [0, 4, 6, 9, 13], thunder: [0, 7, 9, 12, 16], riveter: [0, 11, 14, 18, 24], crank: [0, 4, 5, 7, 9] },
+// t138: Waffenstufen I–VI. Rahmenfarben (Kreide-getönt): neutral, grün, blau, lila, gold, rot
+const SA = ["", "#cfc6b4", "#7fae63", "#5f9ed6", "#a983dc", "#e5b54e", "#e2493b"],
+  LVFX = ["", "#fff0d0", "#b4e09a", "#9cccff", "#d2b0ff", "#ffd36a", "#ff4a32"],
+  BB = ["", "Standard", "Veredelt", "Prototyp", "Meisterwerk", "Legende", "Unikat"],
+  iA = ["", "I", "II", "III", "IV", "V", "VI"],
+  WMAX = 6,
+  // t132/t138: eigene Stufentabellen für die neuen Schusswaffen (I–VI)
+  wTier = { nailer: [0, 4, 6, 9, 13, 17, 22], thunder: [0, 7, 9, 12, 16, 20, 25], riveter: [0, 11, 14, 18, 24, 30, 37], crank: [0, 4, 5, 7, 9, 12, 15] },
+  // t138: Preis steigt je Stufe um den Dev-Faktor (Standard 2,1): I 1 · II 2,1 · III 4,4 · IV 9,3 · V 19,4 · VI 40,8
+  tierCost = (t) => Math.pow(DV("stufen", "kurve") ?? 2.1, Math.max(0, (t || 1) - 1)),
+  lvK = () => DV("stufen", "effekte") ?? 1,
   ZA = (e, id) => (id && wTier[id] ? wTier[id][e] / wTier[id][1] : 1 + (e - 1) * 0.7);
 function pB(e) {
-  const A = Math.min(0.38, 0.1 + 0.012 * e),
-    g = e >= 4 ? Math.min(0.26, (e - 3) * 0.013) : 0,
-    B = e >= 9 ? Math.min(0.12, (e - 8) * 0.0075) : 0;
+  const hc = DV("stufen", "angebot") ?? 0.5,
+    A = Math.min(0.38, 0.1 + 0.012 * e),
+    g = (e >= 4 ? Math.min(0.26, (e - 3) * 0.013) : 0) * hc,
+    B = (e >= 9 ? Math.min(0.12, (e - 8) * 0.0075) : 0) * hc;
   return [1 - A - g - B, A, g, B];
 }
 function Ri(e, A = Math.random()) {
@@ -6736,7 +6757,7 @@ class mi {
     );
   }
   mothCount(A) {
-    return [2, 3, 4, 6][Math.max(0, Math.min(3, A.tier - 1))];
+    return [2, 3, 4, 6, 7, 8][Math.max(0, Math.min(5, A.tier - 1))];
   }
   enterHub(A = {}) {
     if (this.coop) {
@@ -7363,6 +7384,7 @@ class mi {
           kb: 0,
           sty: 0,
           ownerIndex: this.actorIndex,
+          lv: I ? 1 : this._fwLv || 1,
           r: a,
           enemy: I,
           bounce: Q,
@@ -7797,7 +7819,7 @@ class mi {
       return;
     }
     if (B.kind === "thunder") {
-      const n = [0, 7, 8, 9, 11][A.tier] + extra;
+      const n = [0, 7, 8, 9, 11, 12, 14][A.tier] + extra;
       for (let R = 0; R < n; R++) {
         const G = Q + (R / Math.max(1, n - 1) - 0.5) * 0.873 + (Math.random() - 0.5) * 0.07,
           sp = p(600, 760),
@@ -7825,7 +7847,7 @@ class mi {
       return;
     }
     if (B.kind === "riveter") {
-      (A.burst = (A.tier >= 4 ? 4 : 3) - 1), (A.burstT = 0.085), (A.burstDmg = a);
+      (A.burst = (A.tier >= 6 ? 5 : A.tier >= 4 ? 4 : 3) - 1), (A.burstT = 0.085), (A.burstDmg = a);
       this.rivetShot(A, M, r, Q, a, o, h, s);
       return;
     }
@@ -7873,14 +7895,69 @@ class mi {
       t = this.weaponPosition(A, g),
       U = this.weaponMuzzle(A, g),
       Q = A.target?.active && A.target.spawn <= 0 ? Math.atan2(A.target.y - t.y, A.target.x - t.x) : A.angle;
-    (A.angle = Q), this.rivetShot(A, U.x, U.y, Q, A.burstDmg || B.damage, o, t.x, t.y);
+    (A.angle = Q), A.tier >= 2 && this.tierMuzzle(A, U.x, U.y, Q), this.rivetShot(A, U.x, U.y, Q, A.burstDmg || B.damage, o, t.x, t.y);
   }
-  crankTick(A, g) {
-    const sp = [0, 2, 1.7, 1.45, 1.2][A.tier] || 2,
+  crankTick(A, g, idx = 0) {
+    const sp = [0, 2, 1.7, 1.45, 1.2, 1.05, 0.9][A.tier] || 2,
       f = this.time - (A.lastFire ?? -9);
-    (A.spin = f < 0.5 ? Math.min(1, (A.spin || 0) + g / sp) : f < 1 ? A.spin || 0 : Math.max(0, (A.spin || 0) - g / 1.3)),
-      (A.heat = Math.max(0, (A.heat || 0) + (A.spin > 0.85 && f < 0.3 ? g : -g * 1.5))),
-      (A.barrel = ((A.barrel || 0) + g * (1 + 26 * A.spin)) % 100);
+    if (A.vent > 0) {
+      // t138: Überhitzt – Zwangspause, Dampf ablassen, dann weiter
+      const T = DV("stufen", "kuehl") ?? 1.5;
+      (A.vent = Math.max(0, A.vent - g)), (A.heat = Math.max(0, A.vent / T)), (A.spin = Math.max(0.45, (A.spin || 0) - g * 0.6));
+      if ((A.ventFx = (A.ventFx || 0) - g) <= 0) {
+        A.ventFx = 0.09;
+        const P = this.weaponPosition(A, idx);
+        this.fx.smoke(P.x + p(-6, 6), P.y - 8, 1, 9, "#cfc8bd", "#f6f1e8", 0.5, 8, p(-20, 20), -50);
+      }
+      A.vent <= 0 && ((A.heat = 0), this.audio.sound("click", 0.7, 0.5));
+    } else {
+      (A.spin = f < 0.5 ? Math.min(1, (A.spin || 0) + g / sp) : f < 1 ? A.spin || 0 : Math.max(0, (A.spin || 0) - g / 1.3));
+      const H = (DV("stufen", "hitze") ?? 4.6) * (1 + (A.tier - 1) * 0.06);
+      A.heat = V((A.heat || 0) + (A.spin > 0.5 && f < 0.3 ? (g * (0.35 + 0.65 * A.spin)) / H : -g * 0.45), 0, 1);
+      if (A.heat >= 1) {
+        A.vent = DV("stufen", "kuehl") ?? 1.5;
+        A.ventFx = 0;
+        const P = this.weaponPosition(A, idx);
+        this.audio.sound("vent", 1, 1, this.pan(P.x)),
+          this.fx.smoke(P.x, P.y - 8, 6, 13, "#d8d1c6", "#fbf7ef", 0.65, 14, 0, -70),
+          this.fx.sparks(P.x, P.y - 6, -Math.PI / 2, 1.3, 6, 260, "#ffb070", 0.22),
+          this.fx.ring(P.x, P.y - 4, 8, 46, "#f4efe6", 0.3, 3),
+          (this.shake = Math.max(this.shake, 1.4)),
+          this.onToast?.("ÜBERHITZT · Gatling kühlt ab");
+      }
+    }
+    A.barrel = ((A.barrel || 0) + g * (1 + 26 * A.spin)) % 100;
+  }
+  // t138: Stufen-Effekte (Mündung, Spur, Treffer, Aura)
+  tierMuzzle(A, x, y, Q) {
+    const L = A.tier || 1, k = lvK();
+    if (L < 2 || k <= 0 || this.enemies.count > 300) return;
+    const c = LVFX[L], s = 0.55 + L * 0.13;
+    this.fx.star(x, y, Q, (16 + L * 6) * s * k, c, 0.05 + L * 0.006);
+    L >= 3 && this.fx.glow(x, y, (18 + L * 6) * k, c, 0.08);
+    L >= 4 && this.fx.sparks(x, y, Q, 0.35, Math.round((L - 2) * 1.5 * k), 420 + L * 30, c, 0.16);
+    if (L >= 5) {
+      this.fx.light(x, y + 16, (70 + L * 14) * k, c, 0.1);
+      L === 5 ? this.fx.twinkle(x, y, Math.round(2 * k), "#ffe08a", 10) : (this.fx.embers(x, y, Math.round(3 * k), "#ff5a2e", 8), this.fx.star(x, y, Q + Math.PI / 2, 22 * k, "#ff7a4a", 0.05));
+      this.time - (A.tsAt ?? -9) > 0.075 && ((A.tsAt = this.time), this.audio.sound("tier_shot", L === 6 ? 0.9 : 1.05, L === 6 ? 0.55 : 0.38, this.pan(x)));
+    } else if (L === 4 && this.time - (A.tsAt ?? -9) > 0.12) (A.tsAt = this.time), this.audio.sound("tier_shot", 1.15, 0.2, this.pan(x));
+  }
+  lvImpact(C, t) {
+    const L = C.lv, k = lvK();
+    if (k <= 0 || (this.enemies.count > 280 && Math.random() < 0.5)) return;
+    const a = Math.atan2(C.vy, C.vx) + Math.PI, c = LVFX[L];
+    this.fx.sparks(t.x, t.y - 8, a, 0.9, Math.round((1 + L) * 0.8 * k), 240 + L * 40, c, 0.12 + L * 0.02);
+    L >= 4 && this.fx.glow(t.x, t.y - 8, (14 + L * 5) * k, c, 0.07);
+    if (L >= 5 && this.time - (this.lvRingAt ?? -9) > (L === 6 ? 0.04 : 0.07)) {
+      this.lvRingAt = this.time;
+      this.fx.ring(t.x, t.y - 6, 6, (L === 6 ? 46 : 30) * k, L === 6 ? "#ff4a32" : "#ffd36a", L === 6 ? 0.26 : 0.2, L === 6 ? 4 : 3);
+      L === 6 && (this.fx.embers(t.x, t.y - 6, Math.round(4 * k), "#ff6a3a", 12), this.fx.light(t.x, t.y, 60 * k, "#ff4a32", 0.08));
+      L === 5 && this.fx.twinkle(t.x, t.y - 6, Math.round(2 * k), "#ffe08a", 12);
+    }
+  }
+  lvAmbient(A, idx) {
+    const P = this.weaponPosition(A, idx), k = lvK();
+    A.tier >= 6 ? this.fx.embers(P.x, P.y - 6, 1, Math.random() < 0.5 ? "#ff4a32" : "#ffb066", 14 * k) : this.fx.twinkle(P.x, P.y - 6, 1, "#ffe08a", 14 * k);
   }
   styImpact(C, t) {
     if (this.enemies.count > 300 && Math.random() < 0.6) return;
@@ -7943,6 +8020,11 @@ class mi {
       return;
     }
     const C = this.save.data.settings.manual && this.input.aimActive;
+    if (A.id === "crank" && A.vent > 0) {
+      A.cd = 0.06;
+      I && (A.angle = Math.atan2(I.y - i.y, I.x - i.x));
+      return;
+    }
     if (!I && !C) {
       A.cd = 0.08;
       return;
@@ -8008,6 +8090,7 @@ class mi {
         this.fx.light(M, r + 10, o * 1.1, "#9cc9ff", 0.25),
         this.fx.twinkle(M, r, 8, "#eaf6ff", o * 0.5);
     }
+    A.tier >= 2 && this.tierMuzzle(A, M, r, Q);
     if (B.kind === "nailer" || B.kind === "thunder" || B.kind === "riveter" || B.kind === "crank")
       this.gunFire(A, B, g, M, r, Q, a, o, h, s);
     if (B.kind === "bullet" || B.kind === "shotgun") {
@@ -8357,11 +8440,14 @@ class mi {
         (E.kick = Math.max(0, E.kick - A * 7)),
         (E.swing = Math.max(0, E.swing - A)),
         (E.glow = Math.max(0, E.glow - A)),
-        E.id === "crank" && this.crankTick(E, A),
+        E.id === "crank" && this.crankTick(E, A, B),
+        E.tier >= 5 && this.phase === "combat" && lvK() > 0 && Math.random() < A * (E.tier >= 6 ? 7 : 4) && this.lvAmbient(E, B),
+        (this._fwLv = E.tier),
         E.pump > 0 && (E.pump -= A) <= 0 && this.audio.sound("thunder_pump", 1, 0.9, this.pan(g.x)),
         E.burst > 0 && (E.burstT -= A) <= 0 && (E.burst--, (E.burstT = 0.085), this.rivetBurst(E, B)),
         E.cd <= 0 && this.attack(E, B);
     }
+    this._fwLv = 1;
     for (const B of this.turrets) {
       (B.life -= A),
         (B.age += A),
@@ -8612,6 +8698,7 @@ class mi {
         t >= 0 && (this.hurtActor(t, C.damage), (C.active = !1));
         return;
       }
+      C.lv >= 5 && !C.enemy && Math.random() < (C.lv === 6 ? 0.45 : 0.25) * lvK() && this.fx.trail(C.x, C.y - 6, C.lv === 6 ? (Math.random() < 0.6 ? "#ff4a32" : "#ffb066") : "#ffd36a", C.lv === 6 ? 2.6 : 2, 0.28, 12);
       const a = this.grid.query(C.x, C.y, this.maxEnemyRadius + C.r, []);
       for (const t of a)
         if (
@@ -8631,6 +8718,7 @@ class mi {
             ),
           ),
           C.sty && this.styImpact(C, t),
+          C.lv >= 3 && !C.enemy && this.lvImpact(C, t),
           !C.pierce && !(C.pc > 0 && (C.pc--, (C.damage *= 0.85), !0)))
         ) {
           if (C.bounce > 0) {
@@ -9226,27 +9314,37 @@ class mi {
       g.price *
         (1 + this.wave * 0.035) *
         this.rules.prices *
-        (A.kind === "weapon" ? 1 + (A.tier - 1) * 1.15 : 1),
+        (A.kind === "weapon" ? tierCost(this.upgradePreview(A.id, A.tier)?.to ?? A.tier) : 1),
     );
   }
-  upgradePreview(A, g) {
-    const B = this.weapons.filter((E) => E.id === A && E.tier < 4).sort((E, o) => o.tier - E.tier)[0];
+  upgradePreview(A, g, cap = WMAX) {
+    const B = this.weapons.filter((E) => E.id === A && E.tier < cap).sort((E, o) => o.tier - E.tier)[0];
     return B
-      ? { target: B, from: B.tier, to: Math.min(4, Math.max(B.tier + 1, g)), index: this.weapons.indexOf(B) }
+      ? { target: B, from: B.tier, to: Math.min(cap, Math.max(B.tier + 1, g)), index: this.weapons.indexOf(B) }
       : void 0;
   }
-  grantWeapon(A, g) {
-    const B = this.upgradePreview(A, g);
+  // t138: Kombinieren kostet Schrott – steigt mit der Zielstufe
+  combineCost(W) {
+    const C = j.find((B) => B.id === W.id);
+    return Math.round(C.price * (1 + this.wave * 0.035) * this.rules.prices * tierCost(W.tier + 1) * (DV("stufen", "merge") ?? 0.5));
+  }
+  levelUpFx(E, from) {
+    E.lvT = performance.now();
+    this.audio.sound("tier_up", E.tier >= 6 ? 0.86 : E.tier >= 5 ? 0.93 : 1 + (4 - E.tier) * 0.03, E.tier >= 5 ? 1 : 0.8);
+    E.tier >= 5 && this.audio.sound("tier_shot", E.tier >= 6 ? 0.8 : 0.95, 0.6);
+  }
+  grantWeapon(A, g, cap = WMAX) {
+    const B = this.upgradePreview(A, g, cap);
     if (!B && this.weapons.length >= 6) return;
     const E = B?.target ?? this.weapon(A, g);
-    B ? (E.tier = B.to) : this.weapons.push(E), (E.glow = 1.8);
+    B ? ((E.tier = B.to), this.levelUpFx(E, B.from)) : this.weapons.push(E), (E.glow = 1.8);
     for (const i of this.turrets) i.owner === E && (i.tier = E.tier);
     const o = { id: A, tier: E.tier, from: B?.from ?? 0, upgraded: !!B };
     return (
       (this.showcase = { ...o, life: 1.85, max: 1.85, serial: ++this.purchaseSerial }),
       this.phase === "combat" ? this.acquisitionShockwave(E.tier) : (this.pendingShowcase = o),
       this.discover(A),
-      this.audio.sound(B ? "upgrade" : "acquire", 1, 0.85),
+      B || this.audio.sound("acquire", 1, 0.85),
       this.onToast(
         B
           ? `${j.find((i) => i.id === A).name}: Stufe ${B.from} → ${B.to}`
@@ -9261,7 +9359,7 @@ class mi {
       g = j.filter((B) => !this.weapons.some((E) => E.id === B.id));
     if (this.weapons.length < 6 && g.length)
       return this.grantWeapon(g[Math.floor(Math.random() * g.length)].id, 2);
-    if (A.length) return this.grantWeapon(A[0].id, 2);
+    if (A.length) return this.grantWeapon(A[0].id, 2, 4);
     (this.money += 35), this.onToast("Waffenkapsel: Arsenal maximal · +35 Schrott");
   }
   acquisitionShockwave(A) {
@@ -9355,7 +9453,7 @@ class mi {
       this.onToast("Deine letzte Waffe bleibt bei dir.");
       return;
     }
-    (this.money += Math.round(j.find((B) => B.id === g.id).price * (1 + (g.tier - 1) * 1.2) * 0.45)),
+    (this.money += Math.round(j.find((B) => B.id === g.id).price * tierCost(g.tier) * 0.4)),
       this.weapons.splice(A, 1),
       this.weapons.some((B) => B.id === g.id) ||
         (this.pendingShowcase?.id === g.id && (this.pendingShowcase = void 0),
@@ -9365,11 +9463,15 @@ class mi {
   }
   combine(A) {
     const g = this.weapons[A];
-    if (!g || g.tier >= 4 || g.mutation) return;
+    if (!g || g.tier >= WMAX || g.mutation) return;
     const B = this.weapons.findIndex((o, i) => i !== A && o.id === g.id && o.tier === g.tier && !o.mutation);
     if (B < 0) return;
+    const cc = this.combineCost(g);
+    if (this.money < cc) return this.audio.sound("click", 0.6, 0.6), this.onToast("Zu wenig Schrott zum Kombinieren (" + cc + ")");
+    this.money -= cc;
     const E = g.tier;
     g.tier++,
+      this.levelUpFx(g, E),
       (g.glow = 1.8),
       (this.showcase = {
         id: g.id,
@@ -9382,8 +9484,7 @@ class mi {
       }),
       (this.pendingShowcase = { id: g.id, tier: g.tier, from: E, upgraded: !0 }),
       this.weapons.splice(B, 1),
-      this.audio.sound("mutate", 0.7),
-      this.onToast("Verschmolzen: Qualität " + g.tier),
+      this.onToast("Verschmolzen: Stufe " + iA[g.tier] + " · " + BB[g.tier]),
       this.onChange();
   }
   forkShot(A, g, B, E, o, i, I) {
@@ -10430,6 +10531,29 @@ function styShot(i, Q, l, sh) {
   i.restore();
 }
 // t132: Drehzahl-Anzeige der Kurbelkanone (über der Waffe, immer aufrecht)
+// t138: Stufen-Spur der Geschosse (ab II), V gold, VI rot mit Glut
+function lvShot(i, Q, l, T) {
+  const L = l.lv, k = lvK();
+  if (k <= 0) return;
+  const c = LVFX[L], len = (0.03 + L * 0.009) * Math.min(1.4, k);
+  i.save(), i.translate(0, -6), (i.globalCompositeOperation = "lighter");
+  Q.line(l.x - l.vx * len, l.y - l.vy * len, l.x, l.y, c + (L >= 5 ? "66" : "3a"), 2 + L * 1.1);
+  L >= 4 && Q.line(l.x - l.vx * len * 0.5, l.y - l.vy * len * 0.5, l.x, l.y, c + "aa", 1.4 + L * 0.3);
+  L >= 5 && Q.ellipse(l.x, l.y, 5 + L, 5 + L, c + (L === 6 ? "55" : "40"), F, 0);
+  L === 6 && Q.ellipse(l.x, l.y, 3 + Math.sin(T * 40 + l.x) * 1.2, 3, "#ffe0c8", F, 0);
+  i.restore();
+}
+// t138: Aura der Waffe ab Stufe IV (V gold pulsierend, VI rot lodernd)
+function lvAura(I, A, o, T) {
+  const L = A.tier, k = lvK();
+  if (k <= 0) return;
+  const pu = 0.75 + 0.25 * Math.sin(T * (L === 6 ? 7 : 4)),
+    R = (L === 6 ? 130 : L === 5 ? 108 : 80) * Math.min(1.3, k);
+  I.save(), (I.globalCompositeOperation = "lighter"), (I.globalAlpha = o * Math.min(1, (L === 4 ? 0.35 : L === 5 ? 0.6 : 0.8) * pu * Math.min(1.4, k)));
+  I.drawImage(dA(LVFX[L]), 12 - R, -R * 0.7, R * 2, R * 1.4);
+  L === 6 && ((I.globalAlpha = o * 0.35 * (1 - pu * 0.5)), I.drawImage(dA("#ffb066"), 12 - R * 0.6, -R * 0.45, R * 1.2, R * 0.9));
+  I.restore();
+}
 function crankGauge(I, C, A, x, y, o) {
   const sp = A.spin || 0;
   if (sp < 0.03 && !(A.heat > 0)) return;
@@ -11018,6 +11142,7 @@ class FC {
         ((I.globalAlpha = o * Math.min(1, A.glow) * this.fxFlashes),
         C.ellipse(10, 0, 40, 34, "#ffffff08", SA[A.tier], 2),
         (I.globalAlpha = o)),
+      A.tier >= 4 && this.fxFlashes > 0 && lvAura(I, A, o, this.game.time),
       A.mutation && C.ellipse(10, 0, 25, 20, "#c79bef15", F, 0),
       A.id === "fork")
     ) {
@@ -11058,11 +11183,10 @@ class FC {
       const s = jA("crank"),
         sp = A.spin || 0;
       I.save(), (I.globalCompositeOperation = "lighter");
-      A.heat > 0 && ((I.globalAlpha = o * Math.min(0.7, A.heat * 0.5)), C.rect(s.muzzleX - 22, s.muzzleY - 6, 22, 12, 5, "#ff5a1e55", F, 0));
+      A.heat > 0 && ((I.globalAlpha = o * Math.min(0.85, A.heat * 0.6 + (A.vent > 0 ? 0.3 : 0))), C.rect(s.muzzleX - 22, s.muzzleY - 6, 22, 12, 5, "#ff5a1e55", F, 0));
       I.restore();
     }
     I.restore();
-    A.id === "crank" && crankGauge(I, C, A, g, B - 30, o);
   }
   lastBodyCloud = null;
   bodyCloud(A, g, B) {
@@ -12790,6 +12914,7 @@ class FC {
         }
       }),
       I.projectiles.each((l) => {
+        l.lv >= 2 && !l.enemy && !l.returning && lvShot(i, Q, l, I.time);
         if (l.returning)
           i.save(),
             i.translate(l.x, l.y),
@@ -13720,7 +13845,7 @@ class wC {
   nhSlots(W, owner = "") {
     return `<div class="hotbar nh-slots">${Array.from({ length: 6 }, (g, B) => {
       const E = W[B];
-      return `<div class="slot nh-slot ${E ? "" : "empty"} ${E?.mutation ? "mutated" : ""} ${E && E.tier >= 3 ? "nh-seal" : ""}" ${owner === "" ? `data-weapon-slot="${B}"` : ""} style="--rarity:${SA[E?.tier || 1]}" title="${E ? j.find((o) => o.id === E.id).name + " · Stufe " + iA[E.tier] : "Freier Waffenplatz"}">${E ? x(E.id) : "<small>+</small>"}<span>${E ? iA[E.tier] : ""}</span>${E?.id === "turret" && owner === "" ? '<b class="ground-tag">AUTO</b>' : ""}</div>`;
+      return `<div class="slot nh-slot ${E ? "lv" + E.tier : "empty"} ${E?.mutation ? "mutated" : ""}" ${owner === "" ? `data-weapon-slot="${B}"` : ""} data-hs="${owner}:${B}" style="--rarity:${SA[E?.tier || 1]}" title="${E ? j.find((o) => o.id === E.id).name + " · Stufe " + iA[E.tier] : "Freier Waffenplatz"}">${E ? x(E.id) : "<small>+</small>"}<span>${E ? iA[E.tier] : ""}</span>${E ? `<em class="nh-lv">${iA[E.tier]}</em>` : ""}${E?.id === "crank" ? '<i class="nh-heat" aria-hidden="true"><b></b></i>' : ""}${E?.id === "turret" && owner === "" ? '<b class="ground-tag">AUTO</b>' : ""}</div>`;
     }).join("")}</div>`;
   }
   coopHud() {
@@ -13733,6 +13858,20 @@ class wC {
     ).join(
       "",
     )}<div class="nh-tc coop-wave"><span class="nh-night">${A.climb ? GA[A.climb - 1].name.toUpperCase() : IA[A.map].name.toUpperCase()}</span><div class="nh-wave">WELLE ${String(A.wave).padStart(2, "0")} / ${A.endless ? "∞" : 20}</div><strong class="nh-time" id="coop-time-0"></strong><b id="coop-time-1" hidden></b>${A.climb ? `<small class="nh-climb"><span class="coop-climb">${A.climbState.def.unit} ${A.climbState.metres} m</span></small>` : ""}</div><div class="coop-pause nh-cpause">${this.button("pause", '<i class="nh-pz">II</i><small>PAUSE</small>', "pause-btn nh-round")}</div></div>`;
+  }
+  // t138: HUD-Slots – Aufstiegs-Animation + Gatling-Hitzebalken
+  slotSync(W, owner) {
+    const now = performance.now();
+    for (let Y = 0; Y < W.length; Y++) {
+      const w = W[Y],
+        c = this.root.querySelector(`.slot[data-hs="${owner}:${Y}"]`);
+      if (!c) continue;
+      c.classList.toggle("lv-up", now - (w.lvT ?? -9e9) < 1500);
+      if (w.id === "crank") {
+        const h = V(w.heat || 0, 0, 1);
+        c.style.setProperty("--heat", h.toFixed(3)), c.classList.toggle("heat-on", h > 0.02 || w.vent > 0), c.classList.toggle("heat-lock", w.vent > 0), c.classList.toggle("heat-warn", !(w.vent > 0) && h > 0.7);
+      }
+    }
   }
   updateCoopHUD() {
     const A = this.g,
@@ -13748,6 +13887,7 @@ class wC {
         Q && (Q.style.width = V(C * 100, 0, 100) + "%");
       };
     g.forEach((I, C) => {
+      this.slotSync(I.weapons, C),
       o(`coop-level-${C}`, `STUFE ${I.level}`),
         o(`coop-hp-${C}`, `${Math.ceil(I.player.hp)} / ${Math.ceil(I.stats.hp)} LP`),
         o(`coop-money-${C}`, String(Math.floor(I.money))),
@@ -13973,10 +14113,7 @@ class wC {
       ((s.hidden = E.killStreak < 5),
       o("streak-count", String(E.killStreak).padStart(2, "0")),
       (document.getElementById("streak-bar").style.width = (E.streakTime / 2.6) * 100 + "%"));
-    for (let Y = 0; Y < E.weapons.length; Y++) {
-      const c = this.root.querySelector(`.slot[data-weapon-slot="${Y}"]`);
-      c && c.classList.toggle("slot-upgrade", E.weapons[Y].glow > 0);
-    }
+    this.slotSync(E.weapons, "");
     const U = E.enemies.objects.find((Y) => Y.active && Y.type >= 8),
       M = document.getElementById("boss-panel");
     if (M && ((M.hidden = !U), U)) {
@@ -14070,7 +14207,7 @@ class wC {
       fresh = this.wsWas !== "shop",
       money = Math.floor(A.money),
       tab = this.wsTab || "w",
-      TC = ["", "#cfc6b4", "#e8852a", "#d4452c", "#f2ead8"],
+      TC = SA,
       num = (v, d = 1) => Number(v.toFixed(d)).toLocaleString("de-DE"),
       lockSvg = (on) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0${on ? "v3" : "v1"}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><rect x="4.5" y="11" width="15" height="10" rx="2.2" fill="currentColor"/></svg>`;
     this.wsFx = { deal: 0, sold: 0, lock: 0, unlock: 0, fresh };
@@ -14107,7 +14244,7 @@ class wC {
           const as = A.stats.attackSpeed,
             rate = (1 / I.cooldown) * as,
             dmg = Math.round(h),
-            mult = I.id === "thunder" ? [0, 7, 8, 9, 11][tier] : I.id === "riveter" ? (tier >= 4 ? 4 : 3) : 0;
+            mult = I.id === "thunder" ? [0, 7, 8, 9, 11, 12, 14][tier] : I.id === "riveter" ? (tier >= 6 ? 5 : tier >= 4 ? 4 : 3) : 0;
           lines = [
             ["Schaden", mult ? `${dmg} × ${mult}` : String(dmg)],
             ["Takt", I.id === "crank" ? `${num(3 * as)} → ${num(12 * as)} / s` : rate >= 1.6 ? `${num(rate)} / s` : `${num(I.cooldown / as)} s`],
@@ -14116,7 +14253,7 @@ class wC {
               : Q
                 ? ["Aufwertung", `${iA[Q.from]} → ${iA[Q.to]}`]
                 : I.id === "crank"
-                  ? ["Anlauf", `${num([0, 2, 1.7, 1.45, 1.2][tier] || 2)} s`]
+                  ? ["Anlauf", `${num([0, 2, 1.7, 1.45, 1.2, 1.05, 0.9][tier] || 2)} s`]
                   : I.id === "thunder" || I.id === "shotgun"
                     ? ["Rückstoß", "sehr hoch"]
                     : ["Reichweite", String(Math.round(I.range))],
@@ -14133,19 +14270,20 @@ class wC {
           ? `<span class="nw-kind" aria-label="Waffe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>WAFFE</span>`
           : `<span class="nw-kind" aria-label="Gegenstand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2Z"/></svg>GEGENSTAND</span>`;
         const nm = C.name.toUpperCase();
-        return `<article class="nw-tag nw-k-${I ? "weapon" : "item"} ${o.sold ? "sold" : ""} ${o.locked ? "locked" : ""} ${poor ? "poor" : ""} ${full ? "nw-full" : ""} ${deal ? "nw-deal" : ""} ${justSold ? "nw-justsold" : ""} ${justLock ? "nw-justlock" : ""} ${this.wsInfo === i ? "nw-info-open" : ""}" style="--i:${i};--r:${[-1.2, 0.8, -0.6, 1.1][i % 4]}deg" data-offer="${i}">${kindTag}<button class="nw-seal ${I ? "nw-gun" : ""}" data-action="wsInfo" data-id="${i}" aria-label="${C.name}: Details" title="${C.desc}"><i class="nw-wax"></i>${I ? x(C.id, C.color) : cg(C.id, C.color)}</button><h3 class="${nm.length + (I ? 3 : 0) > 15 ? "nw-long" : ""}">${C.name}${I ? ` <em class="nw-tier" style="color:${TC[tier]}">${iA[tier]}</em>` : ""}</h3>${((sub) => `<p class="nw-sub ${sub.length > 21 ? "nw-long" : ""}">${sub}</p>`)(I ? (I.tag || BB[tier]).toUpperCase() : `PASSIV · ${(_A[Object.keys(C.stats)[0]] || "BONUS").toUpperCase()}`)}<ul class="nw-stats">${lines.map(([k, v]) => `<li class="${k ? "" : "nw-solo"}">${k ? `<span>${k}</span>` : ""}<b>${v}</b></li>`).join("")}</ul><div class="nw-foot">${this.button("lock", lockSvg(o.locked), "nw-lock " + (o.locked ? "locked" : ""), String(i), o.sold)}${this.button("buy", `<i class="nsi" aria-hidden="true"></i><b class="nw-price">${price}</b><span>${label}</span>`, "nw-buy", String(i), o.sold || poor || full)}</div><i class="nw-lockseal" aria-hidden="true">GEHALTEN</i><i class="nw-soldstamp" aria-hidden="true"></i><div class="nw-info" role="tooltip"><p>${C.desc}</p>${info}</div></article>`;
+        return `<article class="nw-tag nw-k-${I ? "weapon" : "item"} ${I ? "lv" + tier : ""} ${I && o.sold && o.result?.upgraded && performance.now() - (A.weapons[o.result.index]?.lvT ?? -9e9) < 1500 ? "lv-up" : ""} ${o.sold ? "sold" : ""} ${o.locked ? "locked" : ""} ${poor ? "poor" : ""} ${full ? "nw-full" : ""} ${deal ? "nw-deal" : ""} ${justSold ? "nw-justsold" : ""} ${justLock ? "nw-justlock" : ""} ${this.wsInfo === i ? "nw-info-open" : ""}" style="--i:${i};--r:${[-1.2, 0.8, -0.6, 1.1][i % 4]}deg" data-offer="${i}">${kindTag}<button class="nw-seal ${I ? "nw-gun" : ""}" data-action="wsInfo" data-id="${i}" aria-label="${C.name}: Details" title="${C.desc}"><i class="nw-wax"></i>${I ? x(C.id, C.color) : cg(C.id, C.color)}</button><h3 class="${nm.length + (I ? 3 : 0) > 15 ? "nw-long" : ""}">${C.name}${I ? ` <em class="nw-tier" style="color:${TC[tier]}">${iA[tier]}</em>` : ""}</h3>${((sub) => `<p class="nw-sub ${sub.length > 21 ? "nw-long" : ""}">${sub}</p>`)(I ? (I.tag || BB[tier]).toUpperCase() : `PASSIV · ${(_A[Object.keys(C.stats)[0]] || "BONUS").toUpperCase()}`)}<ul class="nw-stats">${lines.map(([k, v]) => `<li class="${k ? "" : "nw-solo"}">${k ? `<span>${k}</span>` : ""}<b>${v}</b></li>`).join("")}</ul><div class="nw-foot">${this.button("lock", lockSvg(o.locked), "nw-lock " + (o.locked ? "locked" : ""), String(i), o.sold)}${this.button("buy", `<i class="nsi" aria-hidden="true"></i><b class="nw-price">${price}</b><span>${label}</span>`, "nw-buy", String(i), o.sold || poor || full)}</div><i class="nw-lockseal" aria-hidden="true">GEHALTEN</i><i class="nw-soldstamp" aria-hidden="true"></i><div class="nw-info" role="tooltip"><p>${C.desc}</p>${info}</div></article>`;
       })
       .join("");
     const slots = Array.from({ length: 6 }, (o, i) => {
       const I = A.weapons[i];
       if (!I) return `<div class="nw-slotwrap"><div class="nw-slot empty"><span>+</span></div></div>`;
       const C = j.find((a) => a.id === I.id),
-        comb = A.weapons.some((a, t) => t !== i && a.id === I.id && a.tier === I.tier && !a.mutation) && I.tier < 4 && !I.mutation,
+        comb = A.weapons.some((a, t) => t !== i && a.id === I.id && a.tier === I.tier && !a.mutation) && I.tier < WMAX && !I.mutation,
+        combC = comb ? A.combineCost(I) : 0,
         mut = A.canMutate(I),
-        sellP = Math.round(C.price * (1 + (I.tier - 1) * 1.2) * 0.45),
+        sellP = Math.round(C.price * tierCost(I.tier) * 0.4),
         dmg = Math.round(C.damage * ZA(I.tier, I.id) * A.damageScale()),
         open = this.wsSel === i;
-      return `<div class="nw-slotwrap ${open ? "open" : ""}"><button class="nw-slot inv-weapon ${I.glow > 0 ? "inventory-upgrade" : ""} ${comb ? "nw-can" : ""} ${mut ? "nw-mut" : ""}" data-action="wsSlot" data-id="${i}" data-weapon-slot="${i}" aria-expanded="${open}" aria-label="${I.mutation || C.name} · Stufe ${iA[I.tier]}" title="${I.mutation || C.name} · Stufe ${iA[I.tier]} · ${dmg} Schaden">${x(I.id)}<span class="nw-sname">${I.mutation || C.name}</span><small style="color:${TC[I.tier]}">${iA[I.tier]}</small></button>${open ? `<div class="nw-pop"><b>${I.mutation || C.name}</b><span>STUFE ${iA[I.tier]} · ${dmg} SCHADEN</span><div>${this.button("sell", `Verkaufen +${sellP}`, "nw-mini", String(i), A.weapons.length === 1)}${comb ? this.button("combine", "↑ Kombinieren", "nw-mini hot", String(i)) : ""}${mut ? this.button("mutation", "Mutation", "nw-mini mut", String(i)) : ""}</div></div>` : ""}</div>`;
+      return `<div class="nw-slotwrap ${open ? "open" : ""}"><button class="nw-slot inv-weapon lv${I.tier} ${performance.now() - (I.lvT ?? -9e9) < 1500 ? "lv-up" : ""} ${comb ? "nw-can" : ""} ${mut ? "nw-mut" : ""}" data-action="wsSlot" data-id="${i}" data-weapon-slot="${i}" aria-expanded="${open}" aria-label="${I.mutation || C.name} · Stufe ${iA[I.tier]}" title="${I.mutation || C.name} · Stufe ${iA[I.tier]} · ${dmg} Schaden">${x(I.id)}<span class="nw-sname">${I.mutation || C.name}</span><small style="color:${TC[I.tier]}">${iA[I.tier]}</small></button>${open ? `<div class="nw-pop"><b>${I.mutation || C.name}</b><span>STUFE ${iA[I.tier]} · ${dmg} SCHADEN</span><div>${this.button("sell", `Verkaufen +${sellP}`, "nw-mini", String(i), A.weapons.length === 1)}${comb ? this.button("combine", `↑ Stufe ${iA[I.tier + 1]} · ${combC}`, "nw-mini hot", String(i), A.money < combC) : ""}${mut ? this.button("mutation", "Mutation", "nw-mini mut", String(i)) : ""}</div></div>` : ""}</div>`;
     }).join("");
     const st = (o) => `<div class="nw-row"><span>${_A[o]}</span><b>${lA(o, A.stats[o])}</b></div>`,
       all = ["hp", "damage", "range", "attackSpeed", "crit", "armor", "speed", "lifesteal", "bleed", "burn", "chain", "economy", "engineering"],

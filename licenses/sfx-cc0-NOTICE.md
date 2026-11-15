@@ -12,3 +12,11 @@ Lizenz: https://creativecommons.org/publicdomain/zero/1.0/ – keine Namensnennu
 Bearbeitung: geschnitten, auf 48 kHz mono, geschichtet (Transient/Körper/Raum/Sub), Tonhöhen-Varianten, Pegel angeglichen, Opus/AAC kodiert.
 Motor-Heulen der Kurbelkanone und Sub-Druck: eigene Synthese.
 Bauskript: arena-roguelite/work/t132/sfx2/build.py
+
+## Stufe 15.6 (t138)
+| Datei | Quelle |
+|---|---|
+| tier_up-0/1 (Waffenstufe steigt) | Kenney Impact Sounds (impactPlate_heavy, impactBell_heavy, CC0) + BMacZero „Metal Impact Sounds“ (clink, CC0) + synthetisches Kreide-Glitzern |
+| vent-0/1 (Gatling überhitzt, Dampf) | BMacZero „Metal Impact Sounds“ (thud, clink, CC0) + synthetisches Dampfzischen |
+| tier_shot-0/1 (schwere Schicht Stufe IV–VI) | Kenney Impact Sounds (impactPlate_heavy, CC0) + synthetischer Sub-Wumms |
+Erzeugt mit work/t138/sfx.py.
