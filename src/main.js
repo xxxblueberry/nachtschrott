@@ -51,6 +51,14 @@ const DEV_KEY = "nachtschrott-dev-v1",
       { k: "rand", label: "Bildrand (TV-Overscan)", min: 0, max: 0.1, def: 0 },
       { k: "anim", label: "Animationstempo (Menüs)", min: 0.1, max: 3, def: 1 },
     ] },
+    { id: "tempo", name: "Tempo & Spielgefühl", hint: "Kampf-Tempo wie bei Brotato (1 = Standard)", items: [
+      { k: "spieler", label: "Laufgeschwindigkeit", min: 0.6, max: 1.6, def: 1 },
+      { k: "gegner", label: "Gegner-Tempo", min: 0.6, max: 1.6, def: 1 },
+      { k: "welle", label: "Wellenlänge", min: 0.5, max: 1.6, def: 1 },
+      { k: "sog", label: "Einsammel-Sog", min: 0.5, max: 2, def: 1 },
+      { k: "marker", label: "Spawn-Markierung Dauer", min: 0.4, max: 2, def: 1 },
+      { k: "xpfx", label: "EP-Einsammel-Effekt", min: 0, max: 2, def: 1 },
+    ] },
     { id: "ton", name: "Soundmix", hint: "Zusätzlich zu den normalen Lautstärken", items: [
       { k: "musik", label: "Musik", min: 0, max: 2, def: 1 },
       { k: "effekte", label: "Effekte", min: 0, max: 2, def: 1 },
@@ -993,6 +1001,10 @@ const hE = "__ASSET_12__",
   co = "__ASSET_72__",
   Fo = "__ASSET_73__",
   Go = "__ASSET_74__",
+  wNail = "__ASSET_178__",
+  wThun = "__ASSET_179__",
+  wRiv = "__ASSET_180__",
+  wCrank = "__ASSET_181__",
   Ro = "__ASSET_75__",
   wo = "__ASSET_76__",
   Ko = "__ASSET_77__",
@@ -1083,6 +1095,10 @@ const hE = "__ASSET_12__",
     "weapon-laser": po,
     "weapon-frost": mo,
     "weapon-boomerang": Wo,
+    "weapon-nailer": wNail,
+    "weapon-thunder": wThun,
+    "weapon-riveter": wRiv,
+    "weapon-crank": wCrank,
     "ground-metal": Ho,
     "ground-stone": fo,
     "panel-material": zo,
@@ -1908,6 +1924,55 @@ j.push(
     color: "#7fe9ff",
     price: 36,
     kind: "fork",
+  },
+  // t132u/t135u: neue Schusswaffen (Design 1A, 2A, 3A, 6C – ohne Goldtöne)
+  {
+    id: "nailer",
+    name: "Nagelfeger",
+    tag: "Dauerfeuer · Schnellfeuer",
+    desc: "Kompakte Nagel-MP: tackert 6 Nägel pro Sekunde mit leichter Streuung. Jeder 8. Nagel durchschlägt (ab Stufe III jeder 5.). Stufen I–IV: Schaden 4 / 6 / 9 / 13.",
+    damage: 4,
+    cooldown: 0.16,
+    range: 430,
+    color: "#d9dde0",
+    price: 30,
+    kind: "nailer",
+  },
+  {
+    id: "thunder",
+    name: "Donnerbüchse",
+    tag: "Schrot · Nahkampf-Wumms",
+    desc: "Pump-Flinte: 7 Schrotkugeln im breiten 50°-Kegel, riesiger Rückstoß – Gegner fliegen weg, du rutschst beim Schuss ein Stück zurück. Stufen I–IV: 7 / 8 / 9 / 11 Kugeln, Schaden 7 / 9 / 12 / 16.",
+    damage: 7,
+    cooldown: 1.3,
+    range: 240,
+    color: "#cfc8bd",
+    price: 34,
+    kind: "thunder",
+  },
+  {
+    id: "riveter",
+    name: "Nietenrepetierer",
+    tag: "Salve · Präzision",
+    desc: "Trommel-MP: feuert 3er-Salven glühender Nieten. Jede Niete durchschlägt einen Gegner. Lange Reichweite. Stufen I–IV: Schaden 11 / 14 / 18 / 24, ab Stufe IV 4er-Salve.",
+    damage: 11,
+    cooldown: 1.05,
+    range: 560,
+    color: "#ff9a52",
+    price: 36,
+    kind: "riveter",
+  },
+  {
+    id: "crank",
+    name: "Kurbelkanone",
+    tag: "Anlaufen · Mini-Gatling",
+    desc: "Zahnrad-Gatling: startet mit 3 Schuss/s und kurbelt sich in 2 Sek. auf 12 Schuss/s hoch – die Drehzahl-Anzeige zeigt das Tempo. Erst nach 1 Sek. ohne Ziel kühlt sie ab. Stufen I–IV: Schaden 4 / 5 / 7 / 9, Anlauf 2,0 → 1,2 Sek.",
+    damage: 4,
+    cooldown: 0.34,
+    range: 470,
+    color: "#ffd9a0",
+    price: 38,
+    kind: "crank",
   },
 );
 _.push(
@@ -2873,6 +2938,13 @@ const d = new No(),
       tb_open: { bank: "core", files: ["tb_open-0"] },
       shot: { bank: "combat", files: ["shot-0", "shot-1", "shot-2", "shot-3"] },
       shotgun: { bank: "combat", files: ["shotgun-0", "shotgun-1", "shotgun-2", "shotgun-3"] },
+      nail_fire: { bank: "combat", files: ["nail_fire-0", "nail_fire-1", "nail_fire-2"] },
+      thunder_fire: { bank: "combat", files: ["thunder_fire-0", "thunder_fire-1", "thunder_fire-2"] },
+      thunder_pump: { bank: "combat", files: ["thunder_pump-0", "thunder_pump-1"] },
+      rivet_fire: { bank: "combat", files: ["rivet_fire-0", "rivet_fire-1", "rivet_fire-2"] },
+      crank_fire: { bank: "combat", files: ["crank_fire-0", "crank_fire-1", "crank_fire-2", "crank_fire-3"] },
+      crank_wind: { bank: "combat", files: ["crank_wind-0", "crank_wind-1"] },
+      casing: { bank: "combat", files: ["casing-0", "casing-1", "casing-2", "casing-3"] },
       turret: { bank: "combat", files: ["turret-0", "turret-1", "turret-2"] },
       axe: { bank: "combat", files: ["axe-0", "axe-1", "axe-2"] },
       saw_throw: { bank: "combat", files: ["saw_throw-0", "saw_throw-1", "saw_throw-2"] },
@@ -2948,6 +3020,13 @@ const d = new No(),
     tb_open: { gain: 0.5, prio: 5, max: 1, gap: 0.5, bus: "ui", legacy: "" },
     shot: { gain: 0.42, prio: 3, max: 3, gap: 0.045, legacy: "shot" },
     shotgun: { gain: 0.5, prio: 3, max: 2, gap: 0.07, legacy: "shotgun" },
+    nail_fire: { gain: 0.26, prio: 3, max: 3, gap: 0.05, legacy: "shot" },
+    thunder_fire: { gain: 0.62, prio: 4, max: 2, gap: 0.08, duck: 0.15, legacy: "shotgun" },
+    thunder_pump: { gain: 0.34, prio: 2, max: 1, gap: 0.2, legacy: "click" },
+    rivet_fire: { gain: 0.36, prio: 3, max: 3, gap: 0.04, legacy: "shot" },
+    crank_fire: { gain: 0.24, prio: 3, max: 3, gap: 0.03, legacy: "shot" },
+    crank_wind: { gain: 0.3, prio: 2, max: 1, gap: 0.5, legacy: "deploy" },
+    casing: { gain: 0.32, prio: 0, max: 2, gap: 0.07, legacy: "" },
     turret: { gain: 0.3, prio: 2, max: 2, gap: 0.06, legacy: "shot" },
     axe: { gain: 0.55, prio: 3, max: 2, gap: 0.06, legacy: "axe" },
     saw_throw: { gain: 0.38, prio: 2, max: 2, gap: 0.08, legacy: "axe" },
@@ -4107,6 +4186,7 @@ class oi {
         this.free.push(A - 1 - g);
   }
   capacity;
+  clink = [];
   items = [];
   free = [];
   count = 0;
@@ -4203,6 +4283,7 @@ class oi {
             (B.vz -= 900 * A),
             B.z < 0 &&
               ((B.z = 0),
+              B.kind === 4 && Math.abs(B.vz) > 120 && this.clink.length < 3 && this.clink.push(B.x),
               (B.vz = Math.abs(B.vz) > 90 ? -B.vz * 0.38 : 0),
               (B.vx *= 0.55),
               (B.vy *= 0.55),
@@ -5242,6 +5323,10 @@ const AB = {
     summon: { length: 40, longest: 84, muzzleX: 0, muzzleY: 8, upright: !0 },
     frost: { length: 40, longest: 84, muzzleX: 0, muzzleY: 25, upright: !0 },
     turret: { length: 66, longest: 100, muzzleX: 53, muzzleY: -13 },
+    nailer: { length: 66, longest: 100, muzzleX: 50, muzzleY: -19 },
+    thunder: { length: 80, longest: 100, muzzleX: 50, muzzleY: -8 },
+    riveter: { length: 82, longest: 100, muzzleX: 50, muzzleY: -9 },
+    crank: { length: 92, longest: 100, muzzleX: 50, muzzleY: -5 },
   },
   jA = (e) => AB[e] ?? AB.pistol,
   zA = (e) => {
@@ -5277,7 +5362,9 @@ function Gi(e) {
 const SA = ["", "#a9b4c5", "#70b1ff", "#b995ff", "#ffc36f"],
   BB = ["", "Standard", "Veredelt", "Prototyp", "Meisterwerk"],
   iA = ["", "I", "II", "III", "IV"],
-  ZA = (e) => 1 + (e - 1) * 0.7;
+  // t132: eigene Stufentabellen für die neuen Schusswaffen (I–IV)
+  wTier = { nailer: [0, 4, 6, 9, 13], thunder: [0, 7, 9, 12, 16], riveter: [0, 11, 14, 18, 24], crank: [0, 4, 5, 7, 9] },
+  ZA = (e, id) => (id && wTier[id] ? wTier[id][e] / wTier[id][1] : 1 + (e - 1) * 0.7);
 function pB(e) {
   const A = Math.min(0.38, 0.1 + 0.012 * e),
     g = e >= 4 ? Math.min(0.26, (e - 3) * 0.013) : 0,
@@ -6822,6 +6909,33 @@ class mi {
   get rules() {
     return gA[this.runDifficulty];
   }
+  // t132u: kleiner Effekt beim EP-Einsammeln (Ring + Funkeln am Helden, EP-Leiste blitzt im HUD)
+  xpPop(C, Q) {
+    this.xpPicks = (this.xpPicks || 0) + 1;
+    const k = DV("tempo", "xpfx") ?? 1;
+    if (k <= 0 || (this.particles.count > 1200 && this.xpPicks % 3)) return;
+    // Am Aufnahmepunkt (Rand des Helden), nicht im Gesicht
+    const an = Math.atan2(C.y - Q.y, C.x - Q.x),
+      x = Q.x + Math.cos(an) * 16,
+      y = Q.y + Math.sin(an) * 12 - 4;
+    this.fx.ring(x, y, 4, 17 + 10 * k, "#ffe6b8", 0.2, 3),
+      this.fx.glow(x, y, 12 + 7 * k, "#ffcf8a", 0.08),
+      this.fx.sparks(x, y, an, 1, Math.max(1, Math.round(4 * k)), 190, "#fff1d0", 0.22),
+      this.xpPicks % 3 === 0 && this.fx.twinkle(Q.x, Q.y - 34, 1, "#fff1d0", 10);
+  }
+  spawnPop(A) {
+    const y = A.y + A.r * 0.45,
+      lot = this.enemies.count > 240;
+    this.fx.ring(A.x, y, 6, A.r + (A.type >= 8 ? 70 : 24), "#ffd7b0", 0.22, A.type >= 8 ? 5 : 3),
+      lot || this.fx.smoke(A.x, y, 2, 8 + A.r * 0.35, "#5e5853", "#e8d6b8", 0.45, A.r * 0.8, 0, -18);
+  }
+  tempoFoe() {
+    return 1.08 * (DV("tempo", "gegner") ?? 1);
+  }
+  // t132: kürzere, dichtere Wellen (Brotato-Gefühl): Welle 1 ≈ 32 s, ab Welle 15 60 s
+  waveLen(w) {
+    return Math.round(Math.min(60, 30 + w * 2) * (DV("tempo", "welle") ?? 1));
+  }
   enemyFactor(A) {
     const g = V((this.wave - 1) / 7, 0, 1);
     return gA[0][A] + (this.rules[A] - gA[0][A]) * g;
@@ -6904,7 +7018,7 @@ class mi {
       (this.forkBolts = []),
       (this.forkHits = []),
       (this.wave = 1),
-      (this.waveLength = 41),
+      (this.waveLength = this.waveLen(1)),
       (this.waveTime = 0),
       (this.runTime = 0),
       (this.kills = 0),
@@ -7013,7 +7127,7 @@ class mi {
       hp: Q.hp * h * this.enemyFactor("hp"),
       maxHp: Q.hp * h * this.enemyFactor("hp"),
       r: Q.radius,
-      speed: Q.speed * (1 + this.wave * 0.012) * this.enemyFactor("speed"),
+      speed: Q.speed * (1 + this.wave * 0.012) * this.enemyFactor("speed") * this.tempoFoe(),
       damage: Q.damage * (1 + this.wave * 0.045) * this.enemyFactor("damage"),
       flash: 0,
       age: 0,
@@ -7030,7 +7144,8 @@ class mi {
       elite: A === 7 ? Math.floor(p(0, 5)) : 0,
       foe: -1,
       face: 1,
-      spawn: E ? 0 : 0.85,
+      spawn: E ? 0 : 0.85 * (DV("tempo", "marker") ?? 1),
+      spawnMax: E ? 0 : 0.85 * (DV("tempo", "marker") ?? 1),
       depth: 0,
       poison: 0,
       poisonTime: 0,
@@ -7054,7 +7169,7 @@ class mi {
       const U = $[s];
       (i.foe = s),
         (i.hp = i.maxHp = U.hp * h * this.enemyFactor("hp")),
-        (i.speed = U.speed * (1 + this.wave * 0.012) * this.enemyFactor("speed")),
+        (i.speed = U.speed * (1 + this.wave * 0.012) * this.enemyFactor("speed") * this.tempoFoe()),
         (i.damage = U.damage * (1 + this.wave * 0.045) * this.enemyFactor("damage")),
         (i.r = U.radius),
         (i.cd = p(0.8, 1.8)),
@@ -7064,7 +7179,7 @@ class mi {
       A >= 8 &&
         ((i.hp = i.maxHp = Q.hp * (1 + Math.max(0, this.wave - 20) * 0.2) * this.rules.bossHp),
         (i.cd = 2),
-        (i.spawn = E ? 0 : 1.8)),
+        (i.spawn = i.spawnMax = E ? 0 : 1.8)),
       i
     );
   }
@@ -7244,6 +7359,9 @@ class mi {
           returning: !1,
           age: 0,
           pierce: !1,
+          pc: 0,
+          kb: 0,
+          sty: 0,
           ownerIndex: this.actorIndex,
           r: a,
           enemy: I,
@@ -7258,7 +7376,7 @@ class mi {
     this.procBudget--;
     const C = o && Math.random() < this.stats.crit,
       Q = g * (C ? 2 : 1) * (A.type === 7 && A.elite === 3 ? 0.65 : 1);
-    (A.hp -= Q), (A.flash = 0.1);
+    (A.hp -= Q), (A.flash = 0.1), (A.hitA = B);
     const a = (E + (o ? 35 : 0)) * (C ? 1.55 : 1) * (A.type >= 8 ? 0.15 : A.type === 7 ? 0.65 : 1);
     (A.vx += Math.cos(B) * a),
       (A.vy += Math.sin(B) * a),
@@ -7349,6 +7467,7 @@ class mi {
       1,
     ),
       this.particle(A.x, A.y, "#f4dbaf", 4, 0.6);
+    killPop(this, A);
     const B = iB(A),
       E = A.type >= 7;
     if (
@@ -7654,9 +7773,131 @@ class mi {
       }
     }
   }
+  // ===== t132: neue Schusswaffen =====
+  gunFire(A, B, g, M, r, Q, a, o, h, s) {
+    const cQ = Math.cos(Q),
+      sQ = Math.sin(Q),
+      bn = Math.min(5, this.stats.bounce),
+      extra = Math.min(8, this.stats.projectiles),
+      lowFx = this.enemies.count > 260;
+    if (B.kind === "nailer") {
+      A.nails = (A.nails || 0) + 1;
+      const pierce = A.nails % (A.tier >= 3 ? 5 : 8) === 0,
+        n = 1 + Math.floor(extra / 2);
+      for (let R = 0; R < n; R++) {
+        const G = Q + (Math.random() - 0.5) * 0.21 + (R - (n - 1) / 2) * 0.09,
+          P = this.shoot(M, r, G, 860, a, o / 860, !1, B.color, bn, 3.2);
+        P && ((P.sty = pierce ? 5 : 1), (P.kb = 16), pierce && ((P.pc = 2), (P.r = 3.8)));
+      }
+      this.audio.sound("nail_fire", pierce ? 0.9 : 1, 1, this.pan(M)),
+        (this.shake = Math.max(this.shake, pierce ? 1.2 : 0.6)),
+        this.fx.muzzle(M + cQ * 3, r + sQ * 3, Q, "#ffc27a", pierce ? 0.75 : 0.5, A.nails % 4 === 0 && !lowFx),
+        A.nails % 2 === 0 && this.fx.casing(h, s, Q, "#8f979c"),
+        pierce && this.fx.sparks(M, r, Q, 0.25, 4, 460, "#fff0d0", 0.15);
+      return;
+    }
+    if (B.kind === "thunder") {
+      const n = [0, 7, 8, 9, 11][A.tier] + extra;
+      for (let R = 0; R < n; R++) {
+        const G = Q + (R / Math.max(1, n - 1) - 0.5) * 0.873 + (Math.random() - 0.5) * 0.07,
+          sp = p(600, 760),
+          P = this.shoot(M, r, G, sp, a, (o / sp) * p(0.82, 1.04), !1, B.color, bn, 4.4);
+        P && ((P.sty = 2), (P.kb = 230));
+      }
+      const pl = this.player;
+      (pl.recoilX = (pl.recoilX || 0) - cQ * 330),
+        (pl.recoilY = (pl.recoilY || 0) - sQ * 330),
+        this.audio.sound("thunder_fire", 1, 1, this.pan(M)),
+        (A.pump = 0.32),
+        (this.shake = Math.max(this.shake, 5.2)),
+        (this.heavyStop = Math.max(this.heavyStop, 0.025)),
+        this.fx.muzzle(M + cQ * 8, r + sQ * 8, Q, "#ffa24a", 2.8, !0),
+        this.fx.light(M, r + 18, 260, "#ff9a4a", 0.16),
+        this.fx.glow(M + cQ * 20, r + sQ * 20, 70, "#ffc27a", 0.1),
+        this.fx.smoke(M + cQ * 30, r + sQ * 30, lowFx ? 4 : 8, 24, "#7a716a", "#f2e2c4", 1.3, 34, cQ * 170, sQ * 170),
+        this.fx.smoke(M + cQ * 10, r + sQ * 10, 2, 10, "#6c6560", "#f2d2a0", 0.7, 10, cQ * 40, sQ * 40 - 30),
+        this.fx.sparks(M, r, Q, 0.45, lowFx ? 5 : 10, 620, "#ffd7a0", 0.2);
+      for (let R = -2; R <= 2; R++) {
+        const G = Q + R * 0.19,
+          L = p(80, 120);
+        this.fx.tracer(M + Math.cos(G) * 10, r + Math.sin(G) * 10, M + Math.cos(G) * L, r + Math.sin(G) * L, "#ffd7a0", 0.08, 2.6);
+      }
+      return;
+    }
+    if (B.kind === "riveter") {
+      (A.burst = (A.tier >= 4 ? 4 : 3) - 1), (A.burstT = 0.085), (A.burstDmg = a);
+      this.rivetShot(A, M, r, Q, a, o, h, s);
+      return;
+    }
+    if (B.kind === "crank") {
+      A.lastFire = this.time;
+      const sp = A.spin || 0,
+        rate = (3 + 9 * sp) * this.stats.attackSpeed;
+      A.cd = 1 / rate;
+      A.shots = (A.shots || 0) + 1;
+      sp < 0.05 && this.time - (A.windAt ?? -9) > 1.5 && ((A.windAt = this.time), this.audio.sound("crank_wind", 1, 0.8, this.pan(M)));
+      const n = 1 + Math.floor(extra / 3);
+      for (let R = 0; R < n; R++) {
+        const G = Q + (Math.random() - 0.5) * (0.16 - sp * 0.06) + (R - (n - 1) / 2) * 0.08,
+          P = this.shoot(M, r, G, 980, a, o / 980, !1, B.color, bn, 3.4);
+        P && ((P.sty = 4), (P.kb = 20));
+      }
+      this.audio.sound("crank_fire", 0.92 + sp * 0.22, 0.85, this.pan(M)),
+        (this.shake = Math.max(this.shake, 0.6 + sp * 0.9)),
+        this.fx.muzzle(M + cQ * 4, r + sQ * 4, Q, sp > 0.7 ? "#ff9d4a" : "#ffc27a", 0.55 + sp * 0.45, A.shots % 5 === 0 && !lowFx),
+        this.fx.casing(h, s, Q, "#a8643a"),
+        sp > 0.8 && A.shots % 6 === 0 && this.fx.smoke(M, r, 1, 8, "#5e5853", "#d8c6a8", 0.6, 8, cQ * 30, sQ * 30 - 40);
+    }
+  }
+  rivetShot(A, M, r, Q, a, o, h, s) {
+    const n = 1 + Math.floor(Math.min(8, this.stats.projectiles) / 2),
+      bn = Math.min(5, this.stats.bounce),
+      cQ = Math.cos(Q),
+      sQ = Math.sin(Q);
+    for (let R = 0; R < n; R++) {
+      const G = Q + (Math.random() - 0.5) * 0.04 + (R - (n - 1) / 2) * 0.07,
+        P = this.shoot(M, r, G, 940, a, o / 940, !1, "#ff9a52", bn, 3.9);
+      P && ((P.sty = 3), (P.pc = 1), (P.kb = 55));
+    }
+    (A.kick = 1),
+      (A.mfv = Math.random()),
+      this.audio.sound("rivet_fire", p(0.96, 1.05), 1, this.pan(M)),
+      (this.shake = Math.max(this.shake, 1.7)),
+      this.fx.muzzle(M + cQ * 5, r + sQ * 5, Q, "#ffb35c", 0.85, !0),
+      this.fx.casing(h, s, Q, "#9a8f86"),
+      this.fx.glow(M, r, 26, "#ff9a52", 0.07);
+  }
+  rivetBurst(A, g) {
+    const B = j.find((Y) => Y.id === A.id),
+      o = this.weaponRange(A),
+      t = this.weaponPosition(A, g),
+      U = this.weaponMuzzle(A, g),
+      Q = A.target?.active && A.target.spawn <= 0 ? Math.atan2(A.target.y - t.y, A.target.x - t.x) : A.angle;
+    (A.angle = Q), this.rivetShot(A, U.x, U.y, Q, A.burstDmg || B.damage, o, t.x, t.y);
+  }
+  crankTick(A, g) {
+    const sp = [0, 2, 1.7, 1.45, 1.2][A.tier] || 2,
+      f = this.time - (A.lastFire ?? -9);
+    (A.spin = f < 0.5 ? Math.min(1, (A.spin || 0) + g / sp) : f < 1 ? A.spin || 0 : Math.max(0, (A.spin || 0) - g / 1.3)),
+      (A.heat = Math.max(0, (A.heat || 0) + (A.spin > 0.85 && f < 0.3 ? g : -g * 1.5))),
+      (A.barrel = ((A.barrel || 0) + g * (1 + 26 * A.spin)) % 100);
+  }
+  styImpact(C, t) {
+    if (this.enemies.count > 300 && Math.random() < 0.6) return;
+    const a = Math.atan2(C.vy, C.vx);
+    C.sty === 2
+      ? (this.fx.chips(C.x, C.y - 6, 2, "#8f8a84", 0.8, 3), this.fx.sparks(C.x, C.y - 6, a + Math.PI, 1, 2, 300, "#ffd7a0", 0.14))
+      : C.sty === 3
+        ? (this.fx.sparks(C.x, C.y - 6, a + Math.PI, 0.9, 6, 360, "#ffb070", 0.24),
+          this.fx.chips(C.x, C.y - 6, 2, "#6d6762", 0.9, 3),
+          this.fx.glow(C.x, C.y - 6, 22, "#ff9a52", 0.06))
+        : C.sty === 4
+          ? this.fx.sparks(C.x, C.y - 6, a + Math.PI, 0.7, 2, 300, "#ffe0b0", 0.14)
+          : this.fx.sparks(C.x, C.y - 6, a + Math.PI, 0.6, C.sty === 5 ? 4 : 2, 260, "#e8eef0", 0.12);
+  }
   attack(A, g) {
     const B = j.find((Y) => Y.id === A.id),
-      E = ZA(A.tier),
+      E = ZA(A.tier, A.id),
       o = this.weaponRange(A),
       i = this.weaponSlot(A, g);
     let I = this.closest(i.x, i.y, this.weaponRange(A));
@@ -7709,6 +7950,7 @@ class mi {
     let Q = C ? Math.atan2(this.input.aimY, this.input.aimX) : Math.atan2(I.y - i.y, I.x - i.x);
     (A.angle = Q),
       (A.kick = 1),
+      (A.mfv = Math.random()),
       (A.swing = B.kind === "axe" ? y.swing : 0),
       (A.cd = B.cooldown / this.stats.attackSpeed);
     let a = B.damage * E * this.damageScale();
@@ -7766,6 +8008,8 @@ class mi {
         this.fx.light(M, r + 10, o * 1.1, "#9cc9ff", 0.25),
         this.fx.twinkle(M, r, 8, "#eaf6ff", o * 0.5);
     }
+    if (B.kind === "nailer" || B.kind === "thunder" || B.kind === "riveter" || B.kind === "crank")
+      this.gunFire(A, B, g, M, r, Q, a, o, h, s);
     if (B.kind === "bullet" || B.kind === "shotgun") {
       let Y = B.kind === "shotgun" ? 4 : 1;
       (Y += Math.min(8, this.stats.projectiles)), A.mutation === "Dornsalve" && (Y += 2);
@@ -7940,7 +8184,7 @@ class mi {
           target: Q,
           returning: !1,
           budget: A.tier + Math.min(3, this.stats.bounce),
-          damage: B.damage * ZA(A.tier) * this.damageScale(),
+          damage: B.damage * ZA(A.tier, A.id) * this.damageScale(),
           sharedHits: i,
           curve: C % 2 ? -1 : 1,
           trailHead: 0,
@@ -8061,10 +8305,12 @@ class mi {
           (this.dashCharges++,
           (this.dashRecharge = this.dashCharges < this.dashMax ? this.dashCooldown : 0)));
     const E = this.zones.some((Q) => Q.chill && Q.delay <= 0 && H(Q, this.player) < Q.r),
-      o = 300 * this.stats.speed * (E ? 0.75 : 1);
+      o = 335 * (DV("tempo", "spieler") ?? 1) * this.stats.speed * (E ? 0.75 : 1);
     if (
-      ((g.vx = this.input.x * o + (g.pullX || 0)),
-      (g.vy = this.input.y * o + (g.pullY || 0)),
+      ((g.vx = this.input.x * o + (g.pullX || 0) + (g.recoilX || 0)),
+      (g.vy = this.input.y * o + (g.pullY || 0) + (g.recoilY || 0)),
+      (g.recoilX = (g.recoilX || 0) * Math.exp(-A * 11)),
+      (g.recoilY = (g.recoilY || 0) * Math.exp(-A * 11)),
       (g.pullX = 0),
       (g.pullY = 0),
       this.dashTime > 0)
@@ -8111,6 +8357,9 @@ class mi {
         (E.kick = Math.max(0, E.kick - A * 7)),
         (E.swing = Math.max(0, E.swing - A)),
         (E.glow = Math.max(0, E.glow - A)),
+        E.id === "crank" && this.crankTick(E, A),
+        E.pump > 0 && (E.pump -= A) <= 0 && this.audio.sound("thunder_pump", 1, 0.9, this.pan(g.x)),
+        E.burst > 0 && (E.burstT -= A) <= 0 && (E.burst--, (E.burstT = 0.085), this.rivetBurst(E, B)),
         E.cd <= 0 && this.attack(E, B);
     }
     for (const B of this.turrets) {
@@ -8234,6 +8483,10 @@ class mi {
     };
     const B = A * (this.showcase && this.showcase.life > 0 ? 0.32 : 1);
     this.fx.update(B);
+    if (this.fx.clink.length) {
+      for (const C of this.fx.clink) this.audio.sound("casing", p(0.9, 1.18), 1, this.pan(C));
+      this.fx.clink.length = 0;
+    }
     for (const C of this.ghosts) C.life -= B;
     if (
       (this.ghosts.length &&
@@ -8286,7 +8539,7 @@ class mi {
         this.wave >= 5 && Math.random() < this.eliteChance() && (t = 7), this.spawn(t);
       }
       this.spawnTimer =
-        Math.max(0.2, 0.9 - this.wave * 0.023) / (this.danger ? 1.35 : 1) / this.enemyFactor("density");
+        Math.max(0.2, 0.9 - this.wave * 0.023) / (this.danger ? 1.35 : 1) / this.enemyFactor("density") / 1.12;
     }
     if (
       ((this.formationTimer -= E),
@@ -8374,10 +8627,11 @@ class mi {
               t,
               C.damage,
               Math.atan2(C.vy, C.vx),
-              (C.color === "#fa9e64" ? 130 : 28) * this.stats.knockback,
+              (C.kb || (C.color === "#fa9e64" ? 130 : 28)) * this.stats.knockback,
             ),
           ),
-          !C.pierce)
+          C.sty && this.styImpact(C, t),
+          !C.pierce && !(C.pc > 0 && (C.pc--, (C.damage *= 0.85), !0)))
         ) {
           if (C.bounce > 0) {
             C.bounce--;
@@ -8443,7 +8697,7 @@ class mi {
             C.magnet || (a < this.stats.pickup && C.age > 0.25))
           ) {
             const h = Math.atan2(Q.y - C.y, Q.x - C.x),
-              s = V(220 + C.age * 250, 220, 1200);
+              s = V(300 + C.age * 420, 300, 1500) * (DV("tempo", "sog") ?? 1);
             (C.vx += (Math.cos(h) * s - C.vx) * Math.min(1, A * 12)),
               (C.vy += (Math.sin(h) * s - C.vy) * Math.min(1, A * 12)),
               (C.z *= Math.exp(-A * 15)),
@@ -8452,7 +8706,7 @@ class mi {
                 this.loot.count < 500 &&
                 ((C.trail = 0.06), this.particle(C.x, C.y, C.kind === 0 ? "#a6eee0" : "#ffdc8d", 1, 0.15));
           } else (C.vx *= Math.exp(-A * 5)), (C.vy *= Math.exp(-A * 5));
-          if (((C.x += C.vx * A), (C.y += C.vy * A), Q.hp > 0 && a < 19 && C.age > 0.2)) {
+          if (((C.x += C.vx * A), (C.y += C.vy * A), Q.hp > 0 && a < 22 && C.age > 0.2)) {
             (C.active = !1),
               this.time - this.pickupAt > 1 && (this.combo = 0),
               this.combo++,
@@ -8466,7 +8720,7 @@ class mi {
               ),
               C.kind === 1 && this.fx.twinkle(Q.x, Q.y - 12, 1, "#ffe08a", 10),
               this.particle(Q.x, Q.y, C.kind === 0 ? "#a5e8da" : "#efce87", 2, 0.3),
-              C.kind === 0 && this.gainXP(C.value),
+              C.kind === 0 && (this.gainXP(C.value), this.xpPop(C, Q)),
               C.kind === 1 && (this.money += C.value * this.rules.economy),
               C.kind === 2 &&
                 (this.loot.each((s) => (s.magnet = !0)),
@@ -8505,7 +8759,7 @@ class mi {
   }
   updateEnemy(A, g) {
     if (((A.age += g), (A.flash = Math.max(0, A.flash - g)), A.spawn > 0)) {
-      A.spawn -= g;
+      (A.spawn -= g), A.spawn <= 0 && this.spawnPop(A);
       return;
     }
     if (
@@ -9273,7 +9527,7 @@ class mi {
       (this.formationTimer = 6),
       (this.scrapDropped = 0),
       (this.xpDropped = 0),
-      (this.waveLength = Math.min(60, 40 + this.wave)),
+      (this.waveLength = this.waveLen(this.wave)),
       (this.bossSpawned = !1),
       (this.bossDead = !1),
       (this.spawnTimer = 0.4),
@@ -9359,7 +9613,7 @@ class mi {
       this[B] = g[B];
     return (
       (this.ended = g.endless),
-      (this.waveLength = Math.min(60, 40 + this.wave)),
+      (this.waveLength = this.waveLen(this.wave)),
       (this.waveTime = 0),
       (this.save.data.checkpoint = g),
       this.save.write(),
@@ -10139,6 +10393,139 @@ function lC(e, A) {
     e.player(A.x, A.y + i, A.hero, 0, !1, !1, A.face, 0),
     g.restore();
 }
+// t132: Geschosse der neuen Schusswaffen (Nagel, Schrot, glühende Niete, Gatling-Leuchtspur)
+function styShot(i, Q, l, sh) {
+  const a = Math.atan2(l.vy, l.vx),
+    c = Math.cos(a),
+    s = Math.sin(a);
+  sh && Q.ellipse(l.x, l.y + 4, l.r + 1.5, l.r * 0.4, "#0d102240", F, 0);
+  i.save(), i.translate(0, -6);
+  if (l.sty === 1 || l.sty === 5) {
+    const L = 19,
+      tx = l.x - c * L,
+      ty = l.y - s * L,
+      hot = l.sty === 5;
+    Q.line(l.x - l.vx * 0.03, l.y - l.vy * 0.03, tx, ty, hot ? "#ffb06a44" : "#e9dcc63a", hot ? 6 : 3),
+      Q.line(tx, ty, l.x, l.y, "#121418", 5),
+      Q.line(tx, ty, l.x, l.y, hot ? "#ffe2bf" : "#e6ecef", 2.8),
+      Q.line(tx - s * 3.4, ty + c * 3.4, tx + s * 3.4, ty - c * 3.4, "#121418", 3.6),
+      Q.line(tx - s * 2.6, ty + c * 2.6, tx + s * 2.6, ty - c * 2.6, hot ? "#fff0d8" : "#9aa3a8", 1.8);
+    hot && (i.globalCompositeOperation = "lighter", Q.ellipse(l.x, l.y, 6, 6, "#ff9a5233", F, 0));
+  } else if (l.sty === 2) {
+    Q.line(l.x - l.vx * 0.05, l.y - l.vy * 0.05, l.x, l.y, "#ffe0b04d", 4.5),
+      Q.ellipse(l.x, l.y, 4.6, 4.6, "#c9c0b4", "#121418", 1.8),
+      Q.ellipse(l.x - 1.2, l.y - 1.4, 1.8, 1.5, "#fff4e0", F, 0);
+  } else if (l.sty === 3) {
+    i.globalCompositeOperation = "lighter";
+    Q.line(l.x - l.vx * 0.05, l.y - l.vy * 0.05, l.x, l.y, "#ff7a3a55", 7),
+      Q.line(l.x - l.vx * 0.025, l.y - l.vy * 0.025, l.x, l.y, "#ffc48a99", 3);
+    i.globalCompositeOperation = "source-over";
+    Q.ellipse(l.x, l.y, 5.2, 4, "#ffe6c8", "#c4542a", 1.8), Q.ellipse(l.x + c, l.y + s, 2.2, 1.8, "#fff8ec", F, 0);
+  } else {
+    i.globalCompositeOperation = "lighter";
+    Q.line(l.x - l.vx * 0.04, l.y - l.vy * 0.04, l.x, l.y, "#ff9a4a40", 5),
+      Q.line(l.x - l.vx * 0.03, l.y - l.vy * 0.03, l.x, l.y, "#ffd9a0dd", 3),
+      Q.ellipse(l.x, l.y, 3.2, 3.2, "#fff4e0", F, 0);
+  }
+  i.restore();
+}
+// t132: Drehzahl-Anzeige der Kurbelkanone (über der Waffe, immer aufrecht)
+function crankGauge(I, C, A, x, y, o) {
+  const sp = A.spin || 0;
+  if (sp < 0.03 && !(A.heat > 0)) return;
+  I.save(), (I.globalAlpha = o * Math.min(1, sp * 6 + 0.2)), I.translate(x, y);
+  const R = 11;
+  C.ellipse(0, 0, R + 3, R + 3, "#15110e", "#e9dcc6", 2);
+  I.lineCap = "round";
+  I.beginPath(), I.arc(0, 0, R - 2, Math.PI * 0.8, Math.PI * 2.2), (I.strokeStyle = "#3a332e"), (I.lineWidth = 3.4), I.stroke();
+  I.beginPath(), I.arc(0, 0, R - 2, Math.PI * 0.8, Math.PI * (0.8 + 1.4 * sp)), (I.strokeStyle = sp > 0.85 ? "#ff6a2e" : sp > 0.5 ? "#f0a25a" : "#e9dcc6"), (I.lineWidth = 3.4), I.stroke();
+  const na = Math.PI * (0.8 + 1.4 * sp) + Math.sin(A.barrel * 9) * 0.05 * sp;
+  C.line(0, 0, Math.cos(na) * (R - 3), Math.sin(na) * (R - 3), "#fff4e0", 2), C.ellipse(0, 0, 2.2, 2.2, "#c4542a", F, 0);
+  I.restore();
+}
+// t132u: Spawn-Markierung wie bei Brotato, im Noir-Kreide-Stil: blinkendes rotes Kreide-X + Ring, der sich zusammenzieht
+function spawnMark(g, A, max, T) {
+  const big = A.type >= 8,
+    a = 1 - V((A.spawn - 0.13) / Math.max(0.1, max - 0.13), 0, 1),
+    R = big ? 46 : 17 + A.r * 0.38,
+    bl = a > 0.6 ? (Math.sin(T * 26 + A.x) > -0.2 ? 1 : 0.35) : 0.75 + 0.25 * Math.sin(T * 12 + A.x);
+  g.save(), g.translate(0, A.r * 0.5), g.scale(1, 0.62), (g.lineCap = "round");
+  const rr = R * (2.1 - 1.1 * a);
+  (g.globalAlpha = 0.35 + 0.5 * a),
+    g.beginPath(),
+    g.arc(0, 0, rr, 0, Math.PI * 2),
+    (g.strokeStyle = "#e0533a"),
+    (g.lineWidth = big ? 4.5 : 3),
+    g.setLineDash(big ? [10, 7] : [6, 5]),
+    (g.lineDashOffset = -T * 30),
+    g.stroke(),
+    g.setLineDash([]);
+  (g.globalAlpha = (0.55 + 0.45 * Math.min(1, a * 2.2)) * bl), g.rotate(0.05 * Math.sin(A.x));
+  const L = R * (0.75 + 0.25 * Math.min(1, a * 3));
+  for (const [w, c] of [[big ? 15 : 11, "#1a0f0c"], [big ? 10 : 7, "#e8492f"], [big ? 3 : 2, "#ffd7b0"]])
+    g.beginPath(), g.moveTo(-L, -L), g.lineTo(L, L), g.moveTo(L, -L), g.lineTo(-L, L), (g.strokeStyle = c), (g.lineWidth = w), g.stroke();
+  g.restore();
+}
+// t137: Rückstoß je Waffenart [zurück px, Mündung hoch rad, hoch px]
+const RECOIL = {
+  bullet: [4, 0.09, 1], shotgun: [9, 0.26, 3], nailer: [3.5, 0.06, 0.5], thunder: [13, 0.42, 5],
+  riveter: [7, 0.16, 2], crank: [2.6, 0.04, 0.4], poison: [2, 0.03, 0], laser: [2, 0.03, 0], flame: [1.5, 0.02, 0],
+};
+// t137: Mündungsfeuer als 3 Frames (Blüte → Kegel → Zunge + Rauch), je Waffe skaliert, Zufallsvariante
+const MFX = { bullet: [1, 1], shotgun: [1.45, 1.5], nailer: [0.75, 0.8], thunder: [1.9, 2], riveter: [1.15, 1.1], crank: [1.05, 0.75] };
+function muzzleFrame(I, kind, kick, v, fl) {
+  if (fl <= 0) return;
+  const m = MFX[kind] || [1, 1],
+    L = m[0], W = m[1],
+    f = kick > 0.86 ? 0 : kick > 0.7 ? 1 : 2,
+    j = v > 0.5 ? 1 : -1,
+    a = (v * 7) % 1;
+  I.save(), (I.globalCompositeOperation = "lighter"), (I.globalAlpha = Math.min(1, fl));
+  const petal = (len, w, ang, col) => {
+    I.save(), I.rotate(ang), I.beginPath(), I.moveTo(0, -w * 0.5), I.quadraticCurveTo(len * 0.45, -w, len, 0),
+      I.quadraticCurveTo(len * 0.45, w, 0, w * 0.5), I.closePath(), (I.fillStyle = col), I.fill(), I.restore();
+  };
+  if (f === 0) {
+    petal(40 * L * (0.9 + a * 0.25), 15 * W, (a - 0.5) * 0.12, "rgba(255,150,60,0.85)");
+    petal(17 * W, 9 * W, -1.05 * j - 0.1, "rgba(255,170,80,0.8)");
+    petal(15 * W, 8 * W, 1.05 * j + 0.15, "rgba(255,170,80,0.75)");
+    petal(30 * L, 9 * W, 0, "rgba(255,230,170,0.95)");
+    I.beginPath(), I.ellipse(4, 0, 9 * W, 7 * W, 0, 0, Math.PI * 2), (I.fillStyle = "rgba(255,250,232,1)"), I.fill();
+    kind === "thunder" && (petal(22 * W, 12, -0.5, "rgba(255,140,50,0.6)"), petal(22 * W, 12, 0.5, "rgba(255,140,50,0.6)"));
+  } else if (f === 1) {
+    petal(46 * L * (0.85 + a * 0.3), 10 * W, (a - 0.5) * 0.08, "rgba(255,140,50,0.7)");
+    petal(28 * L, 6 * W, 0, "rgba(255,226,160,0.85)");
+    I.beginPath(), I.ellipse(3, 0, 5 * W, 4 * W, 0, 0, Math.PI * 2), (I.fillStyle = "rgba(255,244,214,0.9)"), I.fill();
+  } else {
+    petal(20 * L, 6 * W, 0, "rgba(255,120,40,0.45)");
+    I.globalCompositeOperation = "source-over";
+    I.beginPath(), I.arc(14 * L, -2, 6 * W, 0, Math.PI * 2), (I.fillStyle = "rgba(120,112,104,0.35)"), I.fill();
+  }
+  I.restore();
+}
+// t137: Treffer-Squash: kurz breit/flach + Lehnen weg vom Schuss
+function hitSquash(g, A, flip) {
+  const k = Math.min(1, A.flash / 0.1),
+    e = k * k,
+    h = A.hitA ?? 0,
+    big = A.type >= 8 ? 0.4 : 1;
+  g.translate(Math.cos(h) * 4 * e * big * (flip ? -1 : 1), Math.sin(h) * 2.5 * e * big),
+    g.scale(1 + 0.17 * e * big, 1 - 0.15 * e * big);
+}
+// t137: Kill-Pop – heller Kranz, Blitz, Funken; kurzer Hitstop + Wackler (gedrosselt)
+function killPop(G, A) {
+  const fx = G.fx,
+    big = A.type >= 7,
+    y = A.y - 8,
+    low = G.enemies.count > 220;
+  fx.star(A.x, y, Math.random() * 6, (big ? 46 : 26) + A.r * 0.4, "#fff3dc", 0.07);
+  fx.ring(A.x, y, 6, A.r * (big ? 3 : 2.2) + 14, "#ffe9c4", big ? 0.3 : 0.2, big ? 5 : 3);
+  low || fx.glow(A.x, y, A.r * 1.6 + 18, "#ffd59a", 0.09);
+  low || fx.sparks(A.x, y, -Math.PI / 2, Math.PI, big ? 10 : 5, big ? 420 : 300, "#ffe2b0", 0.26);
+  if (G.time - (G.killStopAt ?? -9) > 0.22) {
+    (G.killStopAt = G.time), (G.heavyStop = Math.max(G.heavyStop, big ? 0.06 : 0.016)), (G.shake = Math.max(G.shake, big ? 5 : 1.6));
+  }
+}
 function UC(e, A) {
   const g = 1 - A.spawn / 0.9,
     B = V((g - 0.55) / 0.45, 0, 1);
@@ -10618,9 +11005,12 @@ class FC {
       Q = j.find((h) => h.id === A.id);
     I.save(), (I.globalAlpha = o), I.translate(g, B);
     const a = ig(A),
-      t = jA(A.id).upright;
+      t = jA(A.id).upright,
+      rk = !t && A.kick > 0 && Q && RECOIL[Q.kind] && !this.game.save.data.settings.reducedMotion ? RECOIL[Q.kind] : null,
+      kk = rk ? A.kick * A.kick * (3 - 2 * A.kick) : 0;
+    rk && I.translate(-Math.cos(E) * rk[0] * kk, -Math.sin(E) * rk[0] * kk - rk[2] * kk);
     if (
-      (I.rotate(nB(A.id, E, A.kick, a)),
+      (I.rotate(nB(A.id, E, A.kick, a) - (rk ? rk[1] * kk * a : 0)),
       I.scale(i * (t ? a : 1), i * (t ? 1 : a)),
       (I.imageSmoothingEnabled = !0),
       (I.imageSmoothingQuality = "high"),
@@ -10647,22 +11037,32 @@ class FC {
       A.id === "pistol" && A.cd > 0.1 && A.cd < 0.22 && C.rect(-11, 20, 10, 7, 2, "#a8aca0", F, 1.5),
       A.mutation === "Blutmond" && C.ellipse(26, -13, 5, 5, "#e8adc1", F, 1),
       A.mutation === "Schlächter" && C.shape("M32-23L43-28 38-16 47-15 39-8", "#dfb4cd", F, 1.5),
-      A.kick > 0.55 && ["bullet", "shotgun", "poison", "laser", "flame"].includes(Q.kind))
+      A.kick > 0.55 && ["bullet", "shotgun", "poison", "laser", "flame", "nailer", "thunder", "riveter", "crank"].includes(Q.kind))
     ) {
       const h = (A.kick - 0.55) / 0.45,
         s = jA(A.id);
       I.save(),
         I.translate(s.muzzleX, s.muzzleY),
-        C.shape(
-          `M0-4L${11 + 10 * h}-12 13-3 ${28 + 8 * h} 0 12 4 ${11 + 8 * h} 12 0 5Z`,
-          Q.kind === "poison" ? "#d6f3a2" : Q.kind === "laser" ? "#c3f9ef" : "#ffe8b0",
-          F,
-          0,
-        ),
+        Q.kind === "poison" || Q.kind === "laser" || Q.kind === "flame"
+          ? C.shape(
+              `M0-4L${11 + 10 * h}-12 13-3 ${28 + 8 * h} 0 12 4 ${11 + 8 * h} 12 0 5Z`,
+              Q.kind === "poison" ? "#d6f3a2" : Q.kind === "laser" ? "#c3f9ef" : "#ffe8b0",
+              F,
+              0,
+            )
+          : muzzleFrame(I, Q.kind, A.kick, A.mfv || 0, this.fxFlashes),
         I.restore(),
         A.id === "shotgun" && C.rect(-9, -24 - (1 - A.kick) * 20, 8, 4, 1, "#dab88b", F, 1);
     }
+    if (A.id === "crank" && (A.spin > 0.05 || A.heat > 0)) {
+      const s = jA("crank"),
+        sp = A.spin || 0;
+      I.save(), (I.globalCompositeOperation = "lighter");
+      A.heat > 0 && ((I.globalAlpha = o * Math.min(0.7, A.heat * 0.5)), C.rect(s.muzzleX - 22, s.muzzleY - 6, 22, 12, 5, "#ff5a1e55", F, 0));
+      I.restore();
+    }
     I.restore();
+    A.id === "crank" && crankGauge(I, C, A, g, B - 30, o);
   }
   lastBodyCloud = null;
   bodyCloud(A, g, B) {
@@ -10934,16 +11334,15 @@ class FC {
     if (
       (g.save(),
       g.translate(A.x, A.y),
-      B.ellipse(4, A.r * 0.52, A.r * (A.type >= 8 ? 1.12 : 0.9), A.r * 0.34, "#08061066", F, 0),
+      A.spawn > 0.13 || B.ellipse(4, A.r * 0.52, A.r * (A.type >= 8 ? 1.12 : 0.9), A.r * 0.34, "#08061066", F, 0),
       A.spawn > 0)
     ) {
-      const Q = A.type >= 8 ? 1.8 : 0.85,
-        a = 1 - V(A.spawn / Q, 0, 1);
-      B.ellipse(0, 10, A.r + 12, (A.r + 12) * 0.6, "#e1ca7b12", "#d7c39b", 1.5),
-        B.line(-6, 10, 6, 10, "#eed49f", 2),
-        (g.globalAlpha = 0.2 + a * 0.8),
-        g.translate(0, -20 * (1 - a)),
-        g.scale(0.4 + a * 0.6, 0.4 + a * 0.6);
+      if (A.spawn > 0.13) {
+        spawnMark(g, A, A.spawnMax || (A.type >= 8 ? 1.8 : 0.85), this.game.time), g.restore();
+        return;
+      }
+      const a = 1 - A.spawn / 0.13;
+      (g.globalAlpha = 0.35 + a * 0.65), g.translate(0, -10 * (1 - a)), g.scale(0.55 + a * 0.45 + Math.sin(a * Math.PI) * 0.12, 0.55 + a * 0.45);
     }
     if (A.foe >= 0) {
       this.drawFoe(A), g.restore(), this.enemyStatus(A);
@@ -10974,7 +11373,7 @@ class FC {
         (A.type === 2 && A.state === 1) ||
         (A.type >= 8 && A.bossMode === 1)) &&
         (g.scale(1.05, 0.9), g.rotate(Math.cos(A.aim) * -0.07)),
-      A.flash > 0 && !this.game.save.data.settings.reducedMotion && g.scale(1.09, 0.92);
+      A.flash > 0 && !this.game.save.data.settings.reducedMotion && hitSquash(g, A);
     const I = A.r / z[A.type].radius;
     if ((g.scale(I, I), A.type >= 8)) {
       const Q = A.bossMode === 1 ? 1 - A.timer / A.windupMax : 0;
@@ -11045,7 +11444,7 @@ class FC {
     const a = E.fly ? Math.sin(A.age * 6 + A.flank) * (Q ? 1 : 3) : 0;
     B.translate(0, QA(A.foe) - E.fly + a),
       A.face < 0 && B.scale(-1, 1),
-      A.flash > 0 && !Q && B.scale(1.07, 0.94),
+      A.flash > 0 && !Q && hitSquash(B, A, A.face < 0),
       (B.imageSmoothingEnabled = !0);
     const t = (I % 6) * o.fw,
       h = Math.floor(I / 6) * o.fh,
@@ -11058,8 +11457,9 @@ class FC {
         this.fxFlashes > 0 &&
         (B.save(),
         (B.globalCompositeOperation = "lighter"),
-        (B.globalAlpha = 0.45 * this.fxFlashes),
+        (B.globalAlpha = (0.4 + 0.5 * Math.min(1, A.flash / 0.07)) * this.fxFlashes),
         B.drawImage(i, t, h, o.fw, o.fh, s, U, M, r),
+        A.flash > 0.06 && B.drawImage(i, t, h, o.fw, o.fh, s, U, M, r),
         B.restore());
   }
   foeTelegraphs() {
@@ -12408,7 +12808,8 @@ class FC {
           } else Q.ellipse(l.x, l.y - 3, l.r + 3, l.r + 3, "#4b0b1d", "#ff6178", 1.5);
           Q.ellipse(l.x, l.y - 3, l.r * 0.7, l.r * 0.7, "#ff9d9e", "#ff3155", 1),
             Q.ellipse(l.x - 2, l.y - 2, 2, 2, "#ffedc3", F, 0);
-        } else
+        } else if (l.sty) styShot(i, Q, l, I.enemies.count < 320);
+        else
           I.enemies.count < 320 && Q.ellipse(l.x, l.y + 4, l.r + 2, l.r * 0.45, "#0d102244", F, 0),
             i.save(),
             i.translate(0, -6),
@@ -13210,7 +13611,7 @@ class wC {
       nxNew && this.root.querySelector(".modal-wrap .modal, .quit") && this.tbSound("tb_paper", 0.4, 0.95);
     this.nsFit(),
       (this.nmLast = this.screen),
-      this.screen === "shop" ? this.nwBind() : ((this.wsWas = this.screen), (this.wsSel = this.wsInfo = void 0), (this.wsBuildOpen = !1)),
+      this.screen === "shop" ? this.nwBind() : ((this.wsWas = this.screen), (this.wsSel = this.wsInfo = void 0), (this.wsBuildOpen = !1), (this.wsTab = "w")),
       (this.r.wsOn = this.screen === "shop"),
       this.screen === "level" && this.nlBind(),
       this.screen === "talents" && this.tbBind(),
@@ -13220,7 +13621,7 @@ class wC {
   credits() {
     const A = JSON.parse(document.getElementById("font-licenses")?.textContent || "{}"),
       g = (B) => B.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
-    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Talentbaum (Werkstatt): Hintergrund mit Spotlicht und NS-Stempel, Kreide- und Wachssiegel-Knoten, Schrotthaufen für dieses Spiel nach Konzept B erzeugt und nachbearbeitet. Klänge eigene Synthese (Kreide, Röhrenbrummen, Flackern, Siegel-Schlag, Bröseln), geschichtet mit „RPG Sounds“ von Kenney (kenney.nl, CC0 1.0, über OpenGameArt.org).</p><p style="margin:0 0 15px">Hauptmenü, Kampf-HUD und Levelaufstieg (Noir-Kreide): Menü-Hintergrund mit Schrotthaufen, Tuscherahmen, Kartenrücken, Wachssiegel und HUD-Symbole für dieses Spiel nach den eigenen Konzepten erzeugt und nachbearbeitet.</p><p style="margin:0 0 15px">Werkstatt (Noir-Kreide, Konzept B): Werkzeugwand mit Glühbirne und Werkbank, hängende Preis-Etiketten und das Klemmbrett für „Dein Build“ für dieses Spiel nach dem eigenen Konzept erzeugt und nachbearbeitet; Siegel, Stempel und Tuscherahmen aus Stufe 14.7 wiederverwendet. Klänge: dieselben CC0-Aufnahmen und eigene Synthese (Papier, Stempel, Kreide, Münzen) – keine neuen Quellen.</p><p style="margin:0 0 15px">Übrige Bildschirme (Noir-Kreide, Stufe 14.9): Einstellungen, Pause, Sammlung, Statistiken, Herausforderungen, Einsatzvorbereitung, Unterkunft, Zwei-Spieler-Vorbereitung, Hof-Menü, Dialoge und Ergebnis nutzen den Menü-Hintergrund, Tuscherahmen, Wachssiegel und NS-Stempel aus Stufe 14.7 – keine neuen Grafiken oder Klänge.</p><p style="margin:0 0 15px">Karten im Noir-Look (Stufe 15.0): Hof, Nachtwiese, Rosthof, Pumpwerk, Mondkathedrale, Kupfersternwarte, Aufstieg und Abstieg nach den eigenen Noir-Konzepten für dieses Spiel erzeugt, nahtlos nach außen erweitert und in voller Auflösung nachbearbeitet; Deckung, Ausschnitte, Wasser und Lichter daraus gebacken. Die Erzgrube bleibt unverändert.</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
+    return `<section class="screen dim">${this.header("Gezeichnet für die Nachtschicht.", "Credits & Lizenzen")}<div class="panel rules"><h3>Nachtschrott / Stufe 11 · Drei Gesichter</h3><p style="margin:15px 0">Alle sechs Helden samt 54 Posen stammen aus deinen bereitgestellten Sprite-Sheets. Waffen und Gegner aus den Konzepten, drei Arenaböden wurden im gewünschten Stil erzeugt. Gecachte Rastergrafik, nahtlose Ganzfiguren-Animationen, Sprint-Effekte und prozedurale Arenadetails ergänzen sie. Keine Assets aus anderen Spielen.</p><p style="margin:0 0 15px">Geräusche: echte Aufnahmen ausschließlich unter CC0 1.0 (gemeinfrei) – Kenney (kenney.nl: Impact, Sci-Fi, RPG, Interface, Casino); The Free Firearm Sound Library (Jaszczak, Nelson, Heras, Nanney); Still North Media (Medieval Weapon Impacts/Textures); StarNinjas (Sword Sound Effects); artisticdude (Swishes); Ogrebane (Monster Sound Pack); rubberduck (Creature SFX, Bang SFX, SFX Loops); yd (Factory Ambiance); JaggedStone (Dungeon Ambience); SketchMan3 (Wind Whoosh Loop), alle über OpenGameArt.org. Geschichtet und bearbeitet für dieses Spiel.</p><p style="margin:0 0 15px">Stufe 10: Levelaufstieg-, Wellen- und Magnet-Klang mit „Chimey UI Sounds“ von MouseBYTE (CC0, OpenGameArt.org). Ultis aus denselben CC0-Bibliotheken neu geschichtet. Arenaböden, Schachtböden und das Eisen-und-Messing-Menü aus CC0-Texturen von ambientCG (Lennart Demes): PavingStones150/130, Tiles138/074, DiamondPlate008C, Metal053B/047B/038/009, MetalWalkway014, Planks040, Rock051/064, Ground054, Leather037, MetalPlates013, Rust004, PaintedMetal009 – gemalt nachbearbeitet. Die 13 neuen Gegner der Nachtschicht stammen aus deinen bereitgestellten Sprite-Sheets. Nachtwiese (Gras, Spur, Pfütze) sowie Schachtboden und Gleise des Abstiegs stammen aus deinen bereitgestellten Kacheln.</p><p style="margin:0 0 15px">Effekte: fünf Explosions-, Treffer-, Poof- und Blitz-Animationen basieren auf pixelfx von Patch (MIT; Teile nach Hugo Duprez’ Sprite Fusion VFX, MIT), von uns entpixelt, umgefärbt und mit Leuchten, Licht und eigenen Partikeln erweitert. Lizenz und Hinweis: licenses/pixelfx-LICENSE.txt, pixelfx-NOTICE.md.</p><p style="margin:0 0 15px">Stufe 11: Drei schlichte Oberflächen (Werkbank, Nachtschrift, Grafit) mit einem eigens erzeugten Symbolsatz, je Design umgefärbt. Lichtgabel samt Schuss- und Treffereffekt aus deinen bereitgestellten Sheets. Ihre Klänge sind eigene Synthese (Bogenentladung, Knistern, Raumhall), geschichtet mit Tesla-Funkenaufnahmen von BMacZero (Brian MacIntosh, „Electricity Sound Effects“, CC0, OpenGameArt.org) und Kenneys Impact Sounds (CC0). Die Grubenfackeln im Abstieg basieren auf dem pixelfx-Effekt „fire/torch“ von Patch (MIT; Flamme nach Hugo Duprez’ Sprite Fusion, MIT), entpixelt und warm umgefärbt; die Säulen sind aus ambientCG Rock051 (CC0) gemalt.</p><p style="margin:0 0 15px">Der Hof: Hof, Häuser, Seilbahn, Brücke und Bach sind deine eigene gemalte Hofszene samt Ebenen (Vordergrund, Gebäude, Wasser) – 1:1 übernommen. Das Wasser fließt als aus deiner Wasserebene gebackene Schleife; die feinen Rauchfahnen aus den Kaminen nutzen Kenneys „Particle Pack“ (CC0).</p><p style="margin:0 0 15px">Der Hof bei Tag: Pollen, Blütenblätter und Staubflocken sowie das leichte Wiegen von Bäumen und Blumen entstehen zur Laufzeit aus deinem eigenen Hofbild (keine neuen Texturen). Die Ringe vor Werkstatt und Unterkunft sind eigene Malerei.</p><p style="margin:0 0 15px">Arenen: Nachtwiese und Erzgrube sind deine beiden gemalten Kampfarenen, 1:1 und in voller Auflösung übernommen. Damit auf keinem Bildschirm ein Rand entsteht, wurden sie im selben Malstil nahtlos erweitert; Felsen, Mauern und Plateaus sind direkt aus deinen Bildern ausgeschnitten.</p><p style="margin:0 0 15px">Talentbaum (Werkstatt): Hintergrund mit Spotlicht und NS-Stempel, Kreide- und Wachssiegel-Knoten, Schrotthaufen für dieses Spiel nach Konzept B erzeugt und nachbearbeitet. Klänge eigene Synthese (Kreide, Röhrenbrummen, Flackern, Siegel-Schlag, Bröseln), geschichtet mit „RPG Sounds“ von Kenney (kenney.nl, CC0 1.0, über OpenGameArt.org).</p><p style="margin:0 0 15px">Hauptmenü, Kampf-HUD und Levelaufstieg (Noir-Kreide): Menü-Hintergrund mit Schrotthaufen, Tuscherahmen, Kartenrücken, Wachssiegel und HUD-Symbole für dieses Spiel nach den eigenen Konzepten erzeugt und nachbearbeitet.</p><p style="margin:0 0 15px">Werkstatt (Noir-Kreide, Konzept B): Werkzeugwand mit Glühbirne und Werkbank, hängende Preis-Etiketten und das Klemmbrett für „Dein Build“ für dieses Spiel nach dem eigenen Konzept erzeugt und nachbearbeitet; Siegel, Stempel und Tuscherahmen aus Stufe 14.7 wiederverwendet. Klänge: dieselben CC0-Aufnahmen und eigene Synthese (Papier, Stempel, Kreide, Münzen) – keine neuen Quellen.</p><p style="margin:0 0 15px">Übrige Bildschirme (Noir-Kreide, Stufe 14.9): Einstellungen, Pause, Sammlung, Statistiken, Herausforderungen, Einsatzvorbereitung, Unterkunft, Zwei-Spieler-Vorbereitung, Hof-Menü, Dialoge und Ergebnis nutzen den Menü-Hintergrund, Tuscherahmen, Wachssiegel und NS-Stempel aus Stufe 14.7 – keine neuen Grafiken oder Klänge.</p><p style="margin:0 0 15px">Karten im Noir-Look (Stufe 15.0): Hof, Nachtwiese, Rosthof, Pumpwerk, Mondkathedrale, Kupfersternwarte, Aufstieg und Abstieg nach den eigenen Noir-Konzepten für dieses Spiel erzeugt, nahtlos nach außen erweitert und in voller Auflösung nachbearbeitet; Deckung, Ausschnitte, Wasser und Lichter daraus gebacken. Die Erzgrube bleibt unverändert.</p><p style="margin:0 0 15px">Stufe 15.5 (Waffenklang): Nagelfeger, Donnerbüchse, Nietenrepetierer, Kurbelkanone sowie Pistolen-, Schrot- und Geschützschuss aus echten Schussaufnahmen der „Free Firearm Sound Library“ (Jaszczak, Nelson, Heras, Nanney; CC0 1.0): Carl Gustav M45, Benelli Nova, Winchester Model 12, Charles Daly, Mossberg 190, PPSh, AK-47, AR-15, Walther PPQ, 1911, Ruger Mark III – je Schuss aus Knall, Körper, Raumhall und Tiefdruck geschichtet. Pumpen: „Shotgun Reload Sound effects“ von zer0_sol (CC0 1.0). Treffer, Kills, Mechanik: Kenney „Impact Sounds“ (CC0 1.0). Hülsenklirren: „Metal Impact Sounds“ von BMacZero (Brian MacIntosh, CC0 1.0). Alle über OpenGameArt.org bzw. kenney.nl; Hinweis: licenses/sfx-cc0-NOTICE.md.</p><p style="margin:0 0 15px">Musik (CC0 1.0, gemeinfrei, über OpenGameArt.org): Hof – „Quaint Town“ von neonarkade; Kampf – „Heavy Battle 1“ von MintoDog. Geschnitten, gemastert und als nahtlose Schleife kodiert.</p><p>Schriften: Sora – The Sora Project Authors (2019); Figtree – The Figtree Project Authors (2022); Barlow Condensed – The Barlow Project Authors (2017). Unverändert eingebettete WOFF2-Dateien via Fontsource, SIL Open Font License 1.1 (Lizenztexte unten und in licenses/).</p>${Object.entries(
       A,
     )
       .map(
@@ -13534,6 +13935,9 @@ class wC {
         I <= 3 && E.audio.sound("click", 1.5 + (3 - I) * 0.12, 0.5);
       }
       this.feelSec = I;
+      if (!A && E.xpPicks && this.feelXp !== void 0 && E.xpPicks !== this.feelXp && (E.time - (this.feelXpAt ?? -9) > 0.12))
+        (this.feelXpAt = E.time), bump(hud?.querySelector(".nh-cream"), "feel-xp");
+      this.feelXp = E.xpPicks || 0;
       const sc = E.killStreak;
       if (sc >= 5 && sc !== this.feelStreak) bump(document.getElementById("streak-panel"), "feel-bump");
       this.feelStreak = sc;
@@ -13656,16 +14060,19 @@ class wC {
     });
   }
   shop() {
-    // t115u: Werkstatt 1:1 nach Konzept B – Angebote als Etiketten an der Werkzeugwand, Arsenal + Held auf der Werkbank, Build als Klemmbrett.
-    // Shop-Logik (Kaufen, Halten, Neu würfeln, Verkaufen, Kombinieren, Mutation, Weiter) unverändert; nur Darstellung + Animation.
+    // t137: Werkstatt 1:1 nach Konzept A „Etiketten-Wand“ (Karten mit Werten, Schloss + Preis, Inventar mit Reitern, Werte-Tafel, LOS · WELLE n).
+    // Shop-Logik (Kaufen, Halten, Neu würfeln, Verkaufen, Kombinieren, Mutation, Weiter) unverändert; Klänge/Animationen der Werkstatt bleiben.
     const A = this.g,
       g = pB(A.wave),
       seen = this.wsSeen || (this.wsSeen = new WeakSet()),
       soldSeen = this.wsSoldSeen || (this.wsSoldSeen = new WeakSet()),
       lockSeen = this.wsLockSeen || (this.wsLockSeen = new WeakMap()),
       fresh = this.wsWas !== "shop",
-      X = [340, 526, 720, 909],
-      money = Math.floor(A.money);
+      money = Math.floor(A.money),
+      tab = this.wsTab || "w",
+      TC = ["", "#cfc6b4", "#e8852a", "#d4452c", "#f2ead8"],
+      num = (v, d = 1) => Number(v.toFixed(d)).toLocaleString("de-DE"),
+      lockSvg = (on) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0${on ? "v3" : "v1"}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><rect x="4.5" y="11" width="15" height="10" rx="2.2" fill="currentColor"/></svg>`;
     this.wsFx = { deal: 0, sold: 0, lock: 0, unlock: 0, fresh };
     const tags = A.shopOffers
       .map((o, i) => {
@@ -13673,14 +14080,15 @@ class wC {
           C = I || _.find((M) => M.id === o.id),
           Q = o.sold ? (o.result?.upgraded ? { from: o.result.from, to: o.result.tier } : void 0) : I ? A.upgradePreview(o.id, o.tier) : void 0,
           full = !!I && !Q && A.weapons.length >= 6,
-          t = I && Q ? I.damage * ZA(Q.from) * A.damageScale() : 0,
-          h = I ? I.damage * ZA(o.sold ? (o.result?.tier ?? o.tier) : (Q?.to ?? o.tier)) * A.damageScale() : 0,
+          tier = I ? (o.sold ? (o.result?.tier ?? o.tier) : (Q?.to ?? o.tier)) : 0,
+          t = I && Q ? I.damage * ZA(Q.from, I.id) * A.damageScale() : 0,
+          h = I ? I.damage * ZA(tier, I.id) * A.damageScale() : 0,
           price = A.price(o),
           poor = !o.sold && A.money < price,
           info = I
             ? Q
               ? `<b>${o.sold ? "AUFGEWERTET" : "AUFWERTUNG"} · STUFE ${iA[Q.from]} → ${iA[Q.to]}</b><span>Schaden ${Math.round(t)} → ${Math.round(h)} (+${Math.round(((h - t) / Math.max(1, t)) * 100)} %)</span>`
-              : `<b>${o.sold ? "KAUF ABGESCHLOSSEN" : A.weapons.some((M) => M.id === o.id) ? "ZUSÄTZLICHES EXEMPLAR" : "NEUE WAFFE"}</b><span>${Math.round(h)} Schaden · ${((1 / I.cooldown) * A.stats.attackSpeed).toFixed(1).replace(".", ",")} Angriffe / Sek.</span>`
+              : `<b>${o.sold ? "KAUF ABGESCHLOSSEN" : A.weapons.some((M) => M.id === o.id) ? "ZUSÄTZLICHES EXEMPLAR" : "NEUE WAFFE"}</b><span>${Math.round(h)} Schaden · ${num((1 / I.cooldown) * A.stats.attackSpeed)} Angriffe / Sek.</span>`
             : o.sold
               ? "<b>GEGENSTAND AUSGERÜSTET</b><span>Im Build aktiv</span>"
               : Object.entries(C.stats)
@@ -13694,33 +14102,78 @@ class wC {
           justUnlock = !deal && !o.locked && prevLock === !0;
         deal && this.wsFx.deal++, justSold && this.wsFx.sold++, justLock && this.wsFx.lock++, justUnlock && this.wsFx.unlock++;
         const label = o.sold ? "GEKAUFT" : full ? "ARSENAL VOLL" : Q ? "AUFWERTEN" : "KAUFEN";
+        let lines;
+        if (I) {
+          const as = A.stats.attackSpeed,
+            rate = (1 / I.cooldown) * as,
+            dmg = Math.round(h),
+            mult = I.id === "thunder" ? [0, 7, 8, 9, 11][tier] : I.id === "riveter" ? (tier >= 4 ? 4 : 3) : 0;
+          lines = [
+            ["Schaden", mult ? `${dmg} × ${mult}` : String(dmg)],
+            ["Takt", I.id === "crank" ? `${num(3 * as)} → ${num(12 * as)} / s` : rate >= 1.6 ? `${num(rate)} / s` : `${num(I.cooldown / as)} s`],
+            full
+              ? ["", "Arsenal voll"]
+              : Q
+                ? ["Aufwertung", `${iA[Q.from]} → ${iA[Q.to]}`]
+                : I.id === "crank"
+                  ? ["Anlauf", `${num([0, 2, 1.7, 1.45, 1.2][tier] || 2)} s`]
+                  : I.id === "thunder" || I.id === "shotgun"
+                    ? ["Rückstoß", "sehr hoch"]
+                    : ["Reichweite", String(Math.round(I.range))],
+          ];
+        } else {
+          const own = A.items[C.id] || 0;
+          lines = Object.entries(C.stats)
+            .slice(0, 2)
+            .map(([M, r]) => [_A[M], lA(M, r, !0)]);
+          lines.push(["", own ? `im Build ×${own}` : "stapelbar"]);
+          lines = lines.slice(0, 3);
+        }
         const kindTag = I
-          ? `<span class="nw-kind" aria-label="Waffe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4 9.5 14.5M20 4h-5.5M20 4v5.5M6.5 12.5l5 5M4 20l3.6-3.6"/></svg>WAFFE</span>`
-          : `<span class="nw-kind" aria-label="Gegenstand"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.4"/><path d="M12 2.8v3.1M12 18.1v3.1M2.8 12h3.1M18.1 12h3.1M5.5 5.5l2.2 2.2M16.3 16.3l2.2 2.2M5.5 18.5l2.2-2.2M16.3 7.7l2.2-2.2"/></svg>GEGENSTAND</span>`;
-        return `<article class="nw-tag nw-k-${I ? "weapon" : "item"} ${o.sold ? "sold" : ""} ${o.locked ? "locked" : ""} ${poor ? "poor" : ""} ${deal ? "nw-deal" : ""} ${justSold ? "nw-justsold" : ""} ${justLock ? "nw-justlock" : ""} ${this.wsInfo === i ? "nw-info-open" : ""}" style="--i:${i};--x:${X[i] ?? 340 + i * 190}px;--r:${[-1.2, 0.8, -0.6, 1.1][i % 4]}deg" data-offer="${i}">${kindTag}<button class="nw-seal" data-action="wsInfo" data-id="${i}" aria-label="${C.name}: Details" title="${C.desc}"><i class="nw-wax"></i>${I ? x(C.id, C.color) : cg(C.id, C.color)}</button><h3 class="${C.name.length > 13 ? "nw-long" : ""}">${C.name}</h3><p class="nw-sub">${I ? `STUFE ${iA[o.tier]} · ${BB[o.tier].toUpperCase()}` : `PASSIV · ${(_A[Object.keys(C.stats)[0]] || "BONUS").toUpperCase()}`}</p>${this.button("buy", `<b class="nw-price">${price}</b><span>${label}</span>`, "nw-buy", String(i), o.sold || poor || full)}${this.button("lock", o.locked ? "GEHALTEN" : "HALTEN", "nw-lock " + (o.locked ? "locked" : ""), String(i), o.sold)}<i class="nw-lockseal" aria-hidden="true"></i><i class="nw-soldstamp" aria-hidden="true"></i><div class="nw-info" role="tooltip"><p>${C.desc}</p>${info}</div></article>`;
+          ? `<span class="nw-kind" aria-label="Waffe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>WAFFE</span>`
+          : `<span class="nw-kind" aria-label="Gegenstand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2Z"/></svg>GEGENSTAND</span>`;
+        const nm = C.name.toUpperCase();
+        return `<article class="nw-tag nw-k-${I ? "weapon" : "item"} ${o.sold ? "sold" : ""} ${o.locked ? "locked" : ""} ${poor ? "poor" : ""} ${full ? "nw-full" : ""} ${deal ? "nw-deal" : ""} ${justSold ? "nw-justsold" : ""} ${justLock ? "nw-justlock" : ""} ${this.wsInfo === i ? "nw-info-open" : ""}" style="--i:${i};--r:${[-1.2, 0.8, -0.6, 1.1][i % 4]}deg" data-offer="${i}">${kindTag}<button class="nw-seal ${I ? "nw-gun" : ""}" data-action="wsInfo" data-id="${i}" aria-label="${C.name}: Details" title="${C.desc}"><i class="nw-wax"></i>${I ? x(C.id, C.color) : cg(C.id, C.color)}</button><h3 class="${nm.length + (I ? 3 : 0) > 15 ? "nw-long" : ""}">${C.name}${I ? ` <em class="nw-tier" style="color:${TC[tier]}">${iA[tier]}</em>` : ""}</h3>${((sub) => `<p class="nw-sub ${sub.length > 21 ? "nw-long" : ""}">${sub}</p>`)(I ? (I.tag || BB[tier]).toUpperCase() : `PASSIV · ${(_A[Object.keys(C.stats)[0]] || "BONUS").toUpperCase()}`)}<ul class="nw-stats">${lines.map(([k, v]) => `<li class="${k ? "" : "nw-solo"}">${k ? `<span>${k}</span>` : ""}<b>${v}</b></li>`).join("")}</ul><div class="nw-foot">${this.button("lock", lockSvg(o.locked), "nw-lock " + (o.locked ? "locked" : ""), String(i), o.sold)}${this.button("buy", `<i class="nsi" aria-hidden="true"></i><b class="nw-price">${price}</b><span>${label}</span>`, "nw-buy", String(i), o.sold || poor || full)}</div><i class="nw-lockseal" aria-hidden="true">GEHALTEN</i><i class="nw-soldstamp" aria-hidden="true"></i><div class="nw-info" role="tooltip"><p>${C.desc}</p>${info}</div></article>`;
       })
       .join("");
     const slots = Array.from({ length: 6 }, (o, i) => {
       const I = A.weapons[i];
-      if (!I) return `<div class="nw-slotwrap"><div class="nw-slot empty"><span>Freier Platz</span></div></div>`;
+      if (!I) return `<div class="nw-slotwrap"><div class="nw-slot empty"><span>+</span></div></div>`;
       const C = j.find((a) => a.id === I.id),
         comb = A.weapons.some((a, t) => t !== i && a.id === I.id && a.tier === I.tier && !a.mutation) && I.tier < 4 && !I.mutation,
         mut = A.canMutate(I),
         sellP = Math.round(C.price * (1 + (I.tier - 1) * 1.2) * 0.45),
-        dmg = Math.round(C.damage * ZA(I.tier) * A.damageScale()),
+        dmg = Math.round(C.damage * ZA(I.tier, I.id) * A.damageScale()),
         open = this.wsSel === i;
-      return `<div class="nw-slotwrap ${open ? "open" : ""}"><button class="nw-slot inv-weapon ${I.glow > 0 ? "inventory-upgrade" : ""} ${comb ? "nw-can" : ""} ${mut ? "nw-mut" : ""}" data-action="wsSlot" data-id="${i}" data-weapon-slot="${i}" aria-expanded="${open}" title="${I.mutation || C.name} · Stufe ${iA[I.tier]} · ${dmg} Schaden">${x(I.id)}<span class="nw-sname">${I.mutation || C.name}</span><small>${iA[I.tier]}</small></button>${open ? `<div class="nw-pop"><b>${I.mutation || C.name}</b><span>STUFE ${iA[I.tier]} · ${dmg} SCHADEN</span><div>${this.button("sell", `Verkaufen +${sellP}`, "nw-mini", String(i), A.weapons.length === 1)}${comb ? this.button("combine", "↑ Kombinieren", "nw-mini hot", String(i)) : ""}${mut ? this.button("mutation", "Mutation", "nw-mini mut", String(i)) : ""}</div></div>` : ""}</div>`;
+      return `<div class="nw-slotwrap ${open ? "open" : ""}"><button class="nw-slot inv-weapon ${I.glow > 0 ? "inventory-upgrade" : ""} ${comb ? "nw-can" : ""} ${mut ? "nw-mut" : ""}" data-action="wsSlot" data-id="${i}" data-weapon-slot="${i}" aria-expanded="${open}" aria-label="${I.mutation || C.name} · Stufe ${iA[I.tier]}" title="${I.mutation || C.name} · Stufe ${iA[I.tier]} · ${dmg} Schaden">${x(I.id)}<span class="nw-sname">${I.mutation || C.name}</span><small style="color:${TC[I.tier]}">${iA[I.tier]}</small></button>${open ? `<div class="nw-pop"><b>${I.mutation || C.name}</b><span>STUFE ${iA[I.tier]} · ${dmg} SCHADEN</span><div>${this.button("sell", `Verkaufen +${sellP}`, "nw-mini", String(i), A.weapons.length === 1)}${comb ? this.button("combine", "↑ Kombinieren", "nw-mini hot", String(i)) : ""}${mut ? this.button("mutation", "Mutation", "nw-mini mut", String(i)) : ""}</div></div>` : ""}</div>`;
     }).join("");
     const st = (o) => `<div class="nw-row"><span>${_A[o]}</span><b>${lA(o, A.stats[o])}</b></div>`,
       all = ["hp", "damage", "range", "attackSpeed", "crit", "armor", "speed", "lifesteal", "bleed", "burn", "chain", "economy", "engineering"],
-      items = Object.entries(A.items)
+      board = ["hp", "regen", "lifesteal", "damage", "attackSpeed", "crit", "range", "armor", "speed", "luck"].filter((o) => o in A.stats),
+      itemList = Object.entries(A.items).filter(([, n]) => n > 0),
+      itemCount = itemList.reduce((s, [, n]) => s + n, 0),
+      items = itemList
         .map(([o, i]) => {
           const I = _.find((C) => C.id === o);
           return this.button("sellItem", cg(o, I.color) + `<span>${I.name}</span>` + (i > 1 ? `<b>×${i}</b>` : "") + `<em>+${Math.round(I.price * 0.45)}</em>`, "nw-item", o);
         })
-        .join("");
-    const next = A.coop ? (A.actorIndex === 0 ? "BEREIT · WEITER ZU SPIELER 2" : `GEMEINSAM IN WELLE ${A.wave + 1}`) : `WELLE ${A.wave + 1} STARTEN`;
-    return `<section class="screen shop-screen nw ${fresh ? "nw-fresh" : ""} ${fresh && performance.now() - (globalThis.nsMomentAt ?? -1e9) < 1200 ? "nw-late" : ""}" id="nw-screen"><div class="nw-stage ns-stage"><div class="nw-box">${A.coop ? `<div class="nw-eyebrow">SPIELER ${(A.actorIndex ?? 0) + 1}</div>` : ""}<h1 class="nw-title">WERKSTATT</h1><i class="nw-hazard" aria-hidden="true"></i><div class="nw-money currency"><i class="nsi" style="--i:1"></i><b id="nw-money" data-from="${this.wsMoney ?? money}" data-to="${money}">${this.wsMoney ?? money}</b><span class="nw-chip">SCHROTT</span></div>${this.button("shopHelp", "? REGELN", "nw-help")}<div class="nw-tags shop-offers">${tags}</div>${this.button("reroll", `NEU WÜRFELN <small>· ${A.rerollCost}</small>`, "nw-reroll", "", A.money < A.rerollCost)}<p class="nw-odds" title="Waffen-Chancen"><span class="nw-odds-k">WAFFEN-CHANCEN</span> ${g.map((o, i) => iA[i + 1] + "\u00a0" + Math.round(o * 100) + "\u00a0%").join(" · ")}</p><section class="nw-arsenal inventory"><div class="nw-ahead"><i></i><span>DEIN ARSENAL</span><b>${A.weapons.length} / 6 PLÄTZE</b></div><div class="nw-slots">${slots}</div></section><aside class="nw-board owned-items"><h4>DEIN BUILD</h4>${["hp", "damage", "range", "armor", "engineering"].map(st).join("")}${this.button("wsBuild", this.wsBuildOpen ? "ZU ×" : "ALLE ▸", "nw-more")}</aside>${this.button("next", next, A.coop ? "nw-next nw-long" : "nw-next")}<p class="nw-hint">KEIN ZEITLIMIT</p>${
+        .join(""),
+      wax = itemList
+        .slice(0, 11)
+        .map(([o, n]) => {
+          const I = _.find((C) => C.id === o);
+          return `<div class="nw-waxit" title="${I.name}${n > 1 ? " ×" + n : ""}">${cg(o, I.color)}${n > 1 ? `<i>×${n}</i>` : ""}</div>`;
+        })
+        .join("") + (itemList.length > 11 ? `<div class="nw-waxit nw-more-it">+${itemList.length - 11}</div>` : ""),
+      tabBtn = (k, l) => `<button class="nw-tab ${tab === k ? "on" : ""}" data-action="wsTab" data-id="${k}" role="tab" aria-selected="${tab === k}">${l}</button>`,
+      panel =
+        tab === "i"
+          ? `<div class="nw-items nw-tabbody">${items || '<p class="nw-none">Noch keine Gegenstände – kaufe welche oben an der Wand.</p>'}</div>`
+          : tab === "s"
+            ? `<div class="nw-cols nw-tabbody">${all.map(st).join("")}</div>`
+            : `<div class="nw-slots">${slots}</div><div class="nw-wax-row">${wax || '<p class="nw-none">Noch keine Gegenstände.</p>'}</div>`;
+    const next = A.coop ? (A.actorIndex === 0 ? "BEREIT · WEITER ZU SPIELER 2" : `GEMEINSAM IN WELLE ${A.wave + 1}`) : `LOS · WELLE ${A.wave + 1} ▸`;
+    return `<section class="screen shop-screen nw nwa nw-t-${tab} ${fresh ? "nw-fresh" : ""} ${fresh && performance.now() - (globalThis.nsMomentAt ?? -1e9) < 1200 ? "nw-late" : ""}" id="nw-screen"><div class="nw-stage ns-stage"><div class="nw-box">${A.coop ? `<div class="nw-eyebrow">SPIELER ${(A.actorIndex ?? 0) + 1}</div>` : ""}<h1 class="nw-title">WERKSTATT</h1><i class="nw-hazard" aria-hidden="true"></i><p class="nw-tagline">WELLE ${A.wave} · ÜBERSTANDEN</p><div class="nw-money currency"><i class="nsi" style="--i:1"></i><b id="nw-money" data-from="${this.wsMoney ?? money}" data-to="${money}">${this.wsMoney ?? money}</b><span class="nw-chip">SCHROTT</span></div>${this.button("shopHelp", "? REGELN", "nw-help")}<div class="nw-tags shop-offers">${tags}</div>${this.button("reroll", `<span>⟳ NEU WÜRFELN</span><small><i class="nsi" aria-hidden="true"></i>${A.rerollCost}</small>`, "nw-reroll", "", A.money < A.rerollCost)}<p class="nw-odds" title="Waffen-Chancen"><span class="nw-odds-k">WAFFEN-CHANCEN</span> ${g.map((o, i) => iA[i + 1] + "\u00a0" + Math.round(o * 100) + "\u00a0%").join(" · ")}</p><section class="nw-arsenal inventory"><div class="nw-ahead" role="tablist">${tabBtn("w", `WAFFEN <b>${A.weapons.length} / 6</b>`)}${tabBtn("i", `GEGENSTÄNDE <b>${itemCount}</b>`)}${tabBtn("s", "WERTE")}</div>${panel}</section><aside class="nw-board owned-items"><h4>WERTE</h4>${board.map(st).join("")}${this.button("wsBuild", this.wsBuildOpen ? "ZU ×" : "ALLE ▸", "nw-more")}</aside>${this.button("next", next, A.coop ? "nw-next nw-long" : "nw-next")}<p class="nw-hint">KEIN ZEITLIMIT</p>${
       this.wsBuildOpen
         ? `<div class="nw-sheet" role="dialog" aria-label="Dein Build"><h4>DEIN BUILD · ALLE WERTE</h4><div class="nw-cols">${all.map(st).join("")}</div><h5>GEGENSTÄNDE <small>ANTIPPEN: EIN EXEMPLAR VERKAUFEN</small></h5><div class="nw-items">${items || '<p class="nw-none">Noch keine Gegenstände.</p>'}</div><p class="nw-note">Doppelte Waffe = mindestens +1 Stufe, maximal IV. ${Math.round(A.rules.waveHeal * 100)} % Wellenheilung · Mutationen bleiben erhalten.<br>Mutationen ab III: Nietenspucker ≥12 % Krit. · Mondspalter ≥3 Blutung · Schraubenknecht ≥140 % Technik · Lichtgabel ≥2 Blitzsprünge</p>${this.button("wsBuild", "SCHLIESSEN ×", "nw-close")}</div>`
         : ""
@@ -14230,7 +14683,7 @@ class wC {
       .map(([A, g]) => this.button("tab", g, "secondary compact " + (this.tab === A ? "selected" : ""), A))
       .join(
         "",
-      )}</div>${this.tab === "rules" ? `<div class="panel rules"><h3>Klare Regeln. Keine Endlosschleifen.</h3><p style="margin-top:17px;color:#b5c0d3">${Lo}</p><div class="separator"></div><h3>Steuerung</h3><p style="margin-top:12px;color:#b5c0d3">WASD oder Pfeile: bewegen · Leertaste: Sprint · E: Fähigkeit · Q: Auto/Manuell · Maus: zielen · ESC: Pause · Enter: Auswahl.<br>Controller: linker Stick bewegen, rechter Stick zielen, Y Zielmodus, Start Pause, A/RB Sprint, X Fähigkeit, A wählen, B zurück, D-Pad oder Stick Menüs. Regler mit Links/Rechts ändern.<br>F3: Diagnose · F4: 400 Testgegner · F6: Testschutz. Diagnose-Tests zählen nicht als regulärer Balance-Nachweis.</p><div class="separator"></div><p class="small muted">Stufe 11: 6 frei spielbare Charaktere, 13 Waffen, 26 Gegenstände, 4 Arenen und 4 Bosse mit je 4 Angriffsmustern. Doppelte Käufe werten vorhandene Waffen automatisch auf. Seltene Waffenkapseln von Eliten (höchstens alle 4 Wellen) werten dein Arsenal im Kampf auf. Giftinfektionen: höchstens 2 Generationen, 2 Nachbarn pro Tod; maximal 3 Giftstapel. Motten: maximal 6. Frost: erneuert 2 Sek. Verlangsamung. Sprint: 0,24 Sek. unverwundbar; Aufladung 2,2 Sek. Die Charakterfähigkeit skaliert mit Fähigkeitskraft. Auf dem Handy: links ziehen, rechts Sprint/Fähigkeit antippen. Web-App unter HTTPS installierbar; Einzeldatei funktioniert ohne Server.</p></div>` : `<div class="collection-grid ${this.tab === "weapons" ? "weapons-grid" : this.tab === "enemies" ? "enemies-grid" : ""}">${this.tab === "heroes" ? J.map((A, g) => `<article class="collection-card panel hero-collection"><img class="portrait" src="${d.thumb("hero" + g)}" alt="${A.name}"><h3>${A.name}</h3><div class="tag">FREI SPIELBAR · ${A.title}</div><p>${A.desc}</p><p>${A.perk}</p><p><b>Startwaffe:</b> ${j.find((B) => B.id === A.weapon).name}</p><details class="weapon-details"><summary>${CA[g].name} · ${CA[g].cooldown} Sek.</summary><p>${CA[g].desc}</p></details></article>`).join("") : this.tab === "weapons" ? j.map((A) => `<article class="collection-card panel">${x(A.id, A.color)}<h3>${A.name}</h3><details class="weapon-details"><summary>Wirkung & Details</summary><p>${A.desc}</p><div class="tag">${A.tag.toUpperCase()} · ${this.g.save.data.seen.includes(A.id) ? "ENTDECKT" : "NOCH NICHT GEKAUFT"}</div></details></article>`).join("") : this.tab === "items" ? _.map((A) => `<article class="collection-card panel">${cg(A.id, A.color)}<h3>${A.name}</h3><p>${A.desc}</p><p style="margin-top:9px;color:#b5c0d3">${A.benefits}</p><div class="tag">${this.g.save.data.seen.includes(A.id) ? "ENTDECKT" : "NOCH NICHT GEKAUFT"} · STAPELBAR</div></article>`).join("") : z.map((A, g) => `<article class="collection-card panel ${g >= 8 ? "boss-card" : g === 7 ? "elite-card" : ""}"><span class="icon enemy-icon"><img src="${d.thumb("mob" + g)}" alt="" draggable="false"></span><h3>${A.name}</h3><details class="weapon-details"><summary>Verhalten & Details</summary><p>${["Verfolgt dich direkt. Klein, schnell und selten allein.", "Langsam und zäh. Warnt deutlich vor einem schweren Rundschlag.", "Zeigt seine Sturmrichtung. Weiche seitlich aus.", "Hält Abstand. Sichtbare Projektile und Ziellinie.", "Beschleunigt Nachbarn in einem Radius von 180.", "Zerfällt beim Tod in zwei kleine Verfolger.", "Platziert verzögert aktive Gefahrenzonen an deiner Position.", "Fünf Modifikatoren: Sturm, Artillerie, Regeneration, Eisenhaut oder Phasensprung.", "Welle 20. Drei Phasen bei 68 % und 35 % Leben. Bodenbruch, Salvenringe, Ansturm und Verstärkung.", "Pumpwerk: Laserfächer, Bodenbruch, Salvenringe und Ansturm.", "Mondkathedrale: Verstärkung, Salvenringe, Laserfächer und Bodenbruch.", "Kupfersternwarte: Ansturm, Salvenringe, Bodenbruch und Laserfächer."][g]}</p><div class="tag">${A.hp} BASIS-LP · ${g >= 8 ? "ENDGEGNER" : "SKALIERT PRO WELLE"}</div></details></article>`).join("") + $.map((A, g) => `<article class="collection-card panel foe-card"><span class="icon enemy-icon"><img src="${Bg["foe-idle-" + g]}" alt="" draggable="false"></span><h3>${A.name}</h3><details class="weapon-details"><summary>Verhalten & Details</summary><p>${A.desc}</p><div class="tag">${A.hp} BASIS-LP · AB WELLE ${A.unlock}${A.fly ? " · FLIEGT" : ""}</div></details></article>`).join("")}</div>`}</section>`;
+      )}</div>${this.tab === "rules" ? `<div class="panel rules"><h3>Klare Regeln. Keine Endlosschleifen.</h3><p style="margin-top:17px;color:#b5c0d3">${Lo}</p><div class="separator"></div><h3>Steuerung</h3><p style="margin-top:12px;color:#b5c0d3">WASD oder Pfeile: bewegen · Leertaste: Sprint · E: Fähigkeit · Q: Auto/Manuell · Maus: zielen · ESC: Pause · Enter: Auswahl.<br>Controller: linker Stick bewegen, rechter Stick zielen, Y Zielmodus, Start Pause, A/RB Sprint, X Fähigkeit, A wählen, B zurück, D-Pad oder Stick Menüs. Regler mit Links/Rechts ändern.<br>F3: Diagnose · F4: 400 Testgegner · F6: Testschutz. Diagnose-Tests zählen nicht als regulärer Balance-Nachweis.</p><div class="separator"></div><p class="small muted">Stufe 11: 6 frei spielbare Charaktere, 17 Waffen, 26 Gegenstände, 4 Arenen und 4 Bosse mit je 4 Angriffsmustern. Doppelte Käufe werten vorhandene Waffen automatisch auf. Seltene Waffenkapseln von Eliten (höchstens alle 4 Wellen) werten dein Arsenal im Kampf auf. Giftinfektionen: höchstens 2 Generationen, 2 Nachbarn pro Tod; maximal 3 Giftstapel. Motten: maximal 6. Frost: erneuert 2 Sek. Verlangsamung. Sprint: 0,24 Sek. unverwundbar; Aufladung 2,2 Sek. Die Charakterfähigkeit skaliert mit Fähigkeitskraft. Auf dem Handy: links ziehen, rechts Sprint/Fähigkeit antippen. Web-App unter HTTPS installierbar; Einzeldatei funktioniert ohne Server.</p></div>` : `<div class="collection-grid ${this.tab === "weapons" ? "weapons-grid" : this.tab === "enemies" ? "enemies-grid" : ""}">${this.tab === "heroes" ? J.map((A, g) => `<article class="collection-card panel hero-collection"><img class="portrait" src="${d.thumb("hero" + g)}" alt="${A.name}"><h3>${A.name}</h3><div class="tag">FREI SPIELBAR · ${A.title}</div><p>${A.desc}</p><p>${A.perk}</p><p><b>Startwaffe:</b> ${j.find((B) => B.id === A.weapon).name}</p><details class="weapon-details"><summary>${CA[g].name} · ${CA[g].cooldown} Sek.</summary><p>${CA[g].desc}</p></details></article>`).join("") : this.tab === "weapons" ? j.map((A) => `<article class="collection-card panel">${x(A.id, A.color)}<h3>${A.name}</h3><details class="weapon-details"><summary>Wirkung & Details</summary><p>${A.desc}</p><div class="tag">${A.tag.toUpperCase()} · ${this.g.save.data.seen.includes(A.id) ? "ENTDECKT" : "NOCH NICHT GEKAUFT"}</div></details></article>`).join("") : this.tab === "items" ? _.map((A) => `<article class="collection-card panel">${cg(A.id, A.color)}<h3>${A.name}</h3><p>${A.desc}</p><p style="margin-top:9px;color:#b5c0d3">${A.benefits}</p><div class="tag">${this.g.save.data.seen.includes(A.id) ? "ENTDECKT" : "NOCH NICHT GEKAUFT"} · STAPELBAR</div></article>`).join("") : z.map((A, g) => `<article class="collection-card panel ${g >= 8 ? "boss-card" : g === 7 ? "elite-card" : ""}"><span class="icon enemy-icon"><img src="${d.thumb("mob" + g)}" alt="" draggable="false"></span><h3>${A.name}</h3><details class="weapon-details"><summary>Verhalten & Details</summary><p>${["Verfolgt dich direkt. Klein, schnell und selten allein.", "Langsam und zäh. Warnt deutlich vor einem schweren Rundschlag.", "Zeigt seine Sturmrichtung. Weiche seitlich aus.", "Hält Abstand. Sichtbare Projektile und Ziellinie.", "Beschleunigt Nachbarn in einem Radius von 180.", "Zerfällt beim Tod in zwei kleine Verfolger.", "Platziert verzögert aktive Gefahrenzonen an deiner Position.", "Fünf Modifikatoren: Sturm, Artillerie, Regeneration, Eisenhaut oder Phasensprung.", "Welle 20. Drei Phasen bei 68 % und 35 % Leben. Bodenbruch, Salvenringe, Ansturm und Verstärkung.", "Pumpwerk: Laserfächer, Bodenbruch, Salvenringe und Ansturm.", "Mondkathedrale: Verstärkung, Salvenringe, Laserfächer und Bodenbruch.", "Kupfersternwarte: Ansturm, Salvenringe, Bodenbruch und Laserfächer."][g]}</p><div class="tag">${A.hp} BASIS-LP · ${g >= 8 ? "ENDGEGNER" : "SKALIERT PRO WELLE"}</div></details></article>`).join("") + $.map((A, g) => `<article class="collection-card panel foe-card"><span class="icon enemy-icon"><img src="${Bg["foe-idle-" + g]}" alt="" draggable="false"></span><h3>${A.name}</h3><details class="weapon-details"><summary>Verhalten & Details</summary><p>${A.desc}</p><div class="tag">${A.hp} BASIS-LP · AB WELLE ${A.unlock}${A.fly ? " · FLIEGT" : ""}</div></details></article>`).join("")}</div>`}</section>`;
   }
   challenges() {
     const A = [
@@ -14606,6 +15059,9 @@ class wC {
         break;
       case "wsSlot":
         (this.wsSel = this.wsSel === Number(g) ? void 0 : Number(g)), (this.wsInfo = void 0), this.render(), this.tbSound("tb_chalk", 0.45), this.root.querySelector(this.wsSel === void 0 ? `.nw-slot[data-id="${g}"]` : ".nw-pop button:not(:disabled)")?.focus({ preventScroll: !0 });
+        break;
+      case "wsTab":
+        (this.wsTab = g || "w"), (this.wsSel = void 0), this.render(), this.tbSound("tb_paper", 0.5, 1.1), this.root.querySelector(`.nw-tab[data-id="${this.wsTab}"]`)?.focus({ preventScroll: !0 });
         break;
       case "wsBuild":
         (this.wsBuildOpen = !this.wsBuildOpen), (this.wsSel = this.wsInfo = void 0), this.render(), this.tbSound("tb_paper", 0.6), this.root.querySelector(this.wsBuildOpen ? ".nw-close" : ".nw-more")?.focus({ preventScroll: !0 });

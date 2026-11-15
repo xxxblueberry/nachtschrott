@@ -2124,3 +2124,180 @@ body[data-ns="flat"] #ui:not(#_):not(#__) .nm .nm-plate { left: 756px; }
 body:not([data-ns="portrait"]) #ui:not(#_):not(#__) .nw .nw-odds { width: 212px !important; }
 body[data-ns="portrait"] #ui:not(#_):not(#__) .nw .nw-hazard { top: 90px !important; }
 body:not([data-ns="portrait"]) #ui:not(#_):not(#__) .nw .nw-odds .nw-odds-k { display: block; }
+
+/* t132u: EP-Leiste blitzt kurz beim Einsammeln */
+@keyframes n-xp-pop {
+  0% { filter: brightness(1.9); transform: scaleY(1.6); box-shadow: 0 0 10px rgba(255, 214, 150, 0.9); }
+  100% { filter: brightness(1); transform: scaleY(1); box-shadow: 0 0 0 rgba(255, 214, 150, 0); }
+}
+body #ui:not(#_):not(#__) .nh .nh-cream.feel-xp > i { animation: n-xp-pop 0.26s ease-out; transform-origin: left center; }
+
+/* =====================================================================
+   t137 – WERKSTATT 1:1 nach Konzept A „Etiketten-Wand“ (Bühne 1280 × 720, hochkant 390 × 1500)
+   ===================================================================== */
+body #ui:not(#_):not(#__) .nw.nwa .nw-hazard, body #ui:not(#_):not(#__) .nw.nwa .nw-hint { display: none !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-title { left: 34px !important; top: 26px !important; font: 800 64px/0.9 "Barlow Condensed", sans-serif !important; letter-spacing: 0.01em !important; color: #f2ead8 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-eyebrow { top: 10px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tagline { left: 34px !important; top: 92px !important; font: 700 15px/1 Figtree, sans-serif !important; letter-spacing: 0.2em !important; color: #e8852a !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-money { left: auto !important; right: 34px !important; top: 26px !important; height: 50px !important; gap: 8px !important; padding: 0 14px !important; background: rgba(21, 17, 14, 0.88) !important; border: 1.5px solid rgba(206, 194, 170, 0.3) !important; border-radius: 6px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-money b { min-width: 0 !important; font: 800 34px/1 "Barlow Condensed", sans-serif !important; color: #f2ead8 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-chip { margin-left: 2px !important; height: auto !important; padding: 0 !important; background: none !important; box-shadow: none !important; font: 700 12px/1 Figtree, sans-serif !important; letter-spacing: 0.16em !important; color: #b9b1a2 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-help { right: 34px !important; top: 86px !important; }
+/* Karten */
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag { left: calc(34px + var(--i) * 224px) !important; top: 122px !important; width: 206px !important; height: 338px !important; padding: 14px !important; background: linear-gradient(#26201c, #171310) !important; border: 2px solid rgba(206, 194, 170, 0.3) !important; border-radius: 8px 8px 10px 10px !important; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.73) !important; filter: none !important; rotate: var(--r) !important; transform-origin: 50% -10px !important; text-align: center !important; transition: translate 0.2s ease-out, box-shadow 0.2s, border-color 0.2s !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag::before { content: "" !important; display: block !important; position: absolute !important; left: 50% !important; top: -16px !important; width: 26px !important; height: 26px !important; translate: -50% 0 !important; border-radius: 50% !important; background: radial-gradient(circle at 40% 35%, #6d6660, #2a2522) !important; box-shadow: 0 0 0 3px #15110e, 0 3px 4px rgba(0, 0, 0, 0.6) !important; z-index: 2 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag::after { content: none !important; display: none !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag:hover, body #ui:not(#_):not(#__) .nw.nwa .nw-tag:focus-within { translate: 0 -6px !important; z-index: 5 !important; filter: brightness(1.06) !important; border-color: rgba(232, 133, 42, 0.6) !important; box-shadow: 0 16px 26px rgba(0, 0, 0, 0.75) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag.locked { border-color: #c4542a !important; box-shadow: 0 0 0 2px rgba(196, 84, 42, 0.33), 0 10px 20px rgba(0, 0, 0, 0.73) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-kind { left: 12px !important; top: 12px !important; translate: none !important; height: 20px !important; padding: 0 8px 0 6px !important; gap: 4px !important; font: 800 12px/1 "Barlow Condensed", sans-serif !important; letter-spacing: 0.14em !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-kind svg { width: 10px !important; height: 10px !important; stroke-width: 3.4 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-k-weapon .nw-kind { background: linear-gradient(#a5401f, #7a2b15) !important; color: #fbeedd !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-k-item .nw-kind { background: #e9dcc6 !important; color: #2a1d14 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-k-item .nw-kind svg { fill: currentColor !important; stroke: none !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-seal { top: 42px !important; width: 88px !important; height: 88px !important; border-radius: 50% !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-seal .icon { width: 46px !important; height: 46px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-seal.nw-gun { top: 38px !important; width: 176px !important; height: 96px !important; border-radius: 8px !important; background: radial-gradient(ellipse at 50% 55%, #3a3330, rgba(27, 24, 23, 0) 70%) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-seal.nw-gun .nw-wax { display: none !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-seal.nw-gun .icon { width: 176px !important; height: 84px !important; filter: brightness(1.12) contrast(1.05) drop-shadow(0 4px 4px rgba(0, 0, 0, 0.67)) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-seal.nw-gun .icon img { transform: scale(1.75) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag h3 { left: 8px !important; right: 8px !important; top: 142px !important; font: 800 23px/26px "Barlow Condensed", sans-serif !important; letter-spacing: 0.03em !important; text-transform: uppercase !important; color: #f2ead8 !important; white-space: nowrap !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag h3.nw-long { font-size: 19px !important; letter-spacing: 0 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag h3 em { font-style: normal !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-sub { left: 8px !important; right: 8px !important; top: 170px !important; font: 700 11px/1.2 Figtree, sans-serif !important; letter-spacing: 0.12em !important; color: #e8852a !important; white-space: nowrap !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-k-item .nw-sub { color: #e8852a !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-stats { position: absolute !important; left: 18px !important; right: 18px !important; top: 192px !important; margin: 0 !important; padding: 0 !important; list-style: none !important; text-align: left !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-stats li { display: flex !important; justify-content: space-between !important; gap: 6px !important; margin: 0 !important; padding: 0 !important; font: 600 14px/1.55 Figtree, sans-serif !important; color: #cfc7b6 !important; border-bottom: 1px dashed rgba(206, 194, 170, 0.18) !important; white-space: nowrap !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-stats li b { font: 800 16px/1.4 "Barlow Condensed", sans-serif !important; color: #f2ead8 !important; letter-spacing: 0.03em !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-stats li.nw-solo { justify-content: flex-start !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-foot { position: absolute !important; left: 12px !important; right: 12px !important; bottom: 12px !important; height: 44px !important; display: flex !important; gap: 8px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-lock { position: relative !important; left: auto !important; right: auto !important; top: auto !important; flex: none !important; width: 46px !important; height: 44px !important; display: grid !important; place-items: center !important; border: 1.5px solid rgba(206, 194, 170, 0.35) !important; border-radius: 4px !important; color: #9a948a !important; box-sizing: border-box !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-lock svg { width: 22px !important; height: 22px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-lock::after { content: none !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-lock:hover:not(:disabled) { color: #f2ead8 !important; border-color: #e8852a !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-lock.locked { color: #fbeedd !important; background: #c4542a !important; border-color: #c4542a !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-buy { position: relative !important; left: auto !important; right: auto !important; top: auto !important; flex: 1 1 0 !important; height: 44px !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; background: linear-gradient(#e9dcc6, #cdbfa4) !important; border-radius: 4px !important; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18), 0 3px 6px rgba(0, 0, 0, 0.45) !important; color: #1d140e !important; transition: scale 0.12s, filter 0.15s !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-buy .nsi { width: 22px !important; height: 22px !important; background: var(--ns-hudicons) calc(1 * 100% / 3) 0 / 400% 100% no-repeat !important; filter: brightness(0.25) sepia(1) !important; display: inline-block !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-buy .nw-price { font: 800 28px/1 "Barlow Condensed", sans-serif !important; color: #1d140e !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-buy span { display: none !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-buy:hover:not(:disabled), body #ui:not(#_):not(#__) .nw.nwa .nw-buy:focus-visible { filter: brightness(1.08) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-buy:hover:not(:disabled) .nw-price, body #ui:not(#_):not(#__) .nw.nwa .nw-buy:focus-visible .nw-price { color: #8a2f12 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag.poor .nw-buy { background: linear-gradient(#5a524a, #433d37) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag.poor .nw-price { color: #2a231d !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag.nw-full .nw-buy { background: linear-gradient(#5a524a, #433d37) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-lockseal { right: -10px !important; top: 58px !important; width: auto !important; height: auto !important; padding: 3px 8px !important; background: rgba(21, 17, 14, 0.8) !important; border: 2.5px solid #d4452c !important; color: #d4452c !important; font: 800 14px/1 "Barlow Condensed", sans-serif !important; letter-spacing: 0.14em !important; font-style: normal !important; rotate: 14deg !important; filter: none !important; z-index: 4 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-soldstamp { top: 46% !important; z-index: 4 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tag.sold :is(.nw-seal, h3, .nw-sub, .nw-stats, .nw-foot) { opacity: 0.42 !important; filter: grayscale(0.6) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-info { top: calc(100% + 8px) !important; width: 250px !important; }
+/* Neu würfeln + Chancen */
+body #ui:not(#_):not(#__) .nw.nwa .nw-reroll { left: 948px !important; top: 130px !important; width: auto !important; min-width: 174px !important; height: auto !important; padding: 12px 18px !important; flex-direction: column !important; gap: 6px !important; background: #1b1714 !important; border: 2px solid #c4542a !important; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6) !important; font: 800 19px/1 "Barlow Condensed", sans-serif !important; letter-spacing: 0.1em !important; color: #f2ead8 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-reroll small { display: flex !important; align-items: center !important; gap: 4px !important; margin: 0 !important; font: 800 19px/1 "Barlow Condensed", sans-serif !important; color: #e8852a !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-reroll .nsi { width: 18px !important; height: 18px !important; background: var(--ns-hudicons) calc(1 * 100% / 3) 0 / 400% 100% no-repeat !important; display: inline-block !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-reroll:hover:not(:disabled), body #ui:not(#_):not(#__) .nw.nwa .nw-reroll:focus-visible { background: #2a1e17 !important; border-color: #e8852a !important; }
+body:not([data-ns="portrait"]) #ui:not(#_):not(#__) .nw.nwa .nw-odds { left: 948px !important; top: 222px !important; width: 220px !important; font: 600 10.5px/1.5 Figtree, sans-serif !important; color: #8f887c !important; }
+/* Inventar mit Reitern */
+body #ui:not(#_):not(#__) .nw.nwa .nw-arsenal { left: 34px !important; top: 490px !important; width: 780px !important; height: 196px !important; padding: 0 16px 14px !important; background: linear-gradient(rgba(27, 23, 20, 0.95), rgba(17, 14, 12, 0.95)) !important; border: 1.5px solid rgba(206, 194, 170, 0.26) !important; border-radius: 6px !important; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-ahead { position: relative !important; left: auto !important; right: auto !important; top: auto !important; height: auto !important; display: flex !important; gap: 4px !important; margin: 0 0 12px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tab { all: unset !important; box-sizing: border-box !important; height: 42px !important; padding: 12px 16px 8px !important; cursor: pointer !important; font: 800 17px/1 "Barlow Condensed", sans-serif !important; letter-spacing: 0.12em !important; color: #9a948a !important; border-bottom: 3px solid transparent !important; white-space: nowrap !important; touch-action: manipulation !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tab b { position: static !important; color: #cfc6b4 !important; margin-left: 6px !important; font: inherit !important; letter-spacing: inherit !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tab.on { color: #f2ead8 !important; border-bottom-color: #c4542a !important; background: rgba(196, 84, 42, 0.13) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tab:hover:not(.on) { color: #e2d8c4 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-tab:focus-visible { outline: 2px solid #ff9a3c !important; outline-offset: -2px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-slots { position: relative !important; left: auto !important; right: auto !important; top: auto !important; height: 64px !important; display: flex !important; gap: 10px !important; margin: 0 0 12px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-slotwrap, body #ui:not(#_):not(#__) .nw.nwa .nw-slotwrap:has(.empty) { flex: none !important; width: 110px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-slot { width: 110px !important; height: 64px !important; padding: 6px 10px !important; justify-content: center !important; background: radial-gradient(ellipse at 50% 55%, #3a3330, #1b1817 80%) !important; border: 1.5px solid rgba(206, 194, 170, 0.25) !important; border-radius: 5px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-slot .icon { width: 90px !important; height: 50px !important; filter: brightness(1.1) drop-shadow(0 3px 3px rgba(0, 0, 0, 0.6)) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-slot .icon img { transform: scale(1.5) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-sname { display: none !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-slot small { right: 6px !important; top: 5px !important; font: 800 14px/1 "Barlow Condensed", sans-serif !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-slot.nw-can::after { right: 6px !important; bottom: 4px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-slot.empty { border-style: dashed !important; background: #15110e !important; border-color: rgba(206, 194, 170, 0.25) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-slot.empty span { font: 800 26px/1 "Barlow Condensed", sans-serif !important; color: #5b544d !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-wax-row { display: flex !important; gap: 8px !important; height: 56px !important; align-items: center !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-waxit { position: relative !important; flex: none !important; width: 52px !important; height: 52px !important; box-sizing: border-box !important; padding: 12px !important; border-radius: 50% !important; background: radial-gradient(circle at 40% 35%, #8a2a1c, #4a120c) !important; box-shadow: 0 0 0 2px #2a0a06, 0 3px 6px rgba(0, 0, 0, 0.67) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-waxit .icon { width: 28px !important; height: 28px !important; display: block !important; filter: sepia(1) saturate(1.6) hue-rotate(-14deg) brightness(1.05) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-waxit .icon img { width: 100% !important; height: 100% !important; object-fit: contain !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-waxit i { position: absolute !important; right: -6px !important; bottom: -4px !important; padding: 2px 5px !important; border-radius: 8px !important; background: #e9dcc6 !important; color: #2a1d14 !important; font: 800 13px/1 "Barlow Condensed", sans-serif !important; font-style: normal !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-more-it { display: grid !important; place-items: center !important; padding: 0 !important; font: 800 18px/1 "Barlow Condensed", sans-serif !important; color: #f2ead8 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-arsenal .nw-none { margin: 0 !important; color: #8f887c !important; font: 500 13px/1.4 Figtree, sans-serif !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-arsenal .nw-items { display: flex !important; flex-wrap: wrap !important; align-content: flex-start !important; gap: 8px !important; height: 128px !important; overflow-y: auto !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-arsenal .nw-item { height: 44px !important; box-sizing: border-box !important; padding: 6px 12px 6px 8px !important; font: 600 14px/1 Figtree, sans-serif !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-arsenal .nw-item .icon { width: 26px !important; height: 26px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-arsenal .nw-cols { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; column-gap: 22px !important; height: 128px !important; overflow-y: auto !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-arsenal .nw-cols .nw-row { height: 25px !important; }
+/* Werte-Tafel */
+body #ui:not(#_):not(#__) .nw.nwa .nw-board { left: auto !important; right: 34px !important; top: 290px !important; width: 230px !important; height: auto !important; padding: 12px 16px !important; background: linear-gradient(rgba(27, 23, 20, 0.95), rgba(17, 14, 12, 0.95)) !important; border: 1.5px solid rgba(206, 194, 170, 0.26) !important; border-radius: 6px !important; filter: none !important; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-board h4 { position: static !important; margin: 0 0 6px !important; font: 800 16px/1 "Barlow Condensed", sans-serif !important; letter-spacing: 0.18em !important; color: #e8852a !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-board .nw-row, body #ui:not(#_):not(#__) .nw.nwa .nw-board .nw-row:nth-of-type(1) { height: 23px !important; margin: 0 !important; font: 600 13px/1 Figtree, sans-serif !important; color: #cfc7b6 !important; border-bottom: 1px solid rgba(206, 194, 170, 0.1) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-board .nw-row b { font: 800 15px/1 "Barlow Condensed", sans-serif !important; color: #f2ead8 !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-more { right: 12px !important; top: 9px !important; color: #b9b1a2 !important; }
+/* Los-Knopf */
+body #ui:not(#_):not(#__) .nw.nwa .nw-next { left: auto !important; right: 34px !important; top: auto !important; bottom: 30px !important; width: 230px !important; height: 62px !important; background: linear-gradient(#d0592c, #9b3416) !important; border-radius: 4px !important; font: 800 26px/1 "Barlow Condensed", sans-serif !important; letter-spacing: 0.06em !important; color: #fbeedd !important; box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.19), 0 6px 16px rgba(0, 0, 0, 0.67) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-next:hover, body #ui:not(#_):not(#__) .nw.nwa .nw-next:focus-visible { background: linear-gradient(#e0683a, #ab3e1c) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-next.nw-long { font-size: 18px !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-sheet { left: 600px !important; top: 96px !important; }
+/* Telefon quer (flach): größere Schrift, gleiche Anordnung */
+body[data-ns="flat"] #ui:not(#_):not(#__) .nw.nwa .nw-kind { font-size: 13px !important; height: 22px !important; top: 12px !important; }
+body[data-ns="flat"] #ui:not(#_):not(#__) .nw.nwa .nw-sub { font-size: 12.5px !important; letter-spacing: 0.06em !important; top: 170px !important; }
+body[data-ns="flat"] #ui:not(#_):not(#__) .nw.nwa .nw-stats li { font-size: 15.5px !important; }
+body[data-ns="flat"] #ui:not(#_):not(#__) .nw.nwa .nw-stats li b { font-size: 17.5px !important; }
+body[data-ns="flat"] #ui:not(#_):not(#__) .nw.nwa .nw-tab { font-size: 19px !important; height: 46px !important; }
+body[data-ns="flat"] #ui:not(#_):not(#__) .nw.nwa .nw-board .nw-row { font-size: 15px !important; }
+body[data-ns="flat"] #ui:not(#_):not(#__) .nw.nwa .nw-ahead { margin-bottom: 8px !important; }
+body[data-ns="flat"] #ui:not(#_):not(#__) .nw.nwa .nw-lock { top: auto !important; height: 44px !important; }
+body[data-ns="flat"] #ui:not(#_):not(#__) .nw.nwa .nw-reroll { top: 130px !important; height: auto !important; }
+body[data-ns="flat"] #ui:not(#_):not(#__) .nw.nwa .nw-help { font-size: 14px !important; }
+/* Hochkant 390 × 1500 */
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-stage { height: 1500px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-box { height: 1500px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-title { left: 16px !important; top: 34px !important; font-size: 50px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-eyebrow { top: 14px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-tagline { left: 16px !important; top: 86px !important; font-size: 13px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-money { right: 12px !important; top: 14px !important; height: 42px !important; padding: 0 10px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-money b { font-size: 28px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-chip { font-size: 10px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-help { right: 12px !important; top: 66px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-tag { left: var(--px) !important; top: var(--py) !important; scale: 0.85 !important; transform-origin: 0 0 !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-tag:nth-child(1) { --px: 12px; --py: 136px; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-tag:nth-child(2) { --px: 203px; --py: 136px; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-tag:nth-child(3) { --px: 12px; --py: 444px; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-tag:nth-child(4) { --px: 203px; --py: 444px; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-stats li { font-size: 15px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-sub { font-size: 12px !important; letter-spacing: 0.05em !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-reroll { left: 12px !important; top: 752px !important; width: 366px !important; min-width: 0 !important; height: 50px !important; padding: 0 18px !important; flex-direction: row !important; justify-content: center !important; gap: 14px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-odds { left: 16px !important; top: 812px !important; width: 360px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-odds .nw-odds-k { display: inline !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-arsenal { left: 12px !important; top: 844px !important; width: 366px !important; height: 290px !important; padding: 0 10px 12px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-tab { padding: 14px 9px 8px !important; font-size: 15.5px !important; height: 44px !important; letter-spacing: 0.06em !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-slots { display: grid !important; grid-template-columns: repeat(3, 110px) !important; justify-content: space-between !important; height: auto !important; gap: 8px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-slot { flex-direction: row !important; padding: 6px 10px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-wax-row { flex-wrap: wrap !important; height: auto !important; gap: 10px 8px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-arsenal .nw-items, body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-arsenal .nw-cols { height: 218px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-arsenal .nw-cols { grid-template-columns: 1fr 1fr !important; column-gap: 16px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-board { left: 12px !important; right: auto !important; top: 1148px !important; width: 366px !important; padding: 12px 16px 10px !important; display: grid !important; grid-template-columns: 1fr 1fr !important; column-gap: 18px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-board h4 { grid-column: 1 / -1 !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-board .nw-row { font-size: 13px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-more { right: 14px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-next { left: 12px !important; right: auto !important; top: 1330px !important; bottom: auto !important; width: 366px !important; height: 60px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-tag:nth-child(odd) .nw-info { left: 0 !important; translate: 0 0 !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-tag:nth-child(even) .nw-info { left: auto !important; right: 0 !important; translate: 0 0 !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-sheet { left: 8px !important; top: calc(60px + env(safe-area-inset-top)) !important; }
+/* Controller/TV: deutlicher Fokus */
+body[class~="ns-pad"] #ui:not(#_):not(#__) .nw.nwa .nw-tab:focus { outline: 2px solid #ff9a3c !important; outline-offset: -2px !important; }
+body[class~="ns-pad"] #ui:not(#_):not(#__) .nw.nwa .nw-tag:focus-within { border-color: #e8852a !important; }
+body[data-motion="reduced"] #ui:not(#_):not(#__) .nw.nwa .nw-tag { transition: none !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-sub.nw-long { font-size: 10px !important; letter-spacing: 0.04em !important; }
+body[data-ns="flat"] #ui:not(#_):not(#__) .nw.nwa .nw-sub.nw-long, body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-sub.nw-long { font-size: 11px !important; letter-spacing: 0 !important; }
+body:not([data-ns="portrait"]) #ui:not(#_):not(#__) .acquisition.in-shop { left: calc((var(--nox, 0) * 1px + 826px) * var(--nk, 1)) !important; top: calc((var(--noy, 0) * 1px + 292px) * var(--nk, 1)) !important; transform: scale(calc(var(--nk, 1) * 0.8)) !important; }
+body #ui:not(#_):not(#__) .nw.nwa .nw-sub, body #ui:not(#_):not(#__) .nw.nwa .nw-k-item .nw-sub { color: #ddd3bf !important; }
+body:not([data-ns="portrait"]) #ui:not(#_):not(#__) .nw.nwa .nw-reroll { min-width: 218px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-title { font-size: 40px !important; top: 40px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-stage, body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-box { height: 1520px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-arsenal { height: 322px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-arsenal .nw-items, body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-arsenal .nw-cols { height: 250px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-wax-row { gap: 8px 6px !important; justify-content: flex-start !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-waxit { width: 42px !important; height: 42px !important; padding: 9px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-waxit .icon { width: 24px !important; height: 24px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-board { top: 1180px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-next { top: 1436px !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-stage, body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-box { overflow-x: clip !important; overflow-y: visible !important; }
+body[data-ns="portrait"] #ui:not(#_):not(#__) .nw.nwa .nw-seal.nw-gun .icon { overflow: clip !important; overflow-clip-margin: 14px !important; }
