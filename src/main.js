@@ -60,12 +60,23 @@ const DEV_KEY = "nachtschrott-dev-v1",
       { k: "xpfx", label: "EP-Einsammel-Effekt", min: 0, max: 2, def: 1 },
     ] },
     { id: "stufen", name: "Waffenstufen", hint: "Preise, Seltenheit und Effekte der Stufen I–VI", items: [
-      { k: "kurve", label: "Preis-Faktor je Stufe", min: 1.4, max: 3, def: 2.1 },
-      { k: "merge", label: "Kombinieren-Kosten (× Stufenpreis)", min: 0, max: 1.5, def: 0.5 },
+      { k: "kurve", label: "Preis-Faktor je Stufe", min: 1.3, max: 3, def: 1.6 },
+      { k: "merge", label: "Kombinieren-Kosten (× Stufenpreis)", min: 0, max: 1.5, def: 0.3 },
       { k: "angebot", label: "Angebotschance Stufe III/IV", min: 0, max: 1.5, def: 0.5 },
       { k: "effekte", label: "Stufen-Effekte (Mündung, Spur, Treffer)", min: 0, max: 2, def: 1 },
       { k: "hitze", label: "Gatling: Sekunden bis Überhitzung", min: 2, max: 10, def: 4.6 },
       { k: "kuehl", label: "Gatling: Zwangspause (s)", min: 0.5, max: 3, def: 1.5 },
+    ] },
+    { id: "balance", name: "Balance · Gegner & Stärke", hint: "t141: weniger, aber zähere Gegner; Spieler flacht spät ab (1 = wie Stufe 15.6)", items: [
+      { k: "menge", label: "Gegnermenge spät (ab Welle 12)", min: 0.3, max: 1.2, def: 0.6 },
+      { k: "lpwelle", label: "LP-Zuwachs je Welle", min: 0.5, max: 2.5, def: 1.35 },
+      { k: "schadenwelle", label: "Schadens-Zuwachs je Welle", min: 0.5, max: 2.5, def: 1.35 },
+      { k: "elitelp", label: "Elite: Lebenspunkte ×", min: 1, max: 5, def: 2.75 },
+      { k: "eliteschaden", label: "Elite: Schaden ×", min: 1, max: 3, def: 1.5 },
+      { k: "bosslp", label: "Boss: Lebenspunkte ×", min: 1, max: 6, def: 3 },
+      { k: "bossschaden", label: "Boss: Schaden ×", min: 1, max: 3, def: 1.5 },
+      { k: "hoch", label: "Waffenschaden-Zuwachs Stufe V/VI", min: 0, max: 1, def: 0.5 },
+      { k: "abflachung", label: "Abflachung hoher Werte (Schaden, Tempo, Projektile)", min: 0.1, max: 1, def: 0.45 },
     ] },
     { id: "ton", name: "Soundmix", hint: "Zusätzlich zu den normalen Lautstärken", items: [
       { k: "musik", label: "Musik", min: 0, max: 2, def: 1 },
@@ -5382,9 +5393,14 @@ const SA = ["", "#cfc6b4", "#7fae63", "#5f9ed6", "#a983dc", "#e5b54e", "#e2493b"
   // t132/t138: eigene Stufentabellen für die neuen Schusswaffen (I–VI)
   wTier = { nailer: [0, 4, 6, 9, 13, 17, 22], thunder: [0, 7, 9, 12, 16, 20, 25], riveter: [0, 11, 14, 18, 24, 30, 37], crank: [0, 4, 5, 7, 9, 12, 15] },
   // t138: Preis steigt je Stufe um den Dev-Faktor (Standard 2,1): I 1 · II 2,1 · III 4,4 · IV 9,3 · V 19,4 · VI 40,8
-  tierCost = (t) => Math.pow(DV("stufen", "kurve") ?? 2.1, Math.max(0, (t || 1) - 1)),
+  tierCost = (t) => Math.pow(DV("stufen", "kurve") ?? 1.6, Math.max(0, (t || 1) - 1)),
   lvK = () => DV("stufen", "effekte") ?? 1,
-  ZA = (e, id) => (id && wTier[id] ? wTier[id][e] / wTier[id][1] : 1 + (e - 1) * 0.7);
+  ZA = (e, id) => {
+    // t141: Stufe V/VI wachsen nur noch mit "hoch" (Standard 50 %) über Stufe IV hinaus
+    const h = DV("balance", "hoch") ?? 0.5;
+    if (id && wTier[id]) { const T = wTier[id], v = e <= 4 ? T[e] : T[4] + (T[e] - T[4]) * h; return v / T[1]; }
+    return e <= 4 ? 1 + (e - 1) * 0.7 : 3.1 + (e - 4) * 0.7 * h;
+  };
 function pB(e) {
   const hc = DV("stufen", "angebot") ?? 0.5,
     A = Math.min(0.38, 0.1 + 0.012 * e),
@@ -6924,7 +6940,12 @@ class mi {
       (this.stats.attackSpeed = V(this.stats.attackSpeed, 0.2, 5)),
       (this.stats.speed = V(this.stats.speed, 0.35, 2.4)),
       (this.stats.crit = V(this.stats.crit, 0, 1)),
-      (this.stats.range = V(this.stats.range, 0.5, 3)),
+      (this.stats.range = V(this.stats.range, 0.5, 3));
+    // t141: abnehmender Ertrag bei absurden Stapeln
+    const fl = DV("balance", "abflachung") ?? 0.45, soft = (x, K) => (x > K ? K + (x - K) * fl : x);
+    (this.stats.damage = soft(this.stats.damage, 1.7)),
+      (this.stats.attackSpeed = soft(this.stats.attackSpeed, 1.5)),
+      this.stats.projectiles > 3 && (this.stats.projectiles = 3 + Math.floor((this.stats.projectiles - 3) * fl + 1e-9)),
       (this.player.hp = Math.min(this.player.hp, this.stats.hp));
   }
   get rules() {
@@ -6956,6 +6977,11 @@ class mi {
   // t132: kürzere, dichtere Wellen (Brotato-Gefühl): Welle 1 ≈ 32 s, ab Welle 15 60 s
   waveLen(w) {
     return Math.round(Math.min(60, 30 + w * 2) * (DV("tempo", "welle") ?? 1));
+  }
+  // t141: späte Wellen bis −40 % Gegner (linear ab Welle 3 bis Welle 12)
+  foeCount(w = this.wave) {
+    const m = DV("balance", "menge") ?? 0.6;
+    return 1 - (1 - m) * V((w - 3) / 9, 0, 1);
   }
   enemyFactor(A) {
     const g = V((this.wave - 1) / 7, 0, 1);
@@ -7138,7 +7164,8 @@ class mi {
       }
     }
     this.maxEnemyRadius = Math.max(this.maxEnemyRadius, Q.radius);
-    const h = 1 + Math.max(0, this.wave - 1) * 0.14;
+    const h = 1 + Math.max(0, this.wave - 1) * 0.14 * (DV("balance", "lpwelle") ?? 1.35),
+      dw = 0.045 * (DV("balance", "schadenwelle") ?? 1.35);
     Object.assign(i, {
       x: a,
       y: t,
@@ -7149,7 +7176,7 @@ class mi {
       maxHp: Q.hp * h * this.enemyFactor("hp"),
       r: Q.radius,
       speed: Q.speed * (1 + this.wave * 0.012) * this.enemyFactor("speed") * this.tempoFoe(),
-      damage: Q.damage * (1 + this.wave * 0.045) * this.enemyFactor("damage"),
+      damage: Q.damage * (1 + this.wave * dw) * this.enemyFactor("damage"),
       flash: 0,
       age: 0,
       cd: p(1, 3),
@@ -7191,14 +7218,17 @@ class mi {
       (i.foe = s),
         (i.hp = i.maxHp = U.hp * h * this.enemyFactor("hp")),
         (i.speed = U.speed * (1 + this.wave * 0.012) * this.enemyFactor("speed") * this.tempoFoe()),
-        (i.damage = U.damage * (1 + this.wave * 0.045) * this.enemyFactor("damage")),
+        (i.damage = U.damage * (1 + this.wave * dw) * this.enemyFactor("damage")),
         (i.r = U.radius),
         (i.cd = p(0.8, 1.8)),
         (this.maxEnemyRadius = Math.max(this.maxEnemyRadius, U.radius));
     }
+    // t141: Eliten und Bosse deutlich zäher und härter
+    A === 7 && ((i.hp = i.maxHp *= DV("balance", "elitelp") ?? 2.75), (i.damage *= DV("balance", "eliteschaden") ?? 1.5));
     return (
       A >= 8 &&
-        ((i.hp = i.maxHp = Q.hp * (1 + Math.max(0, this.wave - 20) * 0.2) * this.rules.bossHp),
+        ((i.hp = i.maxHp = Q.hp * (1 + Math.max(0, this.wave - 20) * 0.2) * this.rules.bossHp * (DV("balance", "bosslp") ?? 3)),
+        (i.damage *= DV("balance", "bossschaden") ?? 1.5),
         (i.cd = 2),
         (i.spawn = i.spawnMax = E ? 0 : 1.8)),
       i
@@ -7222,7 +7252,7 @@ class mi {
             ? Math.atan2(this.input.y, this.input.x)
             : Math.atan2(this.yMid - A.y || 1, -A.x),
       E = this.formations % 2 === 1,
-      o = Math.min(18, 4 + Math.floor(this.wave * 0.45) + this.runDifficulty * 2);
+      o = Math.max(3, Math.round(Math.min(18, 4 + Math.floor(this.wave * 0.45) + this.runDifficulty * 2) * this.foeCount()));
     let i = 0;
     for (let I = 0; I < o; I++) {
       const C = E
@@ -8625,7 +8655,7 @@ class mi {
         this.wave >= 5 && Math.random() < this.eliteChance() && (t = 7), this.spawn(t);
       }
       this.spawnTimer =
-        Math.max(0.2, 0.9 - this.wave * 0.023) / (this.danger ? 1.35 : 1) / this.enemyFactor("density") / 1.12;
+        Math.max(0.2, 0.9 - this.wave * 0.023) / (this.danger ? 1.35 : 1) / this.enemyFactor("density") / 1.12 / this.foeCount();
     }
     if (
       ((this.formationTimer -= E),
@@ -9326,7 +9356,7 @@ class mi {
   // t138: Kombinieren kostet Schrott – steigt mit der Zielstufe
   combineCost(W) {
     const C = j.find((B) => B.id === W.id);
-    return Math.round(C.price * (1 + this.wave * 0.035) * this.rules.prices * tierCost(W.tier + 1) * (DV("stufen", "merge") ?? 0.5));
+    return Math.round(C.price * (1 + this.wave * 0.035) * this.rules.prices * tierCost(W.tier + 1) * (DV("stufen", "merge") ?? 0.3));
   }
   levelUpFx(E, from) {
     E.lvT = performance.now();
