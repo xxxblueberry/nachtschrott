@@ -18,6 +18,14 @@ python tools/build.py   # baut index.html neu
 python -m http.server 5178   # lokal testen
 ```
 
+Nach einem frischen Klon fehlt `src/assets/`. Am einfachsten wiederherstellen mit:
+
+```bash
+python tools/recover_assets.py   # liest Assets aus index.html, passend zu den Platzhaltern in src/
+```
+
+Das klappt nur, solange `index.html` aus dem aktuellen `src/` gebaut wurde (also vor eigenen Änderungen).
+
 Achtung: `split.py` überschreibt `src/*` mit dem Inhalt von `index.html`.
 Nach einem frischen Klon also nur die Assets brauchen? Dann `split.py` laufen lassen
 und danach `git checkout src/` ausführen.

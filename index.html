@@ -62,6 +62,13 @@ const DEV_KEY = "nachtschrott-dev-v1",
       { k: "marker", label: "Spawn-Markierung Dauer", min: 0.4, max: 2, def: 1 },
       { k: "xpfx", label: "EP-Einsammel-Effekt", min: 0, max: 2, def: 1 },
     ] },
+    { id: "saft", name: "Saft", hint: "Treffer-Gefühl: Wackeln, Hit-Stop, Rückstoß, Kamera-Vorlauf", items: [
+      { k: "wackeln", label: "Bildschirmwackeln ×", min: 0, max: 2, def: 1 },
+      { k: "stopzeit", label: "Hit-Stop Zeitlupe (0 = Standbild)", min: 0, max: 1, def: 0.05 },
+      { k: "stopdauer", label: "Hit-Stop Dauer ×", min: 0, max: 3, def: 1 },
+      { k: "stoss", label: "Treffer-Rückstoß Spieler (px/s)", min: 0, max: 600, step: 10, def: 260 },
+      { k: "vorlauf", label: "Kamera-Vorlauf (px)", min: 0, max: 140, step: 1, def: 55 },
+    ] },
     { id: "stufen", name: "Waffenstufen", hint: "Preise, Seltenheit und Effekte der Stufen I–VI", items: [
       { k: "kurve", label: "Preis-Faktor je Stufe", min: 1.3, max: 3, def: 1.6 },
       { k: "merge", label: "Kombinieren-Kosten (× Stufenpreis)", min: 0, max: 1.5, def: 0.3 },
@@ -3985,7 +3992,8 @@ const qB = () => ({
       quality: "auto",
       cameraZoom: 0.75,
       cameraZoomVersion: 2,
-      shake: 0.45,
+      shake: 0.7,
+      shakeVersion: 2,
       flashes: 0.4,
       particles: 0.8,
       numbers: !0,
@@ -4014,6 +4022,8 @@ function Ug(e) {
   const B = tA(A.settings);
   for (const Q of ["master", "sfx", "music", "uiVolume", "shake", "flashes", "particles"])
     g.settings[Q] = P(B[Q], g.settings[Q], 0, 1);
+  // Saft: alter Standard 0.45 (nie verändert) übernimmt den neuen Standard 0.7; eigene Werte bleiben.
+  B.shakeVersion !== 2 && B.shake === 0.45 && (g.settings.shake = 0.7), (g.settings.shakeVersion = 2);
   (g.settings.cameraZoom =
     B.cameraZoom === 1 && B.cameraZoomVersion !== 2 ? 0.75 : P(B.cameraZoom, 0.75, 0.6, 1.2)),
     (g.settings.cameraZoomVersion = 2),
@@ -5901,7 +5911,7 @@ function Ki(e, A, g) {
           const h = e.player.x - A.x,
             s = e.player.y - A.y,
             U = h * a + s * t;
-          U > A.r && U < 780 && Math.abs(h * t - s * a) < 31 && e.hurt(A.damage * 0.65);
+          U > A.r && U < 780 && Math.abs(h * t - s * a) < 31 && e.hurt(A.damage * 0.65, A.x, A.y);
         });
     }
     A.timer <= 0 &&
@@ -7025,8 +7035,8 @@ class mi {
   actorPlayer(A) {
     return this.coop?.actors[A].player ?? this.player;
   }
-  hurtActor(A, g) {
-    this.withActor(A, () => this.hurt(g));
+  hurtActor(A, g, sx, sy) {
+    this.withActor(A, () => this.hurt(g, sx, sy));
   }
   get allTurrets() {
     return this.coop ? (this.coop.save(), this.coop.actors.flatMap((A) => A.turrets)) : this.turrets;
@@ -7726,8 +7736,9 @@ class mi {
       );
   }
   hit(A, g, B, E = 0, o = !0, i = !1, I = 0) {
-    if (!A.active || A.spawn > 0 || this.procBudget <= 0) return;
-    this.procBudget--;
+    if (!A.active || A.spawn > 0) return;
+    // Saft: über dem Effekt-Budget nur die Kosmetik weglassen – Schaden, Rückstoß und Tod zählen immer.
+    const fxOk = this.procBudget-- > 0;
     const C = o && Math.random() < this.stats.crit,
       Q = g * (C ? 2 : 1) * (A.type === 7 && A.elite === 3 ? 0.65 : 1);
     (A.hp -= Q), (A.flash = 0.1), (A.hitA = B);
@@ -7735,8 +7746,19 @@ class mi {
     (A.vx += Math.cos(B) * a),
       (A.vy += Math.sin(B) * a),
       C &&
-        ((this.shake = Math.max(this.shake, 2.6)),
-        (this.heavyStop = Math.max(this.heavyStop, i ? 0.045 : 0.03)));
+        (this.shake = Math.max(this.shake, 2.6));
+    if (!fxOk) {
+      (this.runDamage += Q),
+        o &&
+          (this.stats.lifesteal && this.heal(Math.min(4, Q * this.stats.lifesteal)),
+          this.stats.bleed > 0 &&
+            ((A.bleed = Math.min(this.stats.bleed * 5, A.bleed + this.stats.bleed)),
+            (A.bleedTime = 3),
+            (A.bleedOwner = this.actorIndex))),
+        i && ((this.shake = Math.max(this.shake, C ? 7 : 4)), this.hitStop(C ? 0.05 : 0.03)),
+        A.hp <= 0 && this.kill(A, I);
+      return;
+    }
     const t = iB(A);
     (o || C) &&
       this.fx.impact(
@@ -7760,8 +7782,22 @@ class mi {
           (A.bleedOwner = this.actorIndex))),
       i &&
         ((this.shake = Math.max(this.shake, C ? 7 : 4)),
-        (this.heavyStop = Math.max(this.heavyStop, C ? 0.05 : 0.03))),
+        this.hitStop(C ? 0.05 : 0.03)),
       A.hp <= 0 && this.kill(A, I);
+  }
+  // Saft: echter Hit-Stop. Dauer × Dev-Regler. Ein Stopp dauert am Stück nie länger als 0.18 s
+  // (Nachtriggern verlängert nur bis zu diesem Deckel), danach 0.1 s Pause für kleine Stopps (< 0.06 s),
+  // damit Dauerfeuer mit vielen Krits die Welt nicht dauerhaft einfriert.
+  hitStop(d) {
+    if (!((d *= DV("saft", "stopdauer") ?? 1) > 0)) return;
+    const t = this.time;
+    if (this.heavyStop > 0) this.heavyStop = Math.min(Math.max(0, (this.stopAt ?? t) + 0.18 - t), Math.max(this.heavyStop, d));
+    else {
+      const su = this.stopUntil ?? -9;
+      if (d < 0.06 && t >= su && t - su < 0.45) return;
+      (this.stopAt = t), (this.heavyStop = Math.min(0.18, d));
+    }
+    this.stopUntil = t + this.heavyStop;
   }
   kill(A, g = 0) {
     if (!A.active) return;
@@ -7840,7 +7876,7 @@ class mi {
     ) {
       for (let o = 1; o <= 3; o++)
         this.fx.explosion(A.x + p(-1, 1) * A.r, A.y + p(-1, 1) * A.r * 0.6, 70, "#ffa04d");
-      this.heavyStop = Math.max(this.heavyStop, 0.12);
+      this.hitStop(0.15);
     }
     if (
       (this.audio.sound(
@@ -7944,8 +7980,11 @@ class mi {
     return CA[this.character].cooldown / Math.sqrt(this.stats.ability);
   }
   dash() {
+    // Saft: Druck während eines laufenden Dashs 0.12 s puffern (je Spieler am player-Objekt)
+    if (this.phase === "combat" && this.player.hp > 0 && this.dashTime > 0) return (this.player.dashBuf = 0.12), !1;
     if (this.phase !== "combat" || this.player.hp <= 0 || this.dashCharges <= 0 || this.dashTime > 0)
       return !1;
+    this.player.dashBuf = 0;
     let A = this.input.x,
       g = this.input.y;
     Math.hypot(A, g) < 0.1 && ((A = this.player.face || 1), (g = 0));
@@ -8019,6 +8058,19 @@ class mi {
       a: B.a,
     };
   }
+  // Saft: manuelles Zielen vom Waffenplatz (x, y) auf den Zielpunkt in der Welt (Maus: Cursor,
+  // Gamepad: Spieler + Richtung × 260). Cursor näher als 90 px am Spieler → alter Spieler→Cursor-Winkel.
+  manualAim(x, y) {
+    const n = this.input,
+      p = this.player;
+    let tx, ty;
+    if (n.aimPt) (tx = n.aimWX), (ty = n.aimWY);
+    else {
+      const l = Math.hypot(n.aimX, n.aimY) || 1;
+      (tx = p.x + (n.aimX / l) * 260), (ty = p.y + (n.aimY / l) * 260);
+    }
+    return Math.hypot(tx - p.x, ty - p.y) < 90 ? Math.atan2(n.aimY, n.aimX) : Math.atan2(ty - y, tx - x);
+  }
   updateWeaponAim(A, g, B) {
     if (A.id === "turret" || A.swing > 0) return;
     const E = this.weaponSlot(A, g);
@@ -8029,7 +8081,7 @@ class mi {
     const o = this.save.data.settings.manual && this.input.aimActive;
     if (o || (A.target?.active && A.target.spawn <= 0)) {
       const i = o
-        ? Math.atan2(this.input.aimY, this.input.aimX)
+        ? this.manualAim(E.x, E.y)
         : Math.atan2(A.target.y - E.y, A.target.x - E.x);
       A.angle += fA(i, A.angle) * Math.min(1, B * 20);
     }
@@ -8127,7 +8179,7 @@ class mi {
         this.audio.sound("thunder_fire", 1, 1, this.pan(M)),
         (A.pump = 0.32),
         (this.shake = Math.max(this.shake, 5.2)),
-        (this.heavyStop = Math.max(this.heavyStop, 0.025)),
+        this.hitStop(0.025),
         this.fx.muzzle(M + cQ * 8, r + sQ * 8, Q, "#ffa24a", 2.8, !0),
         this.fx.light(M, r + 18, 260, "#ff9a4a", 0.16),
         this.fx.glow(M + cQ * 20, r + sQ * 20, 70, "#ffc27a", 0.1),
@@ -8324,7 +8376,7 @@ class mi {
       A.cd = 0.08;
       return;
     }
-    let Q = C ? Math.atan2(this.input.aimY, this.input.aimX) : Math.atan2(I.y - i.y, I.x - i.x);
+    let Q = C ? this.manualAim(i.x, i.y) : Math.atan2(I.y - i.y, I.x - i.x);
     (A.angle = Q),
       (A.kick = 1),
       (A.mfv = Math.random()),
@@ -8701,6 +8753,8 @@ class mi {
           this.ghostTimer <= 0 &&
           ((this.ghostTimer = Q.ghostEvery), this.pushGhost(Q.ghostAlpha, Q.ghost));
     } else B && this.finishDash();
+    // Saft: gepufferter Dash feuert, sobald der laufende vorbei ist und eine Ladung bereitsteht
+    g.dashBuf > 0 && ((g.dashBuf -= A), this.dashTime <= 0 && this.dashCharges > 0 && this.dash());
     const i = g.x,
       I = g.y;
     if (
@@ -8727,11 +8781,11 @@ class mi {
       this.heal(this.stats.regen * A),
       this.god && (g.hp = this.stats.hp);
   }
-  updateActorWeapons(A) {
+  updateActorWeapons(A, rA = A) {
     const g = this.player;
     for (let B = 0; B < this.weapons.length; B++) {
       const E = this.weapons[B];
-      this.updateWeaponAim(E, B, A),
+      this.updateWeaponAim(E, B, rA),
         (E.cd -= A),
         (E.kick = Math.max(0, E.kick - A * 7)),
         (E.swing = Math.max(0, E.swing - A)),
@@ -8839,21 +8893,27 @@ class mi {
     }
   }
   update(A) {
+    // Saft: echter Hit-Stop – Welt, Effekte und Geschosse laufen kurz in Zeitlupe (Dev „Saft/stopzeit",
+    // Standard 0.05); heavyStop selbst, Eingabe und die Spielerbewegung bleiben in Echtzeit.
+    const hsT = this.heavyStop > 0 && this.phase === "combat" && !(this.clearHold > 0) ? (DV("saft", "stopzeit") ?? 0.05) : 1,
+      W = A * hsT;
+    (this.heavyStop = this.phase === "combat" ? Math.max(0, this.heavyStop - A) : 0),
+      (this.hurtPulse = Math.max(0, (this.hurtPulse || 0) - A * 0.86));
     (this.time += A),
       this.showcase && (this.showcase.life = Math.max(0, this.showcase.life - A)),
       this.deaths.each((C) => {
         (C.life -= A), C.life <= 0 && (C.active = !1);
       }),
-      (this.shake *= Math.exp(-A * 16)),
+      (this.shake *= Math.exp(-A * 10)),
       (this.pulse = Math.max(0, this.pulse - A)),
       (this.bannerTime = Math.max(0, this.bannerTime - A)),
       this.particles.each((C) => {
-        (C.life -= A),
+        (C.life -= W),
           C.life <= 0 && (C.active = !1),
-          (C.x += C.vx * A),
-          (C.y += C.vy * A),
-          (C.vx *= Math.exp(-A * 5)),
-          (C.vy = C.vy * Math.exp(-A * 5) + 40 * A);
+          (C.x += C.vx * W),
+          (C.y += C.vy * W),
+          (C.vx *= Math.exp(-W * 5)),
+          (C.vy = C.vy * Math.exp(-W * 5) + 40 * W);
       });
     const g = this.save.data.settings;
     this.fx.settings = {
@@ -8865,7 +8925,7 @@ class mi {
       quality: g.quality,
       views: this.coop ? 2 : 1,
     };
-    const B = A * (this.showcase && this.showcase.life > 0 ? 0.32 : 1);
+    const B = W * (this.showcase && this.showcase.life > 0 ? 0.32 : 1);
     this.fx.update(B);
     if (this.fx.clink.length) {
       for (const C of this.fx.clink) this.audio.sound("casing", p(0.9, 1.18), 1, this.pan(C));
@@ -8905,7 +8965,7 @@ class mi {
         });
     }
     this.coop && this.coop.activate(0), (this.procBudget = 90);
-    const E = A * (this.showcase && this.showcase.life > 0 ? 0.32 : 1);
+    const E = W * (this.showcase && this.showcase.life > 0 ? 0.32 : 1);
     (this.streakTime = Math.max(0, this.streakTime - A)),
       this.streakTime || (this.killStreak = 0),
       (this.runTime += E),
@@ -8944,18 +9004,17 @@ class mi {
     this.grid.clear(),
       this.enemies.each((C) => this.grid.add(C)),
       this.climbState.active ? this.updateClimb(E) : this.updateEnvironment(E);
-    const i = this.heavyStop > 0 ? 0.3 : 1;
-    (this.heavyStop = Math.max(0, this.heavyStop - A)), this.enemies.each((C) => this.updateEnemy(C, E * i));
+    this.enemies.each((C) => this.updateEnemy(C, E));
     for (const C of this.foeBursts) C.t += E;
     this.foeBursts.length &&
       this.foeBursts[0].t > this.foeBursts[0].dur &&
       (this.foeBursts = this.foeBursts.filter((C) => C.t <= C.dur)),
-      this.forActors(() => this.updateActorWeapons(A)),
-      this.updateBlades(A);
+      this.forActors(() => this.updateActorWeapons(W, A)),
+      this.updateBlades(W);
     const I = this.allTurrets;
     this.projectiles.each((C) => {
-      const Q = C.enemy ? E : A;
-      if (((C.life -= Q), (C.age += A), C.returning && C.age > 0.42)) {
+      const Q = C.enemy ? E : W;
+      if (((C.life -= Q), (C.age += W), C.returning && C.age > 0.42)) {
         const t = Math.atan2(o.y - C.y, o.x - C.x);
         if (
           ((C.vx += (Math.cos(t) * 670 - C.vx) * Math.min(1, A * 11)),
@@ -8993,7 +9052,7 @@ class mi {
           : H(C, o) < C.r + 14.5
             ? 0
             : -1;
-        t >= 0 && (this.hurtActor(t, C.damage), (C.active = !1));
+        t >= 0 && (this.hurtActor(t, C.damage, C.px, C.py), (C.active = !1));
         return;
       }
       C.lv >= 5 && !C.enemy && Math.random() < (C.lv === 6 ? 0.45 : 0.25) * lvK() && this.fx.trail(C.x, C.y - 6, C.lv === 6 ? (Math.random() < 0.6 ? "#ff4a32" : "#ffb066") : "#ffd36a", C.lv === 6 ? 2.6 : 2, 0.28, 12);
@@ -9057,7 +9116,7 @@ class mi {
         }
         if (C.enemy)
           this.forActors(() => {
-            H(C, this.player) < C.r + 10.5 && this.hurt(C.damage);
+            H(C, this.player) < C.r + 10.5 && this.hurt(C.damage, C.x, C.y);
           });
         else if (C.damage > 0)
           for (const a of this.grid.query(C.x, C.y, C.r + this.maxEnemyRadius, []))
@@ -9295,6 +9354,8 @@ class mi {
           H(A, this.player) < A.r + 12.75 &&
             this.hurt(
               A.foe >= 0 && !(A.state === pA && $[A.foe].attack === "charge") ? A.damage * 0.5 : A.damage,
+              A.x,
+              A.y,
             );
         });
   }
@@ -9369,7 +9430,7 @@ class mi {
               A.beamTick ||
                 this.forActors(() => {
                   H(A, this.player) < A.r + 16 &&
-                    (this.hurt(A.damage * 1.25),
+                    (this.hurt(A.damage * 1.25, A.x, A.y),
                     (A.beamTick = 1),
                     this.lastFoeStrike && (this.lastFoeStrike.hit = !0));
                 }))
@@ -9387,7 +9448,7 @@ class mi {
       o = (I, C, Q, a = 1) =>
         this.forActors(() => {
           Math.hypot(this.player.x - I, this.player.y - C) < Q + 13 &&
-            (this.hurt(A.damage * a), this.lastFoeStrike && (this.lastFoeStrike.hit = !0));
+            (this.hurt(A.damage * a, A.x, A.y), this.lastFoeStrike && (this.lastFoeStrike.hit = !0));
         }),
       i = this.pan(A.x);
     switch (g.attack) {
@@ -9425,7 +9486,7 @@ class mi {
             t > -10 &&
               t < I + 13 &&
               Math.abs(a - A.y) < g.size + 13 &&
-              (this.hurt(A.damage), this.lastFoeStrike && (this.lastFoeStrike.hit = !0));
+              (this.hurt(A.damage, A.x, A.y), this.lastFoeStrike && (this.lastFoeStrike.hit = !0));
           }),
           this.fx.sparks(C, A.y - g.h * 0.55, A.face > 0 ? 0 : Math.PI, 0.6, 4, 240, "#ffe28a", 0.2),
           this.audio.sound(g.sound, 0.8, 1.35, i);
@@ -9466,17 +9527,26 @@ class mi {
       (this.shake = Math.max(this.shake, g ? 7 : 4)),
       this.audio.sound("explosion", g ? 0.9 : 0.6, 1, this.pan(A.x));
   }
-  hurt(A) {
-    this.player.invuln > 0 ||
-      this.god ||
-      this.player.hp <= 0 ||
-      ((this.player.hp -= (A * 100) / (100 + Math.max(-15, this.stats.armor) * 5)),
-      (this.player.hp = Math.max(0, this.player.hp)),
-      (this.player.invuln = 0.65),
-      (this.player.flash = 0.16),
+  // Saft: optional (sx, sy) = Position der Schadensquelle → Rückstoß weg davon
+  hurt(A, sx, sy) {
+    const pl = this.player;
+    if (pl.invuln > 0 || this.god || pl.hp <= 0) return;
+    (pl.hp -= (A * 100) / (100 + Math.max(-15, this.stats.armor) * 5)),
+      (pl.hp = Math.max(0, pl.hp)),
+      (pl.invuln = 0.65),
+      (pl.flash = 0.16),
       (this.shake = Math.max(this.shake, 7)),
-      this.particle(this.player.x, this.player.y, "#e89ba4", 10),
-      this.audio.sound("hurt"));
+      this.particle(pl.x, pl.y, "#e89ba4", 10),
+      this.audio.sound("hurt"),
+      this.hitStop(0.06),
+      (this.hurtPulse = 0.3);
+    if (typeof sx == "number" && typeof sy == "number") {
+      const dx = pl.x - sx,
+        dy = pl.y - sy,
+        d = Math.hypot(dx, dy),
+        f = DV("saft", "stoss") ?? 260;
+      d > 0.01 && ((pl.recoilX = (pl.recoilX || 0) + (dx / d) * f), (pl.recoilY = (pl.recoilY || 0) + (dy / d) * f));
+    }
   }
   gainXP(A) {
     for (this.xp += A; this.xp >= this.xpNeed; )
@@ -9872,8 +9942,7 @@ class mi {
       this.fx.light(B + ((s - B) * c) / 4, E + ((U - E) * c) / 4 + 14, 80, "#7fe3ff", 0.12);
     this.fx.light(s, U + 16, C ? 200 : 130, "#9cefff", C ? 0.3 : 0.2),
       this.fx.sparks(s, U, M + Math.PI, C ? 1.2 : 0.8, C ? 9 : 5, C ? 340 : 240, "#e2fcff", 0.25),
-      (this.shake = Math.max(this.shake, C ? 3.2 : 1.4)),
-      C && (this.heavyStop = Math.max(this.heavyStop, 0.035));
+      (this.shake = Math.max(this.shake, C ? 3.2 : 1.4));
   }
   canMutate(A) {
     return (
@@ -10942,7 +11011,7 @@ function killPop(G, A) {
   low || fx.glow(A.x, y, A.r * 1.6 + 18, "#ffd59a", 0.09);
   low || fx.sparks(A.x, y, -Math.PI / 2, Math.PI, big ? 10 : 5, big ? 420 : 300, "#ffe2b0", 0.26);
   if (G.time - (G.killStopAt ?? -9) > 0.22) {
-    (G.killStopAt = G.time), (G.heavyStop = Math.max(G.heavyStop, big ? 0.06 : 0.016)), (G.shake = Math.max(G.shake, big ? 5 : 1.6));
+    (G.killStopAt = G.time), big && G.hitStop(0.07), (G.shake = Math.max(G.shake, big ? 5 : 1.6));
   }
 }
 function UC(e, A) {
@@ -11024,6 +11093,7 @@ function nsBgExt(A, img, X0, Y0, w, h, vw, vh) {
       if (x > vw || y > vh || x + w < 0 || y + h < 0) continue;
       // oben nicht spiegeln (sonst doppelte Glühbirne): oberste Bildzeilen nach oben ziehen
       if (j < 0) {
+        if (Y0 <= 0.5) continue;
         const iw = img.naturalWidth || img.width;
         A.save(), A.translate(x + (i ? w / 2 : 0), 0), A.scale(i ? -1 : 1, 1), A.drawImage(img, 0, 0, iw, 2, i ? -w / 2 : 0, 0, w, Y0 + 1), A.restore();
         (A.fillStyle = "rgba(5,5,5,0.62)"), A.fillRect(x, 0, w, Y0 + 1);
@@ -11322,6 +11392,16 @@ class FC {
       a.addColorStop(1, "#ffdfb877"),
       (Q.fillStyle = a),
       Q.fillRect(0, 0, C.width, C.height);
+    // Saft: roter Treffer-Rand (einmal je Größe gebaut, beim Zeichnen nur Deckkraft)
+    const hC = (this.hurtOverlay = document.createElement("canvas"));
+    (hC.width = g), (hC.height = B);
+    const hQ = hC.getContext("2d"),
+      hG = hQ.createRadialGradient(g / 2, B / 2, Math.min(g, B) * 0.3, g / 2, B / 2, Math.hypot(g, B) * 0.55);
+    hG.addColorStop(0, "#ff3b2f00"),
+      hG.addColorStop(0.45, "#ff3b2f00"),
+      hG.addColorStop(1, "#ff3b2fff"),
+      (hQ.fillStyle = hG),
+      hQ.fillRect(0, 0, g, B);
   }
   get targetDpr() {
     if (this.mode === "menu") return devicePixelRatio || 1;
@@ -13000,7 +13080,7 @@ class FC {
       B.rotate(i.rot),
       B.scale(i.sx, i.sy),
       B.translate(-I, -Q),
-      (B.globalAlpha = (o.invuln > 0 && g.dashTime <= 0 && Math.sin(g.time * 35) > 0 ? 0.76 : 1) * i.alpha),
+      (B.globalAlpha = (o.invuln > 0 && g.dashTime <= 0 && Math.sin(g.time * 75.4) > 0 ? 0.45 : 1) * i.alpha),
       i.alpha > 0.01 &&
         this.player(I, C, g.character, o.walk, Math.hypot(o.vx, o.vy) > 0, o.flash > 0, o.face, o.moveBlend),
       B.restore(),
@@ -13065,14 +13145,22 @@ class FC {
         );
       this.coopFit += (V(VA, 0.5, 1) - this.coopFit) * Math.min(1, A * 4);
     } else this.coopFit = 1;
+    {
+      // Saft: Kamera-Vorlauf in Laufrichtung (nur Einzelspieler), weich mit k = 4, frameraten-exakt
+      const L = I.coop || C.hp <= 0 ? 0 : (DV("saft", "vorlauf") ?? 55),
+        k = 1 - Math.exp(-A * 4);
+      (this.leadX = (this.leadX || 0) + (I.input.x * L - (this.leadX || 0)) * k),
+        (this.leadY = (this.leadY || 0) + (I.input.y * L - (this.leadY || 0)) * k),
+        I.coop || ((a += this.leadX), (t += this.leadY));
+    }
     const h = this.paintedPlate,
       s = h ? -h.x : I.climbState?.active ? (I.climbState.def.view ?? 1e3) : 1e3,
       U = h ? -h.y : 720,
       M = V(a, Math.min(0, -s + this.viewWidth / 2), Math.max(0, s - this.viewWidth / 2)),
       r = V(t, I.yMid + Math.min(0, -U + this.viewHeight / 2), I.yMid + Math.max(0, U - this.viewHeight / 2));
     if (
-      ((this.camX += (M - this.camX) * Math.min(1, A * 9)),
-      (this.camY += (r - this.camY) * Math.min(1, A * 9)),
+      ((this.camX += (M - this.camX) * (1 - Math.exp(-A * 9))),
+      (this.camY += (r - this.camY) * (1 - Math.exp(-A * 9))),
       h)
     ) {
       const l = Math.max(0, -h.x - this.viewWidth / 2),
@@ -13080,13 +13168,15 @@ class FC {
       (this.camX = V(this.camX, -l, l)), (this.camY = V(this.camY, -w, w));
     }
     i.save(), i.scale(this.cameraZoom, this.cameraZoom);
-    const Y = h || I.save.data.settings.reducedMotion ? 0 : I.shake * I.save.data.settings.shake;
-    if (h && !I.save.data.settings.reducedMotion && I.shake * I.save.data.settings.shake > 0.2) {
-      const l = I.shake * I.save.data.settings.shake,
-        w = 1 + Math.min(0.012, l * 0.0015);
-      i.translate(this.viewWidth / 2, this.viewHeight / 2),
+    const sm = I.save.data.settings.reducedMotion ? 0 : I.shake * I.save.data.settings.shake * (DV("saft", "wackeln") ?? 1),
+      Y = h ? 0 : sm;
+    if (h && sm > 0.8) {
+      // Saft: echtes Wackeln auch auf gemalten Arenen. Zusatz-Zoom 1 + 2m/min(Sicht) deckt den
+      // Versatz (vor dem Zoom angewendet → Welt-Versatz ≤ m/w) exakt ab, der Plattenrand bleibt unsichtbar.
+      const m = Math.min(12, sm),
+        w = 1 + (2 * m) / Math.max(1, Math.min(this.viewWidth, this.viewHeight));
+      i.translate(this.viewWidth / 2 + p(-m, m), this.viewHeight / 2 + p(-m, m)),
         i.scale(w, w),
-        i.rotate(p(-1, 1) * Math.min(0.002, l * 3e-4)),
         i.translate(-this.viewWidth / 2, -this.viewHeight / 2);
     }
     if (
@@ -13392,6 +13482,12 @@ class FC {
         (i.globalAlpha = Math.min(0.28, I.pulse * 0.55) * this.fxFlashes),
         i.drawImage(this.flashOverlay, 0, 0, this.w, this.h),
         i.restore()),
+      this.hurtOverlay &&
+        I.hurtPulse > 0 &&
+        (i.save(),
+        (i.globalAlpha = Math.min(0.55, I.hurtPulse * 1.6) * (I.save.data.settings.reducedMotion ? 0.5 : 1)),
+        i.drawImage(this.hurtOverlay, 0, 0, this.w, this.h),
+        i.restore()),
       I.abilityFlash > 0 &&
         !I.save.data.settings.reducedMotion &&
         ((i.strokeStyle = J[I.character].color + "66"),
@@ -13641,8 +13737,9 @@ class FC {
       f.addColorStop(0, "rgba(5,5,5,0)"), f.addColorStop(1, "#050505"), (A.fillStyle = f), A.fillRect(0, oy + 540 * sc, S.vw, S.vh);
     } else {
       sc = k;
+      // Hauptmenü oben verankern (kein gestreckter dunkler Streifen oben); nsBgExt spiegelt nur den Boden nach unten. DOM-Box (.nm-box) sitzt ebenfalls bei top: 0.
       const X0 = S.ox * k,
-        Y0 = S.oy * k;
+        Y0 = 0;
       map = (x, y) => [X0 + x * k, Y0 + y * k];
       nsBgExt(A, img, X0, Y0, 1280 * k, 720 * k, S.vw, S.vh);
     }
@@ -14057,7 +14154,9 @@ class wC {
     }
     const B = document.activeElement,
       E = B?.dataset.action,
-      o = B?.dataset.id;
+      o = B?.dataset.id,
+      // laufender Toast überlebt das Neuzeichnen (bleibt im #ui, damit Theme-Variablen greifen; Knoten bleibt hängen, Animation startet nicht neu)
+      tst = this.root.querySelector(":scope > .toast");
     ["combat", "shop"].includes(this.screen) && (g += this.acquisition()),
       (document.body.dataset.motion = A.save.data.settings.reducedMotion ? "reduced" : "full"),
       A.coop &&
@@ -14065,7 +14164,9 @@ class wC {
         (g =
           `<div class="coop-turn">SPIELER ${A.actorIndex + 1} · ${J[A.character].name} IST DRAN</div>` + g),
       (document.body.dataset.coop = A.coop && this.r.mode === "game" ? "true" : "false"),
-      (this.root.innerHTML = g),
+      tst
+        ? (Array.from(this.root.childNodes).forEach((n) => n !== tst && n.remove()), tst.insertAdjacentHTML("beforebegin", g))
+        : (this.root.innerHTML = g),
       (document.body.dataset.screen = this.screen),
       E &&
         Array.from(this.root.querySelectorAll("[data-action]"))
@@ -14130,7 +14231,7 @@ class wC {
         ["stats", "Statistiken", "Deine Runs", "stats"],
         ["settings", "Einstellungen", "Klang & Effekte", "settings"],
       ];
-    return `<section class="screen home nm ${cp ? "nm-cp" : ""} ${this.nmLast === "home" ? "nm-static" : ""}" id="nm-screen"><div class="nm-stage ns-stage"><div class="nm-box"><div class="nm-tools">${this.button("fullscreen", x("fullscreen"), "nm-tool")}${this.button("quit", x("quit"), "nm-tool")}</div><div class="nm-eyebrow">NACHTSCHROTT / HAUPTMENÜ</div><h1 class="nm-title">NACHTSCHROTT</h1><i class="nm-hazard"></i><p class="nm-tag">Schrott sammeln. Nacht überstehen.</p><div class="nm-actions">${cp ? `<button class="nm-play continue-run" data-action="continueRun" data-id=""><i class="nm-tri"></i><span>Fortsetzen · Welle ${cp.wave}</span></button>` : ""}<button class="nm-play play ${cp ? "nm-alt" : ""}" data-action="enterHub" data-id=""><i class="nm-tri"></i><span>${cp ? "Neuer Lauf" : "Spielen"}</span></button></div><nav class="nm-nav">${nav.map(([a, n, s, ic]) => `<button class="nm-link" data-action="${a}" data-id="" title="${s}" aria-label="${n} · ${s}">${x(ic)}<span>${n}</span></button>`).join("")}</nav><div class="nm-plate"><button class="nm-arrow" data-action="preview" data-id="-1" aria-label="Vorheriger Held">‹</button><div class="nm-plate-text"><small>${g.title}</small><h3>${g.name}</h3><span class="nm-dots" aria-label="Held ${A.character + 1} von ${J.length}">${J.map((i, I) => `<i class="${I === A.character ? "on" : ""}"></i>`).join("")}</span></div><button class="nm-arrow" data-action="preview" data-id="1" aria-label="Nächster Held">›</button></div><footer class="nm-counts"><span><b>06+2</b><small>ARENEN</small></span><span><b>${String(j.length).padStart(2, "0")}</b><small>WAFFEN</small></span><span><b>04</b><small>BOSSE</small></span></footer>${this.button("credits", "Credits & Lizenzen", "nm-credits")}</div></div></section>`;
+    return `<section class="screen home nm ${cp ? "nm-cp" : ""} ${this.nmLast ? "nm-static" : ""}" id="nm-screen"><div class="nm-stage ns-stage"><div class="nm-box"><div class="nm-tools">${this.button("fullscreen", x("fullscreen"), "nm-tool")}${this.button("quit", x("quit"), "nm-tool")}</div><div class="nm-eyebrow">NACHTSCHROTT / HAUPTMENÜ</div><h1 class="nm-title">NACHTSCHROTT</h1><i class="nm-hazard"></i><p class="nm-tag">Schrott sammeln. Nacht überstehen.</p><div class="nm-actions">${cp ? `<button class="nm-play continue-run" data-action="continueRun" data-id=""><i class="nm-tri"></i><span>Fortsetzen · Welle ${cp.wave}</span></button>` : ""}<button class="nm-play play ${cp ? "nm-alt" : ""}" data-action="enterHub" data-id=""><i class="nm-tri"></i><span>${cp ? "Neuer Lauf" : "Spielen"}</span></button></div><nav class="nm-nav">${nav.map(([a, n, s, ic]) => `<button class="nm-link" data-action="${a}" data-id="" title="${s}" aria-label="${n} · ${s}">${x(ic)}<span>${n}</span></button>`).join("")}</nav><div class="nm-plate"><button class="nm-arrow" data-action="preview" data-id="-1" aria-label="Vorheriger Held">‹</button><div class="nm-plate-text"><small>${g.title}</small><h3>${g.name}</h3><span class="nm-dots" aria-label="Held ${A.character + 1} von ${J.length}">${J.map((i, I) => `<i class="${I === A.character ? "on" : ""}"></i>`).join("")}</span></div><button class="nm-arrow" data-action="preview" data-id="1" aria-label="Nächster Held">›</button></div><footer class="nm-counts"><span><b>06+2</b><small>ARENEN</small></span><span><b>${String(j.length).padStart(2, "0")}</b><small>WAFFEN</small></span><span><b>04</b><small>BOSSE</small></span></footer>${this.button("credits", "Credits & Lizenzen", "nm-credits")}</div></div></section>`;
   }
   themeSwitch() {
     return "";
@@ -14353,6 +14454,32 @@ class wC {
     const g = j.find((B) => B.id === A.id);
     return `<div class="acquisition ${this.screen === "shop" ? "in-shop" : ""}" id="acquisition" data-serial="${A.serial}" style="--rarity:${SA[A.tier]};--flash:${this.g.save.data.settings.reducedMotion ? 0 : this.g.save.data.settings.flashes}"><div class="acquisition-lines"></div><span class="acquisition-caption">${A.upgraded ? "WAFFE AUFGEWERTET" : "NEUE WAFFE"}</span><div class="showcase-art">${x(A.id)}</div><h3>${g.name}</h3><div class="showcase-tier">${A.upgraded ? `STUFE ${iA[A.from]} <b>→</b> ` : ""}STUFE ${iA[A.tier]} <span>${BB[A.tier]}</span></div></div>`;
   }
+  // Saft: Balken (LP, EP, Sprint, Ult) jedes Bild statt alle 65 ms – nur schreiben, wenn sich der
+  // gerundete Wert (‰) oder das Element (nach neuem Rendern) geändert hat.
+  hudBars(E) {
+    const c = this._hb || (this._hb = { hud: null, hp: -1, xp: -1, da: -1, ul: -1, hpB: null, hpW: -1, xpB: null, xpW: -1, dB: null, dW: -1, aB: null, aW: -1 }),
+      kh = Math.round(V(E.player.hp / E.stats.hp, 0, 1) * 1e3),
+      kx = Math.round(V(E.xp / E.xpNeed, 0, 1) * 1e3),
+      kd = E.dashCharges ? 0 : Math.round(V(E.dashRecharge / E.dashCooldown, 0, 1) * 1e3),
+      ku = Math.round(V(E.abilityCd / E.abilityCooldown, 0, 1) * 1e3),
+      i = document.getElementById("hud");
+    if (i) {
+      const f = i !== c.hud;
+      (c.hud = i),
+        (f || kh !== c.hp) && ((c.hp = kh), i.style.setProperty("--hp", (kh / 1e3).toFixed(3))),
+        (f || kx !== c.xp) && ((c.xp = kx), i.style.setProperty("--xp", (kx / 1e3).toFixed(3))),
+        (f || kd !== c.da) && ((c.da = kd), i.style.setProperty("--dash", (kd / 1e3).toFixed(3))),
+        (f || ku !== c.ul) && ((c.ul = ku), i.style.setProperty("--ult", (ku / 1e3).toFixed(3)));
+    }
+    const Q = document.getElementById("hp-bar"),
+      a = document.getElementById("xp-bar"),
+      t = document.getElementById("dash-button"),
+      h = document.getElementById("ability-button");
+    Q && (Q !== c.hpB || kh !== c.hpW) && ((c.hpB = Q), (c.hpW = kh), (Q.style.width = kh / 10 + "%")),
+      a && (a !== c.xpB || kx !== c.xpW) && ((c.xpB = a), (c.xpW = kx), (a.style.width = kx / 10 + "%")),
+      t && (t !== c.dB || kd !== c.dW) && ((c.dB = t), (c.dW = kd), t.style.setProperty("--cooldown", kd / 10 + "%")),
+      h && (h !== c.aB || ku !== c.aW) && ((c.aB = h), (c.aW = ku), h.style.setProperty("--cooldown", ku / 10 + "%"));
+  }
   updateHUD(A = !1) {
     const g = this.g.showcase,
       B = document.getElementById("acquisition");
@@ -14363,6 +14490,7 @@ class wC {
         ["combat", "shop"].includes(this.screen) &&
         B?.dataset.serial !== String(g.serial) &&
         (B?.remove(), this.root.insertAdjacentHTML("beforeend", this.acquisition())),
+      (this.screen === "combat" || A) && !this.g.coop && this.hudBars(this.g),
       (this.screen !== "combat" && !A) || (!A && performance.now() - this.lastHud < 65))
     )
       return;
@@ -14392,15 +14520,8 @@ class wC {
       o("hp-text", `${Math.ceil(E.player.hp)} / ${Math.ceil(E.stats.hp)}`),
       o("level-num", String(E.level));
     const i = document.getElementById("hud");
-    i &&
-      (i.style.setProperty("--hp", V(E.player.hp / E.stats.hp, 0, 1).toFixed(3)),
-      i.style.setProperty("--xp", V(E.xp / E.xpNeed, 0, 1).toFixed(3)),
-      i.style.setProperty(
-        "--dash",
-        (E.dashCharges ? 0 : V(E.dashRecharge / E.dashCooldown, 0, 1)).toFixed(3),
-      ),
-      i.style.setProperty("--ult", V(E.abilityCd / E.abilityCooldown, 0, 1).toFixed(3)),
-      i.classList.toggle("hp-low", E.player.hp / E.stats.hp < 0.3)),
+    // Saft: --hp/--xp/--dash/--ult schreibt jetzt hudBars() jedes Bild
+    i && i.classList.toggle("hp-low", E.player.hp / E.stats.hp < 0.3),
       o("level-text", `STUFE ${E.level}`),
       o("xp-text", `${Math.floor(E.xp)} / ${E.xpNeed} EP`),
       o("wave-text", `WELLE ${String(E.wave).padStart(2, "0")} / ${E.endless ? "∞" : "20"}`),
@@ -14447,10 +14568,7 @@ class wC {
     }
     o("money-text", this.displayMoney.toString()),
       o("supply-text", `VORRAT · ▱ ${E.scrapBudget - E.scrapDropped} / EP ${E.xpBudget - E.xpDropped}`);
-    const Q = document.getElementById("hp-bar"),
-      a = document.getElementById("xp-bar");
-    Q && (Q.style.width = V((E.player.hp / E.stats.hp) * 100, 0, 100) + "%"),
-      a && (a.style.width = V((E.xp / E.xpNeed) * 100, 0, 100) + "%");
+    // Saft: hp-bar/xp-bar-Breiten und --cooldown der Knöpfe schreibt hudBars() jedes Bild
     const t = document.getElementById("dash-button"),
       h = document.getElementById("ability-button");
     o(
@@ -14462,15 +14580,8 @@ class wC {
         : E.dashRecharge.toFixed(1) + " s",
     ),
       o("ability-text", E.abilityCd > 0 ? Math.ceil(E.abilityCd) + " s" : "BEREIT"),
-      t &&
-        (t.style.setProperty(
-          "--cooldown",
-          (E.dashCharges ? 0 : (E.dashRecharge / E.dashCooldown) * 100) + "%",
-        ),
-        t.classList.toggle("on-cooldown", E.dashCharges === 0)),
-      h &&
-        (h.style.setProperty("--cooldown", (E.abilityCd / E.abilityCooldown) * 100 + "%"),
-        h.classList.toggle("on-cooldown", E.abilityCd > 0));
+      t && t.classList.toggle("on-cooldown", E.dashCharges === 0),
+      h && h.classList.toggle("on-cooldown", E.abilityCd > 0);
     const s = document.getElementById("streak-panel");
     s &&
       ((s.hidden = E.killStreak < 5),
@@ -14757,7 +14868,7 @@ class wC {
       "bild",
       "02",
       "Bild & Kamera",
-      slider("cameraZoom", "Kamera-Zoom", "60 % Übersicht · 75 % Standard · 120 % näher", 60, 120) + `<div class="set-row set-seg set-ui"><span class="set-l">UI-Größe<small>Auto passt alles ins Fenster · groß für TV/Sofa</small></span><div class="row">${["auto", 0.8, 0.9, 1, 1.1, 1.25, 1.5].map((v) => this.button("uiScale", v === "auto" ? "Auto" : Math.round(v * 100) + " %", "secondary compact " + (A.uiScale === v || (v === "auto" && typeof A.uiScale != "number") ? "selected" : ""), String(v))).join("")}</div></div><div class="set-row set-seg set-ui set-rand"><span class="set-l">Bildrand (TV-Overscan)<small>Schneidet dein Fernseher den Rand ab? Dann Rand vergrößern</small></span><div class="row">${[0, 0.02, 0.04, 0.06, 0.08, 0.1].map((v) => this.button("overscan", v ? Math.round(v * 100) + " %" : "Aus", "secondary compact " + (Math.abs((Number(A.overscan) || 0) - v) < 0.005 ? "selected" : ""), String(v))).join("")}</div></div><div class="quality-setting set-row set-seg"><span class="set-l">Darstellungsqualität<small>Leistung hilft auf älteren Geräten</small></span><div class="row">${["auto", "high", "low"].map((B, E) => this.button("quality", ["Auto", "Hoch", "Leistung"][E], "secondary compact " + (A.quality === B ? "selected" : ""), B)).join("")}</div></div>`,
+      slider("cameraZoom", "Kamera-Zoom", "60 % Übersicht · 75 % Standard · 120 % näher", 60, 120) + `<div class="set-row set-seg set-ui"><span class="set-l">UI-Größe<small>Auto passt alles ins Fenster · über 100 % wächst nur das Kampf-HUD (TV/Sofa), Menüs bleiben fenstergroß</small></span><div class="row">${["auto", 0.8, 0.9, 1, 1.1, 1.25, 1.5].map((v) => this.button("uiScale", v === "auto" ? "Auto" : Math.round(v * 100) + " %", "secondary compact " + (A.uiScale === v || (v === "auto" && typeof A.uiScale != "number") ? "selected" : ""), String(v))).join("")}</div></div><div class="set-row set-seg set-ui set-rand"><span class="set-l">Bildrand (TV-Overscan)<small>Schneidet dein Fernseher den Rand ab? Dann Rand vergrößern</small></span><div class="row">${[0, 0.02, 0.04, 0.06, 0.08, 0.1].map((v) => this.button("overscan", v ? Math.round(v * 100) + " %" : "Aus", "secondary compact " + (Math.abs((Number(A.overscan) || 0) - v) < 0.005 ? "selected" : ""), String(v))).join("")}</div></div><div class="quality-setting set-row set-seg"><span class="set-l">Darstellungsqualität<small>Leistung hilft auf älteren Geräten</small></span><div class="row">${["auto", "high", "low"].map((B, E) => this.button("quality", ["Auto", "Hoch", "Leistung"][E], "secondary compact " + (A.quality === B ? "selected" : ""), B)).join("")}</div></div>`,
     )}${group(
       "effekte",
       "03",
@@ -15264,7 +15375,7 @@ class wC {
       this.screen === "collection" && this.returnScreen === "settings")
     ) {
       (this.screen = "settings"),
-        (this.returnScreen = this.g.phase === "pause" ? "pause" : "home"),
+        (this.returnScreen = this.settingsFrom || (this.g.phase === "pause" ? "pause" : "home")),
         this.render();
       return;
     }
@@ -15453,7 +15564,7 @@ class wC {
         (E.save.data.tutorialSeen = !0), E.save.write(), this.render();
         break;
       case "showGuide":
-        (this.tab = "rules"), (this.returnScreen = "settings"), (this.screen = "collection"), this.render();
+        (this.tab = "rules"), (this.settingsFrom = this.returnScreen), (this.returnScreen = "settings"), (this.screen = "collection"), this.render();
         break;
       case "exportSave": {
         const o = new Blob([E.save.export()], { type: "application/json" }),
@@ -15951,7 +16062,7 @@ function YB(e, A = 0) {
       const a = Math.max(1, Math.hypot(o, i));
       (K.input.x = o / a), (K.input.y = i / a);
     }
-    (I || C) && ((K.input.aimX = I), (K.input.aimY = C), (K.input.aimActive = !0), (xg = !1));
+    (I || C) && ((K.input.aimX = I), (K.input.aimY = C), (K.input.aimActive = !0), (K.input.aimPt = !1), (xg = !1));
   } else {
     const a = B.buttons[15]?.pressed ? 1 : B.buttons[14]?.pressed ? -1 : Math.abs(o) > 0.5 ? Math.sign(o) : 0,
       t = B.buttons[13]?.pressed ? 1 : B.buttons[12]?.pressed ? -1 : Math.abs(i) > 0.5 ? Math.sign(i) : 0;
@@ -16098,7 +16209,12 @@ function HB(e) {
   if (xg) {
     const a = OA.worldMouse(jB, uB);
     K.withActor(0, () => {
-      (K.input.aimX = a.x - K.player.x), (K.input.aimY = a.y - K.player.y), (K.input.aimActive = !0);
+      (K.input.aimX = a.x - K.player.x),
+        (K.input.aimY = a.y - K.player.y),
+        (K.input.aimWX = a.x),
+        (K.input.aimWY = a.y),
+        (K.input.aimPt = !0),
+        (K.input.aimActive = !0);
     });
   }
   jg?.tick(), (T.combat = v()), T.update();
@@ -28009,7 +28125,7 @@ body[data-motion="reduced"] #ui:not(#_):not(#__) .tb-screen *, body[data-motion=
 body #ui:not(#_):not(#__) .nm { position: fixed !important; inset: 0; padding: 0 !important; margin: 0 !important; max-width: none !important; background: none !important; display: block !important; overflow: hidden; color: #efe6d2; font-family: Figtree, sans-serif; }
 body #ui:not(#_):not(#__) .nm::before, body #ui:not(#_):not(#__) .nm::after { display: none !important; }
 body #ui:not(#_):not(#__) .nm .nm-stage { position: absolute; left: 0; top: 0; width: calc(var(--nsw, 1280) * 1px); height: calc(var(--nsh, 720) * 1px); transform: scale(var(--nk, 1)); transform-origin: 0 0; }
-body #ui:not(#_):not(#__) .nm .nm-box { position: absolute; left: calc(var(--nox, 0) * 1px); top: calc(var(--noy, 0) * 1px); width: 1280px; height: 720px; }
+body #ui:not(#_):not(#__) .nm .nm-box { position: absolute; left: calc(var(--nox, 0) * 1px); top: 0; width: 1280px; height: 720px; }
 body #ui:not(#_):not(#__) .nm .nm-eyebrow { position: absolute; left: 75px; top: 83px; font: 600 14.5px/1 Figtree, sans-serif; letter-spacing: 0.15em; color: #e8852a; }
 body #ui:not(#_):not(#__) .nm .nm-title { position: absolute; left: 72px; top: 116px; margin: 0 !important; font: 800 87px/0.8 "Barlow Condensed", sans-serif !important; letter-spacing: 0.004em; color: #efe6d2 !important; text-shadow: none !important; text-transform: none; }
 body #ui:not(#_):not(#__) .nm .nm-hazard { position: absolute; left: 75px; top: 203px; width: 114px; height: 7px; background: repeating-linear-gradient(-60deg, #e8852a 0 9px, transparent 9px 15px); }
@@ -28038,7 +28154,7 @@ body #ui:not(#_):not(#__) .nm .nm-dots i { width: 4px; height: 4px; border-radiu
 body #ui:not(#_):not(#__) .nm .nm-dots i.on { width: 14px; height: 4px; border-radius: 2px; background: #e8852a; }
 body #ui:not(#_):not(#__) .nm .nm-arrow { all: unset; box-sizing: border-box; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid rgba(206, 194, 170, 0.45); display: grid; place-items: center; font: 600 19px/1 Figtree, sans-serif; color: #efe6d2; cursor: pointer; padding-bottom: 3px; }
 body #ui:not(#_):not(#__) .nm .nm-arrow:hover, body #ui:not(#_):not(#__) .nm .nm-arrow:focus-visible { border-color: #e8852a; color: #ffb066; }
-body #ui:not(#_):not(#__) .nm .nm-counts { position: absolute; left: 79px; top: 667px; display: flex; gap: 0; }
+body #ui:not(#_):not(#__) .nm .nm-counts { position: absolute; left: 79px; top: calc(var(--nsh, 720) * 1px - 53px); display: flex; gap: 0; }
 body #ui:not(#_):not(#__) .nm .nm-counts span { display: flex; align-items: baseline; gap: 13px; width: 146px; }
 body #ui:not(#_):not(#__) .nm .nm-counts span + span { width: 120px; }
 body #ui:not(#_):not(#__) .nm .nm-counts b { font: 800 17px/1 "Barlow Condensed", sans-serif; color: #efe6d2; }
@@ -28047,7 +28163,7 @@ body #ui:not(#_):not(#__) .nm .nm-tools { position: absolute; right: 38px; top: 
 body #ui:not(#_):not(#__) .nm .nm-tool { all: unset; box-sizing: border-box; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid rgba(206, 194, 170, 0.3); display: grid; place-items: center; color: #cfc6b4; cursor: pointer; opacity: 0.75; background: rgba(8, 8, 8, 0.5); }
 body #ui:not(#_):not(#__) .nm .nm-tool .icon { width: 16px; height: 16px; }
 body #ui:not(#_):not(#__) .nm .nm-tool:hover, body #ui:not(#_):not(#__) .nm .nm-tool:focus-visible { opacity: 1; border-color: #e8852a; }
-body #ui:not(#_):not(#__) .nm .nm-credits { all: unset; position: absolute; right: 44px; bottom: 30px; font: 500 11px/1 Figtree, sans-serif; color: #7d776d; cursor: pointer; letter-spacing: 0.04em; }
+body #ui:not(#_):not(#__) .nm .nm-credits { all: unset; position: absolute; right: 44px; bottom: auto; top: calc(var(--nsh, 720) * 1px - 41px); font: 500 11px/1 Figtree, sans-serif; color: #7d776d; cursor: pointer; letter-spacing: 0.04em; }
 body #ui:not(#_):not(#__) .nm .nm-credits:hover, body #ui:not(#_):not(#__) .nm .nm-credits:focus-visible { color: #ffb066; }
 body #ui:not(#_):not(#__) .nm :is(.nm-play, .nm-link, .nm-arrow, .nm-tool, .nm-credits):focus-visible { outline: 2px solid #e8852a; outline-offset: 3px; }
 body #ui:not(#_):not(#__) .nm .nm-eyebrow, body #ui:not(#_):not(#__) .nm .nm-title, body #ui:not(#_):not(#__) .nm .nm-hazard, body #ui:not(#_):not(#__) .nm .nm-tag { animation: nm-in 0.6s ease both; }
@@ -28065,7 +28181,7 @@ body[data-ns="flat"] #ui:not(#_):not(#__) .nm .nm-plate { left: 770px; width: 33
 body[data-ns="flat"] #ui:not(#_):not(#__) .nm .nm-plate-text small { font-size: 15px; }
 body[data-ns="flat"] #ui:not(#_):not(#__) .nm .nm-plate-text h3 { font-size: 32px !important; }
 body[data-ns="flat"] #ui:not(#_):not(#__) .nm .nm-arrow { width: 40px; height: 40px; font-size: 26px; }
-body[data-ns="flat"] #ui:not(#_):not(#__) .nm .nm-credits { font-size: 17px; }
+body[data-ns="flat"] #ui:not(#_):not(#__) .nm .nm-credits { font-size: 17px; top: calc(var(--nsh, 720) * 1px - 47px); }
 body[data-ns="flat"] #ui:not(#_):not(#__) .nm .nm-tool { width: 48px; height: 48px; }
 /* iPhone hoch: Kopf oben, Held mittig (Renderer), Namensschild, Spielen, Menü zweispaltig */
 body[data-ns="portrait"] #ui:not(#_):not(#__) .nm { overflow-y: auto; }
@@ -28573,17 +28689,17 @@ html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-
 html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__) .difficulty-modifiers > div { border-bottom: 1px dashed rgba(206, 194, 170, 0.16) !important; }
 html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter .modal, html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter .quit { animation: nx-modal 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.15) backwards !important; }
 html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter .modal::after, html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter .quit::after { animation: nx-stamp 0.5s 0.18s cubic-bezier(0.3, 1.4, 0.5, 1) backwards !important; }
-html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter .screen > .header { animation: nx-head 0.36s ease-out backwards !important; }
-html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter .screen > :not(.header):not(.quit) { animation: nx-rise 0.42s 0.06s ease-out backwards !important; }
-html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter :is(.header h2, .modal h2, .quit h2)::after { animation: nx-hazard 0.45s 0.22s ease-out backwards !important; }
-html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter :is(.challenge .badge, .card .card-icon) { animation: nx-seal 0.42s 0.25s cubic-bezier(0.3, 1.5, 0.5, 1) backwards !important; }
+html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter .screen > .header { animation: nx-head 0.16s ease-out backwards !important; }
+html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter .screen > :not(.header):not(.quit) { animation: nx-rise 0.18s ease-out backwards !important; }
+html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter :is(.header h2, .modal h2, .quit h2)::after { animation: nx-hazard 0.25s 0.08s ease-out backwards !important; }
+html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__).nx-enter :is(.challenge .badge, .card .card-icon) { animation: nx-seal 0.25s 0.1s cubic-bezier(0.3, 1.5, 0.5, 1) backwards !important; }
 html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__) button.primary:hover:not(:disabled) { translate: 0 -1px !important; }
 html body[data-ns]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__) button.primary:active:not(:disabled) { translate: 0 1px !important; }
 html body[data-ns][data-motion="reduced"]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__) *, html body[data-ns][data-motion="reduced"]:is([data-screen="settings"],[data-screen="collection"],[data-screen="challenges"],[data-screen="stats"],[data-screen="credits"],[data-screen="quit"],[data-screen="characters"],[data-screen="coopSetup"],[data-screen="pause"],[data-screen="risk"],[data-screen="mutation"],[data-screen="defeat"],[data-screen="victory"],[data-screen="hub"]) #ui:not(#_):not(#__) *::after { animation: none !important; }
 @keyframes nx-modal { from { opacity: 0; scale: 0.94; translate: 0 14px; } to { opacity: 1; scale: 1; translate: 0 0; } }
 @keyframes nx-stamp { from { filter: opacity(0); scale: 1.8; } 60% { filter: opacity(1); scale: 0.94; } to { filter: opacity(1); scale: 1; } }
-@keyframes nx-head { from { opacity: 0; translate: -18px 0; } to { opacity: 1; translate: 0 0; } }
-@keyframes nx-rise { from { opacity: 0; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
+@keyframes nx-head { from { opacity: 0.35; translate: -18px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes nx-rise { from { opacity: 0.35; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
 @keyframes nx-hazard { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes nx-seal { from { scale: 0.3; rotate: -25deg; opacity: 0; } to { scale: 1; rotate: 0deg; opacity: 1; } }
 /* ===== t118u: Dev-Menü (nur PC) im Noir-Kreide-Stil ===== */
@@ -28726,7 +28842,7 @@ body:not([data-ns="flat"]):not([data-ns="portrait"]) #ui:not(#_):not(#__) .nm .n
 body:not([data-ns="flat"]):not([data-ns="portrait"]) #ui:not(#_):not(#__) .nm .nm-actions { top: 275px; }
 body:not([data-ns="flat"]):not([data-ns="portrait"]) #ui:not(#_):not(#__) .nm .nm-nav { top: 355px; grid-auto-rows: 44px; }
 body:not([data-ns="flat"]):not([data-ns="portrait"]) #ui:not(#_):not(#__) .nm.nm-cp .nm-nav { top: 405px; grid-auto-rows: 40px; }
-body:not([data-ns="flat"]):not([data-ns="portrait"]) #ui:not(#_):not(#__) .nm .nm-counts { top: 673px; }
+body:not([data-ns="flat"]):not([data-ns="portrait"]) #ui:not(#_):not(#__) .nm .nm-counts { top: calc(var(--nsh, 720) * 1px - 47px); }
 body:not([data-ns="flat"]):not([data-ns="portrait"]) #ui:not(#_):not(#__) .nm .nm-plate { left: 784px; }
 body[data-ns="flat"] #ui:not(#_):not(#__) .nm .nm-plate { left: 756px; }
 #ui:not(#_):not(#__) .nm .nm-link { color: #e6dcc6; }
