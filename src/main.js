@@ -64,7 +64,7 @@ const DEV_KEY = "nachtschrott-dev-v1",
     ] },
     { id: "saft", name: "Saft", hint: "Treffer-Gefühl: Wackeln, Hit-Stop, Rückstoß, Kamera-Vorlauf", items: [
       { k: "wackeln", label: "Bildschirmwackeln ×", min: 0, max: 2, def: 1 },
-      { k: "stopzeit", label: "Hit-Stop Zeitlupe (0 = Standbild)", min: 0, max: 1, def: 0.05 },
+      { k: "stopzeit", label: "Hit-Stop Zeitlupe (0 = Standbild)", min: 0, max: 1, def: 0.3 },
       { k: "stopdauer", label: "Hit-Stop Dauer ×", min: 0, max: 3, def: 1 },
       { k: "stoss", label: "Treffer-Rückstoß Spieler (px/s)", min: 0, max: 600, step: 10, def: 260 },
       { k: "vorlauf", label: "Kamera-Vorlauf (px)", min: 0, max: 140, step: 1, def: 55 },
@@ -121,6 +121,8 @@ try {
   raw && !(raw._v >= 2) && (raw.noir?.tinte === 1 && delete raw.noir.tinte, raw.bild?.vignette === 1 && delete raw.bild.vignette);
   // t129u: Hauptmenü ruhiger – alte Partikel-/Flacker-Standardwerte (1) übernehmen die neuen.
   raw && !(raw._v >= 3) && (["menge", "groesse", "deckkraft", "tempo", "drift"].forEach((k) => raw.menuFx?.[k] === 1 && delete raw.menuFx[k]), raw.licht?.flackern === 1 && delete raw.licht.flackern);
+  // t156: Hit-Stop-Zeitlupe 0.05 (fast Standbild) wirkte als Ruckeln – alter Standard übernimmt den neuen (0.3).
+  raw && !(raw._v >= 4) && raw.saft?.stopzeit === 0.05 && delete raw.saft.stopzeit;
   DEV.v = devSanitize(raw);
 } catch {
   DEV.v = devDefaults();
@@ -207,7 +209,7 @@ function devAnimRate() {
 }
 function devSave() {
   try {
-    localStorage.setItem(DEV_KEY, JSON.stringify({ ...DEV.v, _v: 3 }));
+    localStorage.setItem(DEV_KEY, JSON.stringify({ ...DEV.v, _v: 4 }));
   } catch {}
 }
 function devIsPC() {
@@ -7789,13 +7791,17 @@ class mi {
   // (Nachtriggern verlängert nur bis zu diesem Deckel), danach 0.1 s Pause für kleine Stopps (< 0.06 s),
   // damit Dauerfeuer mit vielen Krits die Welt nicht dauerhaft einfriert.
   hitStop(d) {
+    // t156: begrenzt – normale Stopps höchstens 0.1 s am Stück und danach 0.3 s (kleine 0.45 s) Pause;
+    // nur große Stopps (≥ 0.12 s, Boss) dürfen bis 0.18 s und jederzeit. Vorher reihten sich Treffer-/Kill-Stopps aneinander.
     if (!((d *= DV("saft", "stopdauer") ?? 1) > 0)) return;
-    const t = this.time;
-    if (this.heavyStop > 0) this.heavyStop = Math.min(Math.max(0, (this.stopAt ?? t) + 0.18 - t), Math.max(this.heavyStop, d));
+    const t = this.time,
+      big = d >= 0.12,
+      cap = big ? 0.18 : 0.1;
+    if (this.heavyStop > 0) this.heavyStop = Math.min(Math.max(0, (this.stopAt ?? t) + Math.max(cap, this.stopCap || 0) - t), Math.max(this.heavyStop, d));
     else {
       const su = this.stopUntil ?? -9;
-      if (d < 0.06 && t >= su && t - su < 0.45) return;
-      (this.stopAt = t), (this.heavyStop = Math.min(0.18, d));
+      if (!big && t - su < (d < 0.06 ? 0.45 : 0.3)) return;
+      (this.stopAt = t), (this.stopCap = cap), (this.heavyStop = Math.min(cap, d));
     }
     this.stopUntil = t + this.heavyStop;
   }
@@ -13170,12 +13176,16 @@ class FC {
     i.save(), i.scale(this.cameraZoom, this.cameraZoom);
     const sm = I.save.data.settings.reducedMotion ? 0 : I.shake * I.save.data.settings.shake * (DV("saft", "wackeln") ?? 1),
       Y = h ? 0 : sm;
-    if (h && sm > 0.8) {
+    // t156: Wackeln weich (stetige Schwingung statt neuer Zufallsversatz je Bild – das sah wie Ruckeln aus) und mit
+    // Totzone 1.2: Dauer-Krits der Gatling (Wackeln 2.6 × 0.7) zittern nicht mehr ständig, Treffer/Explosionen schon.
+    const sq = h ? Math.min(10, Math.max(0, sm - 1.2)) : 0;
+    if (sq > 0.05) {
       // Saft: echtes Wackeln auch auf gemalten Arenen. Zusatz-Zoom 1 + 2m/min(Sicht) deckt den
       // Versatz (vor dem Zoom angewendet → Welt-Versatz ≤ m/w) exakt ab, der Plattenrand bleibt unsichtbar.
-      const m = Math.min(12, sm),
+      const m = sq,
+        tt = I.time,
         w = 1 + (2 * m) / Math.max(1, Math.min(this.viewWidth, this.viewHeight));
-      i.translate(this.viewWidth / 2 + p(-m, m), this.viewHeight / 2 + p(-m, m)),
+      i.translate(this.viewWidth / 2 + m * (0.62 * Math.sin(tt * 47.1) + 0.38 * Math.sin(tt * 29.3 + 1.7)), this.viewHeight / 2 + m * (0.62 * Math.sin(tt * 41.7 + 0.6) + 0.38 * Math.sin(tt * 33.9 + 2.9))),
         i.scale(w, w),
         i.translate(-this.viewWidth / 2, -this.viewHeight / 2);
     }
