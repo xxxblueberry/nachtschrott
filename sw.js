@@ -1,4 +1,4 @@
-const CACHE = "nachtschrott-phase-healing-v4";
+const CACHE = "nachtschrott-vehicle-v5";
 self.addEventListener("install", (event) =>
   event.waitUntil(
     caches
@@ -10,6 +10,7 @@ self.addEventListener("install", (event) =>
           "./manifest.webmanifest",
           "./icon.svg",
           "./assets/menu-workshop.webp",
+          "./assets/vehicle-bodo.png",
           "./icon-192.png",
           "./icon-512.png",
           "./licenses/pixelfx-LICENSE.txt",
