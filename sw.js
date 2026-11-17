@@ -1,4 +1,4 @@
-const CACHE = "nachtschrott-nightshift-v2";
+const CACHE = "nachtschrott-boss-pressure-v3";
 self.addEventListener("install", (event) =>
   event.waitUntil(
     caches

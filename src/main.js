@@ -81,9 +81,9 @@ const DEV_KEY = "nachtschrott-dev-v1",
       { k: "menge", label: "Gegnermenge spät (ab Welle 12)", min: 0.3, max: 1.2, def: 0.6 },
       { k: "lpwelle", label: "LP-Zuwachs je Welle", min: 0.5, max: 2.5, def: 1.35 },
       { k: "schadenwelle", label: "Schadens-Zuwachs je Welle", min: 0.5, max: 2.5, def: 1.35 },
-      { k: "elitelp", label: "Elite: Lebenspunkte ×", min: 1, max: 5, def: 1.5 },
+      { k: "elitelp", label: "Elite: Lebenspunkte ×", min: 1, max: 5, def: 1.9 },
       { k: "eliteschaden", label: "Elite: Schaden ×", min: 1, max: 3, def: 1.5 },
-      { k: "bosslp", label: "Boss: Lebenspunkte ×", min: 1, max: 6, def: 1.4 },
+      { k: "bosslp", label: "Boss: Lebenspunkte ×", min: 1, max: 6, def: 2.4 },
       { k: "bossschaden", label: "Boss: Schaden ×", min: 1, max: 3, def: 1.5 },
       { k: "hoch", label: "Waffenschaden-Zuwachs Stufe V/VI", min: 0, max: 1, def: 0.5 },
       { k: "abflachung", label: "Abflachung hoher Werte (Schaden, Tempo, Projektile)", min: 0.1, max: 1, def: 0.45 },
@@ -126,6 +126,10 @@ try {
   if (raw && !(raw._v >= 5)) {
     if (raw.balance?.elitelp === 2.75) delete raw.balance.elitelp;
     if (raw.balance?.bosslp === 3) delete raw.balance.bosslp;
+  }
+  if (raw && !(raw._v >= 6)) {
+    if (raw.balance?.elitelp === 1.5) delete raw.balance.elitelp;
+    if (raw.balance?.bosslp === 1.4) delete raw.balance.bosslp;
   }
   DEV.v = devSanitize(raw);
 } catch {
@@ -213,7 +217,7 @@ function devAnimRate() {
 }
 function devSave() {
   try {
-    localStorage.setItem(DEV_KEY, JSON.stringify({ ...DEV.v, _v: 5 }));
+    localStorage.setItem(DEV_KEY, JSON.stringify({ ...DEV.v, _v: 6 }));
   } catch {}
 }
 function devIsPC() {
@@ -5746,12 +5750,16 @@ function Ri(e, A = Math.random()) {
   return 4;
 }
 const wi = {
-    8: ["slam", "ring", "charge", "summon"],
-    9: ["laser", "slam", "ring", "charge"],
-    10: ["summon", "ring", "laser", "slam"],
-    11: ["charge", "ring", "slam", "laser"],
+    8: ["scrapcross", "charge", "slam", "scrapcross", "summon"],
+    9: ["furnace", "laser", "slam", "furnace", "charge"],
+    10: ["moonhunt", "summon", "ring", "moonhunt", "laser"],
+    11: ["crossbeam", "charge", "ring", "crossbeam", "slam"],
   },
   mB = {
+    scrapcross: "SCHROTTPRESSE · RAUS AUS DEM KREUZ",
+    furnace: "OFENRINGE · DURCH DIE LÜCKE",
+    moonhunt: "MONDJAGD · IN BEWEGUNG BLEIBEN",
+    crossbeam: "NULLKREUZ · ZWISCHEN DEN STRAHLEN",
     ring: "SALVENRING",
     slam: "BODENBRUCH",
     charge: "ANSTURM",
@@ -5771,6 +5779,7 @@ function Ki(e, A, g) {
       (A.bossMode = 0),
       (A.timer = 0),
       (A.cd = a ? 1.2 : Math.max(A.cd, 1)),
+      (e.zones = e.zones.filter(zone => zone.sourceBoss !== A || zone.delay <= 0)),
       a &&
         ((e.shake = Math.max(e.shake, 6)),
         (e.pulse = Math.max(e.pulse, 0.2)),
@@ -5794,14 +5803,20 @@ function Ki(e, A, g) {
   let I = A.speed * (o === 3 ? 1.2 : 1),
     C = Math.cos(E),
     Q = Math.sin(E);
+  if (A.bossMode === 4) {
+    e.updateBossSignature(A, g);
+    if (A.timer <= 0) { A.bossMode = 3; A.timer = 1.05; }
+    return { speed: 0, mx: C, my: Q };
+  }
   if (A.bossMode === 0 && A.cd <= 0) {
     const a = wi[A.type];
     if (
       ((A.bossPattern = a[A.patternIndex++ % a.length]),
       (A.bossMode = 1),
-      (A.aim = E - (A.bossPattern === "laser" ? 0.36 : 0)),
-      (A.timer = A.bossPattern === "laser" ? 1.45 : A.bossPattern === "summon" ? 1.4 : 1.15),
+      (A.aim = E + (A.bossPattern === "furnace" ? (o % 2 ? 1 : -1) * Math.PI / 3 : A.bossPattern === "laser" ? -0.36 : 0)),
+      (A.timer = ["scrapcross", "furnace", "moonhunt", "crossbeam", "summon"].includes(A.bossPattern) ? 1.4 : A.bossPattern === "laser" ? 1.45 : 1.15),
       (A.windupMax = A.timer),
+      e.prepareBossSignature(A, o),
       e.audio.sound("boss_warn", 1, 1, e.pan(A.x)),
       A.bossPattern === "charge" && e.audio.sound("boss_charge", 1, 1, e.pan(A.x)),
       A.bossPattern === "laser" && e.fx.glow(A.x, A.y - A.r * 0.5, A.r, "#ff4d5e", A.timer),
@@ -5894,10 +5909,15 @@ function Ki(e, A, g) {
             e.fx.ring(s, U + 10, 8, 60, "#ff6a7a", 0.3, 3);
         }
       else a === "slam" && e.particle(A.x, A.y, i, 22, 1, 1);
+      if (["scrapcross", "furnace", "moonhunt", "crossbeam"].includes(a)) {
+        A.bossMode = 4; A.timer = a === "scrapcross" ? 1.2 : 2.8;
+        A.signatureAge = 0; A.signatureStep = 0; A.beamTick = 0;
+        return { speed: 0, mx: C, my: Q };
+      }
       e.runDifficulty > 0 && o >= 2 && e.bossExtraPattern(A, o),
         a === "charge" || a === "laser"
           ? ((A.bossMode = 2), (A.timer = a === "charge" ? 0.67 : 1.6), (A.beamTick = 0))
-          : ((A.bossMode = 3), (A.timer = 1.35));
+          : ((A.bossMode = 3), (A.timer = 1.05));
     }
   } else if (A.bossMode === 2) {
     if (((A.timer -= g), A.bossPattern === "charge"))
@@ -5938,7 +5958,7 @@ function Ki(e, A, g) {
     }
     A.timer <= 0 &&
       ((A.bossMode = 3),
-      (A.timer = 1.35),
+      (A.timer = 1.05),
       A.bossPattern === "charge" &&
         (e.zones.push({
           x: A.x,
@@ -5958,7 +5978,7 @@ function Ki(e, A, g) {
         e.fx.smoke(A.x, A.y + A.r * 0.5, 5, A.r * 0.4, "#6d625b", "#f2cfa8", 1, A.r, 0, -10)));
   } else
     A.bossMode === 3 &&
-      ((I = 0), (A.timer -= g), A.timer <= 0 && ((A.bossMode = 0), (A.cd = 2.8 - o * 0.2)));
+      ((I = 0), (A.timer -= g), A.timer <= 0 && ((A.bossMode = 0), (A.cd = 1.9 - o * 0.2)));
   return { speed: I, mx: C, my: Q };
 }
 const $ = [
@@ -6677,17 +6697,17 @@ const Dg = (e) => Si(e, 9) - 4,
       name: "Normal",
       subtitle: "Lerne die Nacht. Baue deinen eigenen Werkzeugkasten.",
       color: "#e6dcc6",
-      hp: 1,
-      damage: 1,
-      speed: 1.03,
-      density: 1,
+      hp: 1.18,
+      damage: 1.08,
+      speed: 1.12,
+      density: 1.08,
       elites: 1,
       bossHp: 1.15,
       healing: 1,
       economy: 1,
       prices: 1,
-      waveHeal: 0.12,
-      formationInterval: 16,
+      waveHeal: 0.08,
+      formationInterval: 13,
       patterns: 1,
     },
     {
@@ -6819,6 +6839,7 @@ class mi {
       bossMode: 0,
       bossPattern: "ring",
       patternIndex: 0,
+      signatureAge: 0, signatureStep: 0, signaturePhase: 1,
       windupMax: 1,
       phaseFlash: 0,
       beamTick: 0,
@@ -7322,8 +7343,8 @@ class mi {
     return Math.round(base * (this.coop ? 1.3 : 1) * (this.storm ? 0.65 : 1));
   }
   get spawnPressure() {
-    // Six seconds of pressure, followed by three seconds to collect and reposition.
-    return this.waveTime % 9 < 6 ? 1 : 0.3;
+    // Seven seconds of pressure, then two seconds of reduced reinforcements.
+    return this.waveTime % 9 < 7 ? 1 : 0.55;
   }
   updateNightEvents(dt) {
     if (this.eventWave !== this.wave) {
@@ -7591,6 +7612,7 @@ class mi {
       bossMode: 0,
       bossPattern: "ring",
       patternIndex: 0,
+      signatureAge: 0, signatureStep: 0, signaturePhase: 1,
       windupMax: 1,
       phaseFlash: 0,
       beamTick: 0,
@@ -7612,10 +7634,10 @@ class mi {
         (this.maxEnemyRadius = Math.max(this.maxEnemyRadius, U.radius));
     }
     // t141: Eliten und Bosse deutlich zäher und härter
-    A === 7 && ((i.hp = i.maxHp *= DV("balance", "elitelp") ?? 1.5), (i.damage *= DV("balance", "eliteschaden") ?? 1.5));
+    A === 7 && ((i.hp = i.maxHp *= DV("balance", "elitelp") ?? 1.9), (i.damage *= DV("balance", "eliteschaden") ?? 1.5));
     return (
       A >= 8 &&
-        ((i.hp = i.maxHp = Q.hp * (1 + Math.max(0, this.wave - 20) * 0.2) * this.rules.bossHp * (DV("balance", "bosslp") ?? 1.4)),
+        ((i.hp = i.maxHp = Q.hp * (1 + Math.max(0, this.wave - 20) * 0.2) * this.rules.bossHp * (DV("balance", "bosslp") ?? 2.4) * (this.coop ? 1.65 : 1)),
         (i.damage *= DV("balance", "bossschaden") ?? 1.5),
         (i.cd = 2),
         (i.spawn = i.spawnMax = E ? 0 : 1.8)),
@@ -7668,6 +7690,69 @@ class mi {
       this.fx.glow(A, g - 10, B * 0.9, "#ffd9b0", 0.08),
       (this.shake = Math.max(this.shake, E ? 8 : 5)),
       this.audio.sound("boss_slam", E ? 1 : 1.15, E ? 1 : 0.7, this.pan(A));
+  }
+  bossMark(x, y, radius, delay, damage, boss, duration = 0.35) {
+    const mark = { x: V(x, -ARX + 20, ARX - 20), y: V(y, this.yMid - ARY + 20, this.yMid + ARY - 20),
+      r: radius, delay, warnDelay: delay, life: delay + duration, max: delay + duration,
+      damage, enemy: true, tick: 0, color: z[boss.type].color, style: "boss-slam", sourceBoss: boss };
+    this.zones.push(mark);
+    return mark;
+  }
+  prepareBossSignature(boss, phase) {
+    boss.signaturePhase = phase;
+    if (boss.bossPattern !== "scrapcross") return;
+    // Lock the cross at warning time. Moving out of its arms always remains possible.
+    const x = this.player.x, y = this.player.y, angle = phase > 1 ? Math.PI / 4 : 0;
+    for (let axis = 0; axis < 2; axis++) {
+      const a = angle + axis * Math.PI / 2;
+      for (let n = -3; n <= 3; n++) {
+        if (axis && n === 0) continue;
+        this.bossMark(x + Math.cos(a) * n * 95, y + Math.sin(a) * n * 95,
+          54, boss.windupMax + Math.abs(n) * 0.18, boss.damage * 0.8, boss);
+      }
+    }
+  }
+  updateBossSignature(boss, dt) {
+    boss.signatureAge += dt; boss.timer -= dt;
+    const phase = boss.signaturePhase, pattern = boss.bossPattern;
+    if (pattern === "furnace") {
+      const count = phase + 2;
+      while (boss.signatureStep < count && boss.signatureAge >= boss.signatureStep * 0.5) {
+        const step = boss.signatureStep++, gap = boss.aim,
+          bullets = 22 + phase * 4;
+        for (let n = 0; n < bullets; n++) {
+          const a = n * Math.PI * 2 / bullets + step * 0.09;
+          if (Math.abs(fA(a, gap)) < 0.42) continue;
+          this.shoot(boss.x + Math.cos(a) * (boss.r + 18), boss.y + Math.sin(a) * (boss.r + 18),
+            a, 190 + step * 24, boss.damage * 0.65, 4, true, "#ff945c", 0, 7);
+        }
+        this.audio.sound("boss_ring", 0.7, 1, this.pan(boss.x));
+      }
+    } else if (pattern === "moonhunt") {
+      while (boss.signatureStep < 3 && boss.signatureAge >= boss.signatureStep * 0.6) {
+        boss.signatureStep++;
+        this.forActors(() => {
+          if (this.player.hp <= 0) return;
+          this.bossMark(this.player.x, this.player.y, 95 + phase * 8, 0.9, boss.damage * 0.75, boss);
+        });
+      }
+    } else if (pattern === "crossbeam") {
+      // The initial aim is frozen during warning, then the cross turns slowly.
+      boss.aim += dt * (0.19 + phase * 0.035);
+      boss.beamTick -= dt;
+      if (boss.beamTick > 0) return;
+      boss.beamTick = 0.07;
+      for (let n = 0; n < 4; n++) {
+        const a = boss.aim + n * Math.PI / 2, dx = Math.cos(a), dy = Math.sin(a);
+        this.beam(boss.x + dx * (boss.r + 8), boss.y + dy * (boss.r + 8),
+          boss.x + dx * 720, boss.y + dy * 720, "#ff526d", 18, 0.095);
+        this.forActors(() => {
+          const x = this.player.x - boss.x, y = this.player.y - boss.y, along = x * dx + y * dy;
+          if (along > boss.r && along < 720 && Math.abs(x * dy - y * dx) < 24)
+            this.hurt(boss.damage * 0.7, boss.x, boss.y);
+        });
+      }
+    }
   }
   bossExtraPattern(A, g) {
     const B = this.player,
@@ -7816,7 +7901,9 @@ class mi {
     // Saft: über dem Effekt-Budget nur die Kosmetik weglassen – Schaden, Rückstoß und Tod zählen immer.
     const fxOk = this.procBudget-- > 0;
     const C = o && Math.random() < this.stats.crit,
-      Q = g * (C ? 2 : 1) * (A.type === 7 && A.elite === 3 ? 0.65 : 1);
+      // Boss armour is readable in the HUD; exhaustion is the damage window.
+      Q = g * (C ? 2 : 1) * (A.type === 7 && A.elite === 3 ? 0.65 : 1) *
+        (A.type >= 8 ? A.bossMode === 3 ? 1.15 : 0.75 : 1);
     (A.hp -= Q), (A.flash = 0.1), (A.hitA = B);
     const a = (E + (o ? 35 : 0)) * (C ? 1.55 : 1) * (A.type >= 8 ? 0.15 : A.type === 7 ? 0.65 : 1);
     (A.vx += Math.cos(B) * a),
@@ -9067,14 +9154,14 @@ class mi {
       (this.spawnTimer -= E),
       this.spawnTimer <= 0 && this.waveTime < this.waveLength - 2 && !this.bossWave && this.enemies.count < this.enemyLimit)
     ) {
-      const C = Math.min(7, 1 + Math.floor(this.wave / 3)),
+      const C = Math.min(7, 1 + Math.floor(this.wave / 2)),
         Q = Math.min(4, 1 + Math.floor(this.wave / 5));
       for (let a = 0; a < Q; a++) {
         let t = Math.random() < 0.42 ? 0 : Math.floor(p(0, C));
         this.spawn(t);
       }
       this.spawnTimer =
-        Math.max(0.55, 1.05 - this.wave * 0.018) / (this.danger ? 1.15 : 1) / this.enemyFactor("density") / this.spawnPressure / (this.storm ? 0.6 : 1);
+        Math.max(0.55, 0.85 - this.wave * 0.014) / (this.danger ? 1.15 : 1) / this.enemyFactor("density") / this.spawnPressure / (this.storm ? 0.6 : 1);
     }
     if (
       ((this.formationTimer -= E),
@@ -12567,8 +12654,15 @@ class FC {
                 g.closePath(),
                 (g.fillStyle = I + "35"),
                 g.fill());
+          } else if (i.bossPattern === "crossbeam") {
+            for (let n = 0; n < 4; n++) {
+              g.save(); g.rotate(i.aim + n * Math.PI / 2);
+              g.fillStyle = "#ff244f24"; g.fillRect(i.r, -24, 720 - i.r, 48);
+              g.strokeStyle = "#ff8997"; g.lineWidth = 2; g.setLineDash([12, 9]);
+              g.strokeRect(i.r, -24, 720 - i.r, 48); g.restore();
+            }
           } else
-            i.bossPattern === "ring" &&
+            (i.bossPattern === "ring" || i.bossPattern === "furnace") &&
               (g.rotate(i.aim),
               B.line(i.r + 20, -30, i.r + 125, -55, "#e4efffa0", 2),
               B.line(i.r + 20, 30, i.r + 125, 55, "#e4efffa0", 2));
@@ -14789,8 +14883,8 @@ class wC {
           U.bossMode === 1
             ? mB[U.bossPattern] + " · AUSWEICHEN"
             : U.bossMode === 3
-              ? "ERSCHÖPFT · JETZT ANGREIFEN"
-              : "",
+              ? "ERSCHÖPFT · +15 % TREFFERSCHADEN"
+              : U.bossMode === 4 ? "SPEZIALANGRIFF · PANZERUNG AKTIV" : "PANZERUNG · −25 % TREFFERSCHADEN",
         ),
         o("boss-phase", "PHASE " + Math.max(1, U.state) + " / 3");
       const Y = document.getElementById("boss-hp");

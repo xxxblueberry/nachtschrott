@@ -33,7 +33,7 @@ und danach `git checkout src/` ausführen.
 
 ## Nachtschicht-Update
 
-- Gegnerlimit: `enemyLimit`; Spawn-Rhythmus: `spawnPressure` (6 s Druck / 3 s reduzierte Spawns).
+- Gegnerlimit: `enemyLimit`; Spawn-Rhythmus: `spawnPressure` (7 s Druck / 2 s reduzierte Spawns).
 - Eliten: Wellen 5, 10, 15. Abschlussboss: 20; Endlos danach alle 10 Wellen.
 - Schrottsturm: Wellen 4, 8, 12, 16 (im Endlosmodus alle vier Nicht-Boss-Wellen).
   Drei Sekunden Warnung, zehn Sekunden Schrumpfen, vier Sekunden Halten,
@@ -57,3 +57,21 @@ Mit derselben Bildschirmgröße und denselben Gegnern vergleichen. Headless-
 Messungen sind keine FPS-Garantie für einen Spieler-PC. Der Start erzeugt keine
 stumme Synthesemusik mehr; Musik-Fallback wird nur bei Ladefehlern in kleinen
 Abschnitten aufgebaut. Audio-Bänke laden mit zwei Decodier-Aufgaben gleichzeitig.
+
+### Bossmuster und Schwierigkeitskorrektur
+
+Vier Bosse haben eigene angekündigte Spezialangriffe: Schrottkreuz mit freien
+Quadranten, Ofenringe mit einer Lücke, drei verzögerte Mondjagd-Einschläge und
+ein langsam rotierendes Strahlenkreuz. Phasenwechsel entfernen noch ausstehende
+Bodenwarnungen. Während der Erschöpfung erhalten Bosse 115 % Schaden, sonst
+75 %. Koop erhöht ihre Lebenspunkte zusätzlich um den Faktor 1,65.
+
+`node tools/tests/bosses.cjs` prüft Muster, Warnzeiten, sichere Bereiche,
+Phasenwechsel, Schadensfenster und Pause. Die bestehenden Nightshift-Tests
+prüfen weiterhin Gegnerlimits, Sturm und Rundenabschluss.
+
+Ein fester Vergleichsbuild mit sechs Stufe-IV-Waffen benötigte lokal ungefähr
+32–55 statt 16–22 Sekunden pro Boss. Das ist ein automatisierter DPS-Vergleich
+mit Unverwundbarkeit, keine Aussage über die Schwierigkeit sämtlicher Builds.
+Das Normal-Balancing erhöht Gegner-LP und Angriffsdruck; die Gegnerlimits bleiben
+bestehen. Weitere Feinabstimmung sollte anhand echter Läufe erfolgen.
