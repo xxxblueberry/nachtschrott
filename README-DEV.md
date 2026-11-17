@@ -75,3 +75,22 @@ Ein fester Vergleichsbuild mit sechs Stufe-IV-Waffen benötigte lokal ungefähr
 mit Unverwundbarkeit, keine Aussage über die Schwierigkeit sämtlicher Builds.
 Das Normal-Balancing erhöht Gegner-LP und Angriffsdruck; die Gegnerlimits bleiben
 bestehen. Weitere Feinabstimmung sollte anhand echter Läufe erfolgen.
+
+### Phasen, Level und Lebensraub
+
+Boss-LP skalieren beim Spawn mit sqrt(Spielerlevel / 20), begrenzt auf
+0,85–2,5. Der Schadensfaktor steigt langsamer (sqrt dieses Faktors, 0,95–1,35).
+Im Koop zählt das höchste Spielerlevel zusätzlich zum bestehenden Koop-Faktor.
+Während des Kampfes wird nicht nachskaliert.
+
+Schaden stoppt bei 67 % und 34 % Boss-LP, bis die aktuelle Phase mindestens
+sechs Sekunden gedauert und ihren Spezialangriff beendet hat. Phase 3 schützt
+entsprechend den letzten LP. Jede Phase beginnt mit dem eigenen Spezialangriff;
+Phasenschutz wird im HUD benannt. Kein überschüssiger Schaden wird gespeichert.
+
+Lebensraub zählt tatsächlichen Schaden ohne Overkill und hat je Spieler einen
+waffenübergreifenden Puffer von 1 LP. Er regeneriert mit 2 % der maximalen LP
+pro Simulationssekunde, höchstens 3 LP/Sek. Statusschaden heilt weiterhin nicht.
+Regeneration und Heilgegenstände bleiben eigenständige Quellen. Die Boss-Tests
+prüfen nun auch extremen Burst durch alle drei Phasen, begrenzte Levelskalierung
+und 1.000 gleichzeitige sowie 6.000 anhaltende Lebensraubtreffer.
