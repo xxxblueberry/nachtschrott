@@ -1,4 +1,4 @@
-const CACHE = "nachtschrott-boss-pressure-v3";
+const CACHE = "nachtschrott-phase-healing-v4";
 self.addEventListener("install", (event) =>
   event.waitUntil(
     caches

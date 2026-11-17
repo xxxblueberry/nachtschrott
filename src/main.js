@@ -2233,7 +2233,7 @@ const $A = [
     { stat: "economy", amount: 7, name: "Schrottdividende", benefits: "Ernte nach jeder Welle" },
   ],
   Lo =
-    "Gleiche Werte addieren sich. Tempo und Schaden skalieren multiplikativ mit der Basis. Rüstung: Schaden × 100 / (100 + 5 × Rüstung). Kritisch: ×2. Lebensraub nur auf direkte Treffer (max. 4 LP pro Treffer). Blutung: max. 5 Stapel, 3 Sek.; Abpraller: max. 5, Blitzsprünge: max. 12, Projektile: max. 12. Explosionsketten: max. 2 Generationen, max. 90 ausgelöste Treffer pro Simulationsschritt. Statuseffekte lösen keinen Lebensraub, keine Krits und keine Blutung aus. Spieltempo und Kameraimpulse sind unabhängig voneinander.";
+    "Gleiche Werte addieren sich. Tempo und Schaden skalieren multiplikativ mit der Basis. Rüstung: Schaden × 100 / (100 + 5 × Rüstung). Kritisch: ×2. Lebensraub nur auf tatsächlich verursachten direkten Schaden: max. 1 LP pro Treffer; gemeinsam für alle Waffen max. 2 % der maximalen LP pro Sekunde (höchstens 3 LP/Sek., Puffer 1 LP). Blutung: max. 5 Stapel, 3 Sek.; Abpraller: max. 5, Blitzsprünge: max. 12, Projektile: max. 12. Explosionsketten: max. 2 Generationen, max. 90 ausgelöste Treffer pro Simulationsschritt. Statuseffekte lösen keinen Lebensraub, keine Krits und keine Blutung aus. Spieltempo und Kameraimpulse sind unabhängig voneinander.";
 j.push(
   {
     id: "poison",
@@ -5770,11 +5770,12 @@ const wi = {
 function Ki(e, A, g) {
   const B = e.player,
     E = Math.atan2(B.y - A.y, B.x - A.x),
-    o = A.hp / A.maxHp < 0.35 ? 3 : A.hp / A.maxHp < 0.68 ? 2 : 1,
+    o = !A.state ? 1 : A.state < 3 && A.hp / A.maxHp <= (A.state === 1 ? 0.67 : 0.34) + 1e-9 && A.phaseAge >= 6 && A.signatureDone ? A.state + 1 : A.state,
     i = z[A.type].color;
   if (((A.phaseFlash = Math.max(0, A.phaseFlash - g)), A.state !== o)) {
     const a = A.state;
     (A.state = o),
+      (A.phaseAge = 0), (A.signatureDone = false), (A.patternIndex = 0),
       (A.phaseFlash = 1),
       (A.bossMode = 0),
       (A.timer = 0),
@@ -5800,12 +5801,13 @@ function Ki(e, A, g) {
         }),
         e.particle(A.x, A.y, i, 26, 1.2, 1));
   }
+  A.phaseAge = (A.phaseAge || 0) + g;
   let I = A.speed * (o === 3 ? 1.2 : 1),
     C = Math.cos(E),
     Q = Math.sin(E);
   if (A.bossMode === 4) {
     e.updateBossSignature(A, g);
-    if (A.timer <= 0) { A.bossMode = 3; A.timer = 1.05; }
+    if (A.timer <= 0) { A.signatureDone = true; A.bossMode = 3; A.timer = 1.05; }
     return { speed: 0, mx: C, my: Q };
   }
   if (A.bossMode === 0 && A.cd <= 0) {
@@ -6840,6 +6842,7 @@ class mi {
       bossPattern: "ring",
       patternIndex: 0,
       signatureAge: 0, signatureStep: 0, signaturePhase: 1,
+      phaseAge: 0, signatureDone: false,
       windupMax: 1,
       phaseFlash: 0,
       beamTick: 0,
@@ -7398,6 +7401,21 @@ class mi {
   selectDifficulty(A) {
     return !Number.isInteger(A) || A < 0 || A > this.maxDifficulty() ? !1 : ((this.difficulty = A), !0);
   }
+  // One shared recovery budget per player, independent of weapon/projectile count.
+  lifeSteal(damage) {
+    if (!(damage > 0) || !(this.stats.lifesteal > 0) || this.player.hp <= 0) return;
+    const rate = Math.min(3, this.stats.hp * 0.02), now = this.runTime, p = this.player;
+    p.leechBudget = Math.min(1, (p.leechBudget ?? 1) + Math.max(0, now - (p.leechTime ?? now)) * rate);
+    p.leechTime = now;
+    const amount = Math.min(1, damage * this.stats.lifesteal, p.leechBudget);
+    const healed = this.heal(amount);
+    p.leechBudget = Math.max(0, p.leechBudget - healed);
+  }
+  bossLevelScale() {
+    const levels = [this.level];
+    if (this.coop) this.forActors(() => levels.push(this.level));
+    return V(Math.sqrt(Math.max(1, ...levels) / 20), 0.85, 2.5);
+  }
   heal(A) {
     if (this.coop && this.player.hp <= 0) return 0;
     const g = this.player.hp;
@@ -7613,6 +7631,7 @@ class mi {
       bossPattern: "ring",
       patternIndex: 0,
       signatureAge: 0, signatureStep: 0, signaturePhase: 1,
+      phaseAge: 0, signatureDone: false,
       windupMax: 1,
       phaseFlash: 0,
       beamTick: 0,
@@ -7637,8 +7656,8 @@ class mi {
     A === 7 && ((i.hp = i.maxHp *= DV("balance", "elitelp") ?? 1.9), (i.damage *= DV("balance", "eliteschaden") ?? 1.5));
     return (
       A >= 8 &&
-        ((i.hp = i.maxHp = Q.hp * (1 + Math.max(0, this.wave - 20) * 0.2) * this.rules.bossHp * (DV("balance", "bosslp") ?? 2.4) * (this.coop ? 1.65 : 1)),
-        (i.damage *= DV("balance", "bossschaden") ?? 1.5),
+        ((i.hp = i.maxHp = Q.hp * (1 + Math.max(0, this.wave - 20) * 0.2) * this.rules.bossHp * (DV("balance", "bosslp") ?? 2.4) * (this.coop ? 1.65 : 1) * this.bossLevelScale()),
+        (i.damage *= (DV("balance", "bossschaden") ?? 1.5) * V(Math.sqrt(this.bossLevelScale()), 0.95, 1.35)),
         (i.cd = 2),
         (i.spawn = i.spawnMax = E ? 0 : 1.8)),
       i
@@ -7900,10 +7919,19 @@ class mi {
     if (!A.active || A.spawn > 0) return;
     // Saft: über dem Effekt-Budget nur die Kosmetik weglassen – Schaden, Rückstoß und Tod zählen immer.
     const fxOk = this.procBudget-- > 0;
-    const C = o && Math.random() < this.stats.crit,
+    const C = o && Math.random() < this.stats.crit;
+    const hpBefore = A.hp;
+    let
       // Boss armour is readable in the HUD; exhaustion is the damage window.
       Q = g * (C ? 2 : 1) * (A.type === 7 && A.elite === 3 ? 0.65 : 1) *
         (A.type >= 8 ? A.bossMode === 3 ? 1.15 : 0.75 : 1);
+    if (A.type >= 8) {
+      const phase = Math.max(1, A.state);
+      const floor = phase === 1 ? A.maxHp * 0.67 : phase === 2 ? A.maxHp * 0.34 :
+        (!A.signatureDone || A.phaseAge < 6 ? 1 : 0);
+      Q = Math.min(Q, Math.max(0, A.hp - floor));
+    }
+    Q = Math.min(Q, Math.max(0, hpBefore));
     (A.hp -= Q), (A.flash = 0.1), (A.hitA = B);
     const a = (E + (o ? 35 : 0)) * (C ? 1.55 : 1) * (A.type >= 8 ? 0.15 : A.type === 7 ? 0.65 : 1);
     (A.vx += Math.cos(B) * a),
@@ -7913,7 +7941,7 @@ class mi {
     if (!fxOk) {
       (this.runDamage += Q),
         o &&
-          (this.stats.lifesteal && this.heal(Math.min(4, Q * this.stats.lifesteal)),
+          (this.lifeSteal(Q),
           this.stats.bleed > 0 &&
             ((A.bleed = Math.min(this.stats.bleed * 5, A.bleed + this.stats.bleed)),
             (A.bleedTime = 3),
@@ -7938,7 +7966,7 @@ class mi {
       this.particle(A.x, A.y, C ? "#ffdc76" : z[A.type].color, C ? 6 : 2, 0.65),
       o &&
         (this.audio.sound(C ? "crit" : "hit_" + CB[t], A.type >= 8 ? 0.85 : 1, 1, this.pan(A.x)),
-        this.stats.lifesteal && this.heal(Math.min(4, Q * this.stats.lifesteal)),
+        this.lifeSteal(Q),
         this.stats.bleed > 0 &&
           ((A.bleed = Math.min(this.stats.bleed * 5, A.bleed + this.stats.bleed)),
           (A.bleedTime = 3),
@@ -14880,13 +14908,15 @@ class wC {
       o("boss-name", z[U.type].name),
         o(
           "boss-pattern",
-          U.bossMode === 1
+          U.hp <= (U.state < 3 ? U.maxHp * (U.state === 2 ? 0.34 : 0.67) : 1) + 1e-7
+            ? "PHASENSCHUTZ · " + (mB[U.bossPattern] || "ANGRIFF AUSWEICHEN")
+            : U.bossMode === 1
             ? mB[U.bossPattern] + " · AUSWEICHEN"
             : U.bossMode === 3
               ? "ERSCHÖPFT · +15 % TREFFERSCHADEN"
               : U.bossMode === 4 ? "SPEZIALANGRIFF · PANZERUNG AKTIV" : "PANZERUNG · −25 % TREFFERSCHADEN",
         ),
-        o("boss-phase", "PHASE " + Math.max(1, U.state) + " / 3");
+        o("boss-phase", "PHASE " + Math.max(1, U.state) + " / 3 · " + ["", "AUFTAKT", "ESKALATION", "ÜBERLASTUNG"][Math.max(1, U.state)]);
       const Y = document.getElementById("boss-hp");
       Y && (Y.style.width = Math.max(0, (U.hp / U.maxHp) * 100) + "%");
     }

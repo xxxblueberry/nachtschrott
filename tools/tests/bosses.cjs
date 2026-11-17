@@ -21,14 +21,14 @@ const assert = require('node:assert/strict');
    assert(b.bossMode===4,'special active '+type);
    for(let i=0;i<190;i++)g.updateEnemy(b,1/60);
    assert(b.bossMode!==4,'finite attack '+type);
-   b.hp=b.maxHp*.6;g.updateEnemy(b,.01);assert(b.state===2,'phase 2 '+type);
-   b.hp=b.maxHp*.3;g.updateEnemy(b,.01);assert(b.state===3,'phase 3 '+type);
+   b.phaseAge=6;b.signatureDone=true;b.hp=b.maxHp*.6;g.updateEnemy(b,.01);assert(b.state===2,'phase 2 '+type);
+   b.phaseAge=6;b.signatureDone=true;b.hp=b.maxHp*.3;g.updateEnemy(b,.01);assert(b.state===3,'phase 3 '+type);
   }
   results.push('All four distinct openings, warnings, active phases and phase transitions');
   let b=start(8);b.windupMax=1.4;b.bossPattern='scrapcross';g.prepareBossSignature(b,1);
   const marks=g.zones.filter(z=>z.sourceBoss===b);assert(marks.length===13,'cross mark count');assert(marks.every(z=>z.delay>=1.4&&z.r===54),'exact warning areas');
   g.player.x=150;g.player.y=150;assert(marks.every(z=>Math.hypot(g.player.x-z.x,g.player.y-z.y)>z.r+11),'escape quadrant');
-  b.hp=b.maxHp*.6;g.updateEnemy(b,.01);assert(!g.zones.some(z=>z.sourceBoss===b&&z.delay>0),'cancel old phase warnings');results.push('Cross shape, reachable safe quadrant, phase cleanup');
+  b.phaseAge=6;b.signatureDone=true;b.hp=b.maxHp*.6;g.updateEnemy(b,.01);assert(!g.zones.some(z=>z.sourceBoss===b&&z.delay>0),'cancel old phase warnings');results.push('Cross shape, reachable safe quadrant, phase cleanup');
   b=start(9);b.bossPattern='furnace';b.signaturePhase=3;b.signatureAge=0;b.signatureStep=0;b.timer=2.8;b.aim=.7;
   g.updateBossSignature(b,.01);let first=g.projectiles.count;assert(first>15&&first<34,'ring with gap');
   g.projectiles.each(p=>{let a=Math.atan2(p.vy,p.vx)-b.aim;a=Math.atan2(Math.sin(a),Math.cos(a));assert(Math.abs(a)>=.42,'escape gap unobstructed')});
@@ -42,6 +42,25 @@ const assert = require('node:assert/strict');
   b=start(8);g.stats.crit=0;g.procBudget=100;b.bossMode=4;let hp0=b.hp;g.hit(b,100,0,0,false);const active=hp0-b.hp;
   b.bossMode=3;hp0=b.hp;g.hit(b,100,0,0,false);const exposed=hp0-b.hp;
   assert(Math.abs(active-75)<.001&&Math.abs(exposed-115)<.001,'armour and punish window');results.push('75% active damage and 115% exhaustion damage');
+  b=start(8);g.procBudget=10000;g.stats.crit=0;g.stats.lifesteal=1;g.player.hp=10;
+  const seen=new Set();
+  for(let frame=0;frame<1600&&b.active;frame++){
+   g.hit(b,1e9,0,0,false);g.updateEnemy(b,1/60);seen.add(b.state);
+  }
+  assert(seen.has(1)&&seen.has(2)&&seen.has(3)&&!b.active,'burst damage cannot skip phases or prevent victory');
+  results.push('Extreme burst still plays all three phases and permits victory');
+  g.start(0,'nailer',0);g.wave=20;g.level=20;let base=g.spawn(8,200,0,true).maxHp;
+  g.level=80;let scaled=g.spawn(8,200,0,true);assert(Math.abs(scaled.maxHp/base-2)<.001,'level scales boss HP');
+  g.level=2000;assert(g.bossLevelScale()===2.5,'bounded level scaling');assert(scaled.maxHp===base*2,'no midfight scaling');
+  results.push('Level scaling fixed at spawn and bounded');
+  g.start(0,'nailer',0);g.stats.hp=100;g.player.hp=10;g.stats.lifesteal=1;g.runTime=0;
+  for(let i=0;i<1000;i++)g.lifeSteal(100);
+  assert(g.player.hp===11,'all simultaneous hits share one LP buffer');
+  for(let i=1;i<=600;i++){g.runTime=i/60;for(let k=0;k<10;k++)g.lifeSteal(100)}
+  assert(g.player.hp<=31.001&&g.player.hp>30.9,'sustained life steal capped at two percent per second');
+  const hpHeal=g.player.hp;g.lifeSteal(0);assert(g.player.hp===hpHeal,'no healing without damage');
+  g.start(0,'nailer',0);g.stats.lifesteal=1;g.player.hp=10;g.lifeSteal(100);assert(g.player.hp===11,'new run resets budget');
+  results.push('Shared life-steal burst and sustained budgets; zero-damage and new-run checks');
   b=start(11);g.updateEnemy(b,.01);b.cd=0;g.updateEnemy(b,.01);n.ui.updateHUD(true);g.setPhase('pause');let timer=b.timer;step(.04);assert(b.timer===timer,'pause freezes special');g.setPhase('combat');
   return results;
  }));
