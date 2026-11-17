@@ -29,3 +29,31 @@ Das klappt nur, solange `index.html` aus dem aktuellen `src/` gebaut wurde (also
 Achtung: `split.py` überschreibt `src/*` mit dem Inhalt von `index.html`.
 Nach einem frischen Klon also nur die Assets brauchen? Dann `split.py` laufen lassen
 und danach `git checkout src/` ausführen.
+
+
+## Nachtschicht-Update
+
+- Gegnerlimit: `enemyLimit`; Spawn-Rhythmus: `spawnPressure` (6 s Druck / 3 s reduzierte Spawns).
+- Eliten: Wellen 5, 10, 15. Abschlussboss: 20; Endlos danach alle 10 Wellen.
+- Schrottsturm: Wellen 4, 8, 12, 16 (im Endlosmodus alle vier Nicht-Boss-Wellen).
+  Drei Sekunden Warnung, zehn Sekunden Schrumpfen, vier Sekunden Halten,
+  zwei Sekunden Abzug. Schaden nur an Spielern, einmal pro Sekunde außerhalb.
+- Arenen behalten IDs und Spielstände; der erste Hof heißt nun Schrotthof.
+- Desktop-Menühintergrund: `assets/menu-workshop.webp` muss mit veröffentlicht werden.
+
+### Browser-Funktionstest
+
+Benötigt Node.js, das Paket `playwright` und Chromium. Zunächst lokal auf Port
+5178 starten, dann `node tools/tests/nightshift.cjs` ausführen. Eine andere URL
+kann als erstes Argument übergeben werden; `CHROMIUM_PATH` überschreibt den
+Browserpfad. Optional speichert `SCREENSHOT_PATH` eine Sturm-Vorschau.
+Der Test verwendet einen isolierten Browser-Spielstand und prüft Gegnerlimits,
+Sturm/Schaden/Pause, Koop, Bossabschluss und Wiederaufnahme.
+
+### Performance-Prüfung
+
+`window.nachtschrott.metrics` enthält Frame-, Update- und Render-Zeiten.
+Mit derselben Bildschirmgröße und denselben Gegnern vergleichen. Headless-
+Messungen sind keine FPS-Garantie für einen Spieler-PC. Der Start erzeugt keine
+stumme Synthesemusik mehr; Musik-Fallback wird nur bei Ladefehlern in kleinen
+Abschnitten aufgebaut. Audio-Bänke laden mit zwei Decodier-Aufgaben gleichzeitig.

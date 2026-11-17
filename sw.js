@@ -1,4 +1,4 @@
-const CACHE = "nachtschrott-stage16-3";
+const CACHE = "nachtschrott-nightshift-v2";
 self.addEventListener("install", (event) =>
   event.waitUntil(
     caches
@@ -9,6 +9,7 @@ self.addEventListener("install", (event) =>
           "./index.html",
           "./manifest.webmanifest",
           "./icon.svg",
+          "./assets/menu-workshop.webp",
           "./icon-192.png",
           "./icon-512.png",
           "./licenses/pixelfx-LICENSE.txt",

@@ -77,13 +77,13 @@ const DEV_KEY = "nachtschrott-dev-v1",
       { k: "hitze", label: "Gatling: Sekunden bis Überhitzung", min: 2, max: 10, def: 4.6 },
       { k: "kuehl", label: "Gatling: Zwangspause (s)", min: 0.5, max: 3, def: 1.5 },
     ] },
-    { id: "balance", name: "Balance · Gegner & Stärke", hint: "t141: weniger, aber zähere Gegner; Spieler flacht spät ab (1 = wie Stufe 15.6)", items: [
+    { id: "balance", name: "Balance · Gegner & Stärke", hint: "Nachtschicht: begrenzte Wellen, Eliten 5/10/15, Boss 20", items: [
       { k: "menge", label: "Gegnermenge spät (ab Welle 12)", min: 0.3, max: 1.2, def: 0.6 },
       { k: "lpwelle", label: "LP-Zuwachs je Welle", min: 0.5, max: 2.5, def: 1.35 },
       { k: "schadenwelle", label: "Schadens-Zuwachs je Welle", min: 0.5, max: 2.5, def: 1.35 },
-      { k: "elitelp", label: "Elite: Lebenspunkte ×", min: 1, max: 5, def: 2.75 },
+      { k: "elitelp", label: "Elite: Lebenspunkte ×", min: 1, max: 5, def: 1.5 },
       { k: "eliteschaden", label: "Elite: Schaden ×", min: 1, max: 3, def: 1.5 },
-      { k: "bosslp", label: "Boss: Lebenspunkte ×", min: 1, max: 6, def: 3 },
+      { k: "bosslp", label: "Boss: Lebenspunkte ×", min: 1, max: 6, def: 1.4 },
       { k: "bossschaden", label: "Boss: Schaden ×", min: 1, max: 3, def: 1.5 },
       { k: "hoch", label: "Waffenschaden-Zuwachs Stufe V/VI", min: 0, max: 1, def: 0.5 },
       { k: "abflachung", label: "Abflachung hoher Werte (Schaden, Tempo, Projektile)", min: 0.1, max: 1, def: 0.45 },
@@ -123,6 +123,10 @@ try {
   raw && !(raw._v >= 3) && (["menge", "groesse", "deckkraft", "tempo", "drift"].forEach((k) => raw.menuFx?.[k] === 1 && delete raw.menuFx[k]), raw.licht?.flackern === 1 && delete raw.licht.flackern);
   // t156: Hit-Stop-Zeitlupe 0.05 (fast Standbild) wirkte als Ruckeln – alter Standard übernimmt den neuen (0.3).
   raw && !(raw._v >= 4) && raw.saft?.stopzeit === 0.05 && delete raw.saft.stopzeit;
+  if (raw && !(raw._v >= 5)) {
+    if (raw.balance?.elitelp === 2.75) delete raw.balance.elitelp;
+    if (raw.balance?.bosslp === 3) delete raw.balance.bosslp;
+  }
   DEV.v = devSanitize(raw);
 } catch {
   DEV.v = devDefaults();
@@ -209,7 +213,7 @@ function devAnimRate() {
 }
 function devSave() {
   try {
-    localStorage.setItem(DEV_KEY, JSON.stringify({ ...DEV.v, _v: 4 }));
+    localStorage.setItem(DEV_KEY, JSON.stringify({ ...DEV.v, _v: 5 }));
   } catch {}
 }
 function devIsPC() {
@@ -2448,10 +2452,10 @@ b.push(
   },
 );
 const IA = [
-    { id: "sonnenhof", name: "Sonnenhof", subtitle: "SONNE, STAUB UND ALTE ZIEGEL.", desc: "Sonniger Hof hinter Backsteinmauern: festgetretener Sand, ein Pflasterkreis in der Mitte, Kisten, Schuppen und Schubkarre in den Ecken. Heilblüten öffnen alle 10 Sek. eine heilende Zone. Endgegner: Der Schrottkönig.", boss: 8, color: "#f2b47e", floor: ["#b98b5a", "#d4a46e", "#5a4128"], mechanic: "Heilblüten · 4 LP / Sek.", env: "flower" },
+    { id: "sonnenhof", name: "Schrotthof", subtitle: "DEINE ERSTE NACHTSCHICHT.", desc: "Ein ruhiger Einstieg hinter Backsteinmauern: festgetretener Sand, ein Pflasterkreis in der Mitte, Kisten, Schuppen und Schubkarre in den Ecken. Heilblüten öffnen alle 10 Sek. eine heilende Zone. Endgegner: Der Schrottkönig.", boss: 8, color: "#f2b47e", floor: ["#b98b5a", "#d4a46e", "#5a4128"], mechanic: "Heilblüten · 4 LP / Sek.", env: "flower" },
     { id: "gleishof", name: "Gleishof", subtitle: "GÜTERWAGEN, BETON, KEIN ZUG KOMMT.", desc: "Verladehof an den Gleisen: helle Betonplatten, rostige Güterwagen und Holzzäune, Kisten und Fässer als Deckung. Rote Dampfventile kündigen sich an. Endgegner: Ofenherz.", boss: 9, color: "#e9a77a", floor: ["#9c958a", "#bdb5a6", "#4a453e"], mechanic: "Dampfventile · rote Vorwarnung", env: "vent" },
-    { id: "gartenhof", name: "Gartenhof", subtitle: "HECKEN, BÄUME, EIN TOR INS NICHTS.", desc: "Ummauerter Gartenhof mit Heckenrand, Bäumen, Gartenschuppen und Blumenbeeten. Heilblüten öffnen heilende Zonen. Endgegner: Mondmutter.", boss: 10, color: "#eab98c", floor: ["#6f7d3d", "#8b9a4c", "#2a3218"], mechanic: "Heilblüten · 4 LP / Sek.", env: "flower" },
-    { id: "montagehalle", name: "Montagehalle", subtitle: "LICHT VON OBEN, ÄRGER VON ÜBERALL.", desc: "Helle Werkhalle mit Spielfeldlinien, Werkbänken, Werkzeugschränken und Kistenstapeln. Sonnenlicht fällt durch die Fenster, Druckventile zischen. Endgegner: Nullpunkt.", boss: 11, color: "#efc39a", floor: ["#bfb4a6", "#d8cfc2", "#4c463f"], mechanic: "Druckventile · rote Vorwarnung", env: "vent" },
+    { id: "gartenhof", name: "Überwucherter Hof", subtitle: "DIE NATUR HOLT SICH DEN SCHROTT ZURÜCK.", desc: "Ummauerter Gartenhof mit Heckenrand, Bäumen, Gartenschuppen und Blumenbeeten. Heilblüten öffnen heilende Zonen. Endgegner: Mondmutter.", boss: 10, color: "#eab98c", floor: ["#6f7d3d", "#8b9a4c", "#2a3218"], mechanic: "Heilblüten · 4 LP / Sek.", env: "flower" },
+    { id: "montagehalle", name: "Montagehalle", subtitle: "LICHT VON OBEN, ÄRGER VON ÜBERALL.", desc: "Werkhalle im gedämpften Nachtlicht mit Spielfeldlinien, Werkbänken, Werkzeugschränken und Kistenstapeln. Restlicht fällt durch die Fenster, Druckventile zischen. Endgegner: Nullpunkt.", boss: 11, color: "#efc39a", floor: ["#bfb4a6", "#d8cfc2", "#4c463f"], mechanic: "Druckventile · rote Vorwarnung", env: "vent" },
     { id: "giesserei", name: "Gießerei", subtitle: "DER BODEN IST HEISS. DER RAND HEISSER.", desc: "Gießhalle aus Ziegel und Stein, unten fließt eine glühende Schmelzrinne. Gussblöcke als Deckung, Glutventile brechen auf. Endgegner: Ofenherz.", boss: 9, color: "#f08a5a", floor: ["#9a5a44", "#b8735a", "#3a2420"], mechanic: "Glutventile · rote Vorwarnung", env: "vent" },
     { id: "lokschuppen", name: "Lokschuppen", subtitle: "RUNDER SCHUPPEN, EIN ALTER KÖNIG.", desc: "Runder Lokschuppen mit Drehscheiben-Ring, Geländer, Pflanzen und Werkstattregalen. Rote Druckventile im Takt der Maschinen. Endgegner: Der Schrottkönig.", boss: 8, color: "#e8b48f", floor: ["#cdb49a", "#e2cdb4", "#4e4034"], mechanic: "Druckventile · rote Vorwarnung", env: "vent" },
     { id: "hafenkai", name: "Hafenkai", subtitle: "SALZ, KETTEN UND KALTES WASSER.", desc: "Hölzerner Kai über dem Hafenbecken, rundum Poller und Ketten, ein Kran und Kisten. Rote Nebelfelder bremsen – Sprint kontert. Endgegner: Nullpunkt.", boss: 11, color: "#e7a57b", floor: ["#b48d62", "#cfa77a", "#3e3022"], mechanic: "Rote Nebelfelder · Sprint kontert", env: "ice" },
@@ -3502,7 +3506,6 @@ class To {
         this.sfxBus.connect(this.reverbBus),
         this.reverbBus.connect(o),
         o.connect(this.out),
-        this.createMusic(),
         this.update(),
         this.loadBank("core").then(() => this.loadBank("combat"));
     }
@@ -3529,18 +3532,24 @@ class To {
     this.banks[A] = "loading";
     const g = Object.entries(bo.sounds).filter(([, E]) => E.bank === A);
     let B = 0;
-    await Promise.all(
-      g.map(async ([E, o]) => {
-        const i = [];
-        for (const I of o.files) {
-          const C = await this.fetchBuffer(I);
-          C ? i.push(C) : B++;
+    // Limit concurrent downloads/decodes: decoding every combat sound at once
+    // competes with the first frames of the round on desktop CPUs.
+    let next = 0;
+    const worker = async () => {
+      while (next < g.length) {
+        const [name, sound] = g[next++], buffers = [];
+        for (const file of sound.files) {
+          const buffer = await this.fetchBuffer(file);
+          buffer ? buffers.push(buffer) : B++;
+          await new Promise(resolve => setTimeout(resolve, 12));
         }
-        i.length && this.buffers.set(E, i);
-      }),
-    ),
-      (this.banks[A] = B && !g.some(([E]) => this.buffers.has(E)) ? "failed" : "ready");
+        if (buffers.length) this.buffers.set(name, buffers);
+      }
+    };
+    await Promise.all([worker(), worker()]);
+    this.banks[A] = B && !g.some(([name]) => this.buffers.has(name)) ? "failed" : "ready";
   }
+
   async fetchBuffer(A) {
     if (location.protocol === "file:") return;
     const g = this.ext === "ogg" ? ["ogg", "m4a"] : ["m4a"];
@@ -3566,7 +3575,14 @@ class To {
     const o = (i) => {
       if (this.musicKind !== A || !this.ctx) return;
       if (!i) {
-        A === "combat" && this.synthGain?.gain.setTargetAtTime(1, this.ctx.currentTime, 0.5);
+        if (A === "combat") {
+          // Generate fallback music only when the real track failed to load.
+          this.synthPromise ??= this.createMusic();
+          this.synthPromise.then(() => {
+            if (this.musicKind === "combat" && !this.musicTrack)
+              this.synthGain?.gain.setTargetAtTime(1, this.ctx.currentTime, 0.5);
+          }).catch(() => {});
+        }
         return;
       }
       const I = g.createBufferSource(),
@@ -3862,7 +3878,8 @@ class To {
       !0
     );
   }
-  createMusic() {
+  async createMusic() {
+    await new Promise(resolve => setTimeout(resolve, 0));
     const A = this.ctx,
       g = 24e3,
       B = 104,
@@ -3905,7 +3922,10 @@ class To {
           Y % 2 === 0 && a(c, E * 1.7, r(M + (Y === 14 ? 7 : 0)), 0.105, 0),
           Y % 4 === 2 && a(c, E * 3, r(M + 24 + h[(U * 2 + Y / 2) % 8]), 0.042, 2, U % 2 ? 0.45 : -0.45);
       }
-      for (const Y of [0, 3, 7]) a(U * 16 * E, E * 15, r(M + 12 + Y), 0.018, 2, Y === 0 ? -0.7 : 0.7);
+      for (const Y of [0, 3, 7]) {
+        a(U * 16 * E, E * 15, r(M + 12 + Y), 0.018, 2, Y === 0 ? -0.7 : 0.7);
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
     }
     for (let U = 0; U < C.length; U++) (C[U] = Math.tanh(C[U])), (Q[U] = Math.tanh(Q[U]));
     const s = A.createBufferSource();
@@ -5874,10 +5894,10 @@ function Ki(e, A, g) {
             e.fx.ring(s, U + 10, 8, 60, "#ff6a7a", 0.3, 3);
         }
       else a === "slam" && e.particle(A.x, A.y, i, 22, 1, 1);
-      e.bossExtraPattern(A, o),
+      e.runDifficulty > 0 && o >= 2 && e.bossExtraPattern(A, o),
         a === "charge" || a === "laser"
           ? ((A.bossMode = 2), (A.timer = a === "charge" ? 0.67 : 1.6), (A.beamTick = 0))
-          : ((A.bossMode = 3), (A.timer = 0.7));
+          : ((A.bossMode = 3), (A.timer = 1.35));
     }
   } else if (A.bossMode === 2) {
     if (((A.timer -= g), A.bossPattern === "charge"))
@@ -5918,7 +5938,7 @@ function Ki(e, A, g) {
     }
     A.timer <= 0 &&
       ((A.bossMode = 3),
-      (A.timer = 0.8),
+      (A.timer = 1.35),
       A.bossPattern === "charge" &&
         (e.zones.push({
           x: A.x,
@@ -5938,7 +5958,7 @@ function Ki(e, A, g) {
         e.fx.smoke(A.x, A.y + A.r * 0.5, 5, A.r * 0.4, "#6d625b", "#f2cfa8", 1, A.r, 0, -10)));
   } else
     A.bossMode === 3 &&
-      ((I = 0), (A.timer -= g), A.timer <= 0 && ((A.bossMode = 0), (A.cd = 2.3 - o * 0.25)));
+      ((I = 0), (A.timer -= g), A.timer <= 0 && ((A.bossMode = 0), (A.cd = 2.8 - o * 0.2)));
   return { speed: I, mx: C, my: Q };
 }
 const $ = [
@@ -6655,19 +6675,19 @@ const Dg = (e) => Si(e, 9) - 4,
       xpBase: 20,
       xpPerWave: 12,
       name: "Normal",
-      subtitle: "Schon die erste Nacht beißt.",
+      subtitle: "Lerne die Nacht. Baue deinen eigenen Werkzeugkasten.",
       color: "#e6dcc6",
-      hp: 1.12,
-      damage: 1.12,
-      speed: 1.18,
-      density: 1.22,
-      elites: 1.5,
-      bossHp: 1.35,
-      healing: 0.9,
-      economy: 0.92,
+      hp: 1,
+      damage: 1,
+      speed: 1.03,
+      density: 1,
+      elites: 1,
+      bossHp: 1.15,
+      healing: 1,
+      economy: 1,
       prices: 1,
-      waveHeal: 0.08,
-      formationInterval: 12,
+      waveHeal: 0.12,
+      formationInterval: 16,
       patterns: 1,
     },
     {
@@ -6688,7 +6708,7 @@ const Dg = (e) => Si(e, 9) - 4,
       economy: 0.82,
       prices: 1.08,
       waveHeal: 0.06,
-      formationInterval: 10,
+      formationInterval: 14,
       patterns: 2,
     },
     {
@@ -6709,7 +6729,7 @@ const Dg = (e) => Si(e, 9) - 4,
       economy: 0.72,
       prices: 1.16,
       waveHeal: 0.04,
-      formationInterval: 8,
+      formationInterval: 12,
       patterns: 3,
     },
   ],
@@ -7093,6 +7113,7 @@ class mi {
       this.coop.activate(0), (this.character = E[0]), (this.hubPartner = this.makePartner(E[1], 0, 0, !1));
     }
     A.partner !== void 0 && (this.hubPartner = this.makePartner(A.partner, 0, 0, !0)),
+      (this.eventWave = 0), (this.storm = null),
       (this.coop = void 0),
       this.blades.clear(),
       this.enemies.clear(),
@@ -7295,6 +7316,57 @@ class mi {
     const m = DV("balance", "menge") ?? 0.6;
     return 1 - (1 - m) * V((w - 3) / 9, 0, 1);
   }
+  get enemyLimit() {
+    if (this.bossWave) return 14;
+    const base = Math.min(170, 30 + this.wave * 7 + this.runDifficulty * 15);
+    return Math.round(base * (this.coop ? 1.3 : 1) * (this.storm ? 0.65 : 1));
+  }
+  get spawnPressure() {
+    // Six seconds of pressure, followed by three seconds to collect and reposition.
+    return this.waveTime % 9 < 6 ? 1 : 0.3;
+  }
+  updateNightEvents(dt) {
+    if (this.eventWave !== this.wave) {
+      this.eventWave = this.wave;
+      this.storm = null;
+      this.stormDone = false;
+      this.eliteArrived = false;
+    }
+    if (this.bossWave || this.climb) { this.storm = null; return; }
+    if ([5, 10, 15].includes(this.wave) && !this.eliteArrived && this.waveTime >= 8) {
+      if (this.spawn(7)) {
+        this.eliteArrived = true;
+        this.onToast("ELITE · Lies den Angriff und nutze die Pause.");
+      }
+    }
+    if (this.wave % 4 !== 0 || this.wave < 4) return;
+    if (!this.stormDone && !this.storm && this.waveTime >= 10) {
+      // Anchor to a reachable player position. Co-op receives a larger shared refuge.
+      const center = { x: this.player.x, y: this.player.y };
+      const actors = this.coop ? this.coop.actors.map(a => a.player).filter(p => p.hp > 0) : [this.player];
+      const spread = Math.max(0, ...actors.map(p => Math.hypot(p.x - center.x, p.y - center.y)));
+      const end = Math.max(this.coop ? 360 : 290, spread + 80);
+      this.storm = { ...center, age: 0, tick: 1, start: Math.max(750, end + 350), end, r: Math.max(750, end + 350) };
+      this.stormDone = true;
+      this.audio.sound("boss_warn", 0.7, 0.7);
+    }
+    const z = this.storm;
+    if (!z) return;
+    z.age += dt;
+    const shrink = V((z.age - 3) / 10, 0, 1), release = V((z.age - 17) / 2, 0, 1);
+    z.r = z.start + (z.end - z.start) * shrink * (1 - release);
+    if (z.age >= 19) { this.storm = null; return; }
+    if (z.age >= 3 && z.age < 17) {
+      z.tick -= dt;
+      if (z.tick <= 0) {
+        z.tick = 1;
+        this.forActors(() => {
+          if (Math.hypot(this.player.x - z.x, this.player.y - z.y) > z.r)
+            this.hurt(Math.max(3, this.stats.hp * 0.04));
+        });
+      }
+    }
+  }
   enemyFactor(A) {
     const g = V((this.wave - 1) / 7, 0, 1);
     return gA[0][A] + (this.rules[A] - gA[0][A]) * g;
@@ -7314,6 +7386,7 @@ class mi {
     );
   }
   start(A = this.character, g = this.startWeapon, B = this.difficulty) {
+    this.eventWave = 0; this.storm = null;
     (this.coop = void 0),
       this.blades.clear(),
       (this.runTalents = { ...this.save.data.talents }),
@@ -7433,6 +7506,7 @@ class mi {
     );
   }
   spawn(A, g, B, E = !1, o) {
+    if (A < 8 && this.enemies.count >= this.enemyLimit) return;
     const i = this.enemies.get();
     if (!i) return;
     let I = p(0, Math.PI * 2),
@@ -7538,10 +7612,10 @@ class mi {
         (this.maxEnemyRadius = Math.max(this.maxEnemyRadius, U.radius));
     }
     // t141: Eliten und Bosse deutlich zäher und härter
-    A === 7 && ((i.hp = i.maxHp *= DV("balance", "elitelp") ?? 2.75), (i.damage *= DV("balance", "eliteschaden") ?? 1.5));
+    A === 7 && ((i.hp = i.maxHp *= DV("balance", "elitelp") ?? 1.5), (i.damage *= DV("balance", "eliteschaden") ?? 1.5));
     return (
       A >= 8 &&
-        ((i.hp = i.maxHp = Q.hp * (1 + Math.max(0, this.wave - 20) * 0.2) * this.rules.bossHp * (DV("balance", "bosslp") ?? 3)),
+        ((i.hp = i.maxHp = Q.hp * (1 + Math.max(0, this.wave - 20) * 0.2) * this.rules.bossHp * (DV("balance", "bosslp") ?? 1.4)),
         (i.damage *= DV("balance", "bossschaden") ?? 1.5),
         (i.cd = 2),
         (i.spawn = i.spawnMax = E ? 0 : 1.8)),
@@ -7549,7 +7623,7 @@ class mi {
     );
   }
   get bossWave() {
-    return this.climb ? this.wave % 10 === 0 : this.wave >= 20;
+    return this.climb ? this.wave % 10 === 0 : this.wave === 20 || (this.wave > 20 && this.wave % 10 === 0);
   }
   eliteChance() {
     return Math.min(
@@ -7791,6 +7865,7 @@ class mi {
   // (Nachtriggern verlängert nur bis zu diesem Deckel), danach 0.1 s Pause für kleine Stopps (< 0.06 s),
   // damit Dauerfeuer mit vielen Krits die Welt nicht dauerhaft einfriert.
   hitStop(d) {
+    if (d < 0.05 || this.save.data.settings.reducedMotion) return;
     // t156: begrenzt – normale Stopps höchstens 0.1 s am Stück und danach 0.3 s (kleine 0.45 s) Pause;
     // nur große Stopps (≥ 0.12 s, Boss) dürfen bis 0.18 s und jederzeit. Vorher reihten sich Treffer-/Kill-Stopps aneinander.
     if (!((d *= DV("saft", "stopdauer") ?? 1) > 0)) return;
@@ -8113,6 +8188,8 @@ class mi {
     });
   }
   updateEnvironment(A) {
+    if (this.bossWave || this.storm) return;
+    if (this.wave < 3 && IA[this.map]?.env !== "flower") return;
     if (((this.envTime -= A), !(this.envTime > 0))) {
       // t144: Mechanik je Arena (IA.env); Aufstieg/Abstieg behalten die alten Ventil-Positionen
       const env = this.climb ? "vent" : IA[this.map]?.env;
@@ -8127,8 +8204,16 @@ class mi {
                 V(P.x + sx * (360 + (k % 2) * 90), -ARX * 0.92, ARX * 0.92),
                 V(P.y + sy * (260 + (k % 3) * 40), -ARY * 0.9, ARY * 0.9),
               ]);
-        for (const [B, E] of g)
-          this.zones.push({ x: B, y: E, r: 93, life: 3, max: 3, delay: 1.2, damage: 9 + this.wave * 0.4, enemy: !0, tick: 0, color: "#f2ac74", style: "vent" });
+        const quarry = this.map === 7, foundry = this.map === 4,
+          delay = quarry ? 1.8 : 1.4,
+          life = delay + (quarry ? 0.35 : foundry ? 2.8 : 1.6),
+          openings = quarry ? g.slice(0, 1) : this.wave < 8 ? g.slice(0, 2) : g;
+        if (quarry) this.envTime = 12;
+        for (const [B, E] of openings)
+          this.zones.push({ x: B, y: E, r: quarry ? 140 : foundry ? 105 : 85,
+            life, max: life, delay, warnDelay: delay,
+            damage: (quarry ? 14 : 7) + this.wave * 0.3,
+            enemy: true, tick: 0, color: "#f2ac74", style: "vent" });
         this.audio.sound("deploy", 0.7, 0.45);
       } else if (env === "flower") {
         this.envTime = 10;
@@ -8980,23 +9065,23 @@ class mi {
     if (
       (this.forActors(() => this.updateActorMotion(A)),
       (this.spawnTimer -= E),
-      this.spawnTimer <= 0 && this.waveTime < this.waveLength - 2 && this.enemies.count < 850)
+      this.spawnTimer <= 0 && this.waveTime < this.waveLength - 2 && !this.bossWave && this.enemies.count < this.enemyLimit)
     ) {
-      const C = Math.min(7, 1 + Math.floor(this.wave / 2)),
-        Q = Math.min(9, 1 + Math.floor(this.wave / 3));
+      const C = Math.min(7, 1 + Math.floor(this.wave / 3)),
+        Q = Math.min(4, 1 + Math.floor(this.wave / 5));
       for (let a = 0; a < Q; a++) {
         let t = Math.random() < 0.42 ? 0 : Math.floor(p(0, C));
-        this.wave >= 5 && Math.random() < this.eliteChance() && (t = 7), this.spawn(t);
+        this.spawn(t);
       }
       this.spawnTimer =
-        Math.max(0.2, 0.9 - this.wave * 0.023) / (this.danger ? 1.35 : 1) / this.enemyFactor("density") / 1.12 / this.foeCount();
+        Math.max(0.55, 1.05 - this.wave * 0.018) / (this.danger ? 1.15 : 1) / this.enemyFactor("density") / this.spawnPressure / (this.storm ? 0.6 : 1);
     }
     if (
       ((this.formationTimer -= E),
-      this.wave >= 3 &&
+      this.wave >= 4 && !this.bossWave && !this.storm && this.spawnPressure === 1 &&
         this.formationTimer <= 0 &&
         this.waveTime < this.waveLength - 4 &&
-        this.enemies.count < 820 &&
+        this.enemies.count < this.enemyLimit - 12 &&
         (this.spawnFormation(), (this.formationTimer = this.rules.formationInterval)),
       this.bossWave && !this.bossSpawned && this.waveTime > 3)
     ) {
@@ -9009,6 +9094,7 @@ class mi {
     }
     this.grid.clear(),
       this.enemies.each((C) => this.grid.add(C)),
+      this.updateNightEvents(E),
       this.climbState.active ? this.updateClimb(E) : this.updateEnvironment(E);
     this.enemies.each((C) => this.updateEnemy(C, E));
     for (const C of this.foeBursts) C.t += E;
@@ -9206,7 +9292,7 @@ class mi {
         return;
       }
     }
-    this.waveTime >= this.waveLength && (!this.bossWave || this.bossDead) && this.endWave();
+    (this.bossWave ? this.bossDead : this.waveTime >= this.waveLength) && this.endWave();
   }
   updateEnemy(A, g) {
     if (((A.age += g), (A.flash = Math.max(0, A.flash - g)), A.spawn > 0)) {
@@ -9584,6 +9670,8 @@ class mi {
       this.pendingLevels ? this.openLevel() : this.setPhase("combat"));
   }
   endCoopWave() {
+    const salvage = Math.max(0, this.scrapBudget * 0.55 - this.scrapDropped) * this.rules.economy / this.coop.actors.length;
+    this.forActors(() => { this.money += salvage; }, true);
     if (
       (this.loot.each((A) => {
         this.withActor(this.nearestActor(A), () => {
@@ -9621,6 +9709,7 @@ class mi {
       });
   }
   endWave() {
+    this.storm = null;
     if (this.coop) {
       this.endCoopWave();
       return;
@@ -9637,6 +9726,7 @@ class mi {
         }
         A.active = !1;
       }),
+      (this.money += Math.max(0, this.scrapBudget * 0.55 - this.scrapDropped) * this.rules.economy),
       (this.money +=
         (12 + Math.floor(this.wave * 2) + this.stats.economy + this.riskBonus) * this.rules.economy),
       (this.riskBonus = 0),
@@ -11367,6 +11457,8 @@ class FC {
       !E && g >= 900 && B <= g && ((this.scale *= 0.92), this.scale > 1 && (this.scale = 1 + (this.scale - 1) * 0.55)),
       (this.w = g / this.scale),
       (this.h = B / this.scale);
+    // A mode/DPR change does not invalidate viewport-sized overlay textures.
+    if (this.vignette?.width === g && this.vignette?.height === B) return;
     const o = (this.vignette = document.createElement("canvas"));
     (o.width = g), (o.height = B);
     const i = o.getContext("2d"),
@@ -11430,7 +11522,7 @@ class FC {
                 ? 0.9
                 : this.game.mobile
                   ? Math.min(1.2, devicePixelRatio || 1)
-                  : Math.min(1.5, devicePixelRatio || 1, Math.sqrt(3.2e6 / Math.max(1, (this.viewport?.width || 1280) * (this.viewport?.height || 720))));
+                  : Math.min(1.5, devicePixelRatio || 1, Math.sqrt(2.1e6 / Math.max(1, (this.viewport?.width || 1280) * (this.viewport?.height || 720))));
   }
   get baseZoom() {
     const A = this.game.save.data.settings.cameraZoom;
@@ -12299,6 +12391,38 @@ class FC {
       a = Math.min(i + this.viewHeight + 720 - C, 1440 - C);
     Q > 0 && a > 0 && A.drawImage(E, I, C, Q, a, I - 1e3, C - 720, Q, a);
   }
+  nightGround() {
+    if (this.game.climbState.active) return;
+    const c = this.c;
+    c.save();
+    c.fillStyle = IA[this.game.map]?.env === "vent" ? "rgba(25,16,24,0.16)" : "rgba(12,23,42,0.20)";
+    c.fillRect(this.camX - this.viewWidth / 2 - 2, this.camY - this.viewHeight / 2 - 2, this.viewWidth + 4, this.viewHeight + 4);
+    c.restore();
+  }
+  drawStorm() {
+    const z = this.game.storm;
+    if (!z) return;
+    const c = this.c, x = this.camX - this.viewWidth / 2 - 5, y = this.camY - this.viewHeight / 2 - 5,
+      w = this.viewWidth + 10, h = this.viewHeight + 10, warning = z.age < 3;
+    c.save();
+    c.beginPath(); c.rect(x, y, w, h); c.moveTo(z.x + z.r, z.y); c.arc(z.x, z.y, z.r, 0, Math.PI * 2, true); c.closePath();
+    c.clip("evenodd");
+    c.fillStyle = warning ? "rgba(190,65,45,0.12)" : "rgba(175,26,35,0.30)";
+    c.fillRect(x, y, w, h);
+    c.strokeStyle = "rgba(255,145,125,0.20)"; c.lineWidth = 3;
+    for (let q = Math.floor((x - h) / 70) * 70; q < x + w; q += 70) {
+      c.beginPath(); c.moveTo(q, y + h); c.lineTo(q + h, y); c.stroke();
+    }
+    c.restore(); c.save();
+    c.strokeStyle = warning ? "#ffd49c" : "#ff9b83"; c.lineWidth = 5;
+    c.setLineDash(warning ? [18, 12] : []);
+    c.beginPath(); c.arc(z.x, z.y, z.r, 0, Math.PI * 2); c.stroke();
+    if (warning) {
+      c.lineWidth = 2; c.setLineDash([10, 10]); c.strokeStyle = "#f5e9cf";
+      c.beginPath(); c.arc(z.x, z.y, z.end, 0, Math.PI * 2); c.stroke();
+    }
+    c.restore();
+  }
   telegraphs(A = !1) {
     const g = this.c,
       B = new X(g),
@@ -12307,7 +12431,7 @@ class FC {
     g.save();
     for (const i of E.zones) {
       if (A && !i.enemy) continue;
-      const I = 1 - V(i.delay / (i.style === "vent" ? 1.2 : 1), 0, 1);
+      const I = 1 - V(i.delay / (i.warnDelay || (i.style === "vent" ? 1.2 : 1)), 0, 1);
       if (i.enemy) {
         if (
           ((g.globalAlpha = A ? 0.95 : 0.65),
@@ -13102,12 +13226,18 @@ class FC {
     const g = this.viewport;
     [g.x, g.y, g.width, g.height, this.mode].join(":") !== this.viewportKey && this.resize();
     const E = this.targetDpr;
-    Math.abs(this.dpr - E) > 0.001 &&
-      ((this.dpr = E),
-      (this.canvas.width = Math.round(this.viewport.width * E)),
-      (this.canvas.height = Math.round(this.viewport.height * E))),
-      (this.c.imageSmoothingEnabled = !0),
-      (this.c.imageSmoothingQuality = this.mode === "menu" ? "high" : "low");
+    if (Math.abs(this.dpr - E) > 0.08) {
+      if (this.pendingDpr !== E) { this.pendingDpr = E; this.pendingDprAt = performance.now(); }
+      const wait = E < this.dpr ? 500 : 3000;
+      if (performance.now() - this.pendingDprAt >= wait) {
+        this.dpr = E;
+        this.canvas.width = Math.round(this.viewport.width * E);
+        this.canvas.height = Math.round(this.viewport.height * E);
+        this.pendingDpr = null;
+      }
+    } else this.pendingDpr = null;
+    this.c.imageSmoothingEnabled = true;
+    this.c.imageSmoothingQuality = this.mode === "menu" ? "high" : "low";
     const o = performance.now(),
       i = this.c,
       I = this.game,
@@ -13192,6 +13322,7 @@ class FC {
     if (
       (i.translate(this.viewWidth / 2 - this.camX + p(-Y, Y), this.viewHeight / 2 - this.camY + p(-Y, Y)),
       this.floor(),
+      this.nightGround(),
       this.prepareCircles(),
       !I.save.data.settings.reducedMotion && I.save.data.settings.particles > 0)
     ) {
@@ -13215,8 +13346,10 @@ class FC {
       I.climbState.active && this.climbEdges(),
       this.vfxGround(),
       this.telegraphs(),
+      this.drawStorm(),
       this.foeTelegraphs(),
       I.loot.each((l) => {
+        if (Math.abs(l.x - this.camX) > this.viewWidth / 2 + 40 || Math.abs(l.y - this.camY) > this.viewHeight / 2 + 60) return;
         const w = ["#8bbcef", "#ebc98a", "#d4b2f0", "#ecb2b2", "#ffc36f"][l.kind],
           q = l.y - l.z,
           m = l.kind >= 2 ? 8 : (l.kind === 1, 5);
@@ -13729,6 +13862,39 @@ class FC {
     !B.save.data.settings.reducedMotion && B.save.data.settings.particles > 0 && this.menuFx(A, hero ? hx : dx + 0.731 * dw, hero ? hy : H * 0.45, phone, B);
     this.vignette && devVig(A, this.vignette, W, H);
   }
+  // Desktop workshop: one cover image, with the original animated hero on top.
+  menuWorkshop() {
+    const vw = innerWidth, vh = innerHeight;
+    if (vw <= 600 && vh > vw) return false;
+    if (!this.workshopMenuImg) {
+      this.workshopMenuImg = new Image();
+      this.workshopMenuImg.src = "assets/menu-workshop.webp";
+    }
+    const img = this.workshopMenuImg;
+    if (!img.complete || !img.naturalWidth) return false;
+    const A = this.c, B = this.game,
+      k = Math.min(vw / 1280, vh / 720),
+      ox = (vw - 1280 * k) / 2, oy = (vh - 720 * k) / 2,
+      cover = Math.max(vw / img.naturalWidth, vh / img.naturalHeight);
+    A.save();
+    A.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    A.drawImage(img, (vw - img.naturalWidth * cover) / 2,
+      (vh - img.naturalHeight * cover) / 2,
+      img.naturalWidth * cover, img.naturalHeight * cover);
+    const shade = A.createLinearGradient(0, 0, vw * 0.65, 0);
+    shade.addColorStop(0, "rgba(5,7,8,0.48)");
+    shade.addColorStop(1, "rgba(5,7,8,0)");
+    A.fillStyle = shade;
+    A.fillRect(0, 0, vw, vh);
+    const benchY = (vh - img.naturalHeight * cover) / 2 + img.naturalHeight * cover * 0.78;
+    A.translate(ox + 960 * k, benchY - 100 * k);
+    A.scale(3.05 * k, 3.05 * k);
+    this.player(0, 0, B.character,
+      B.save.data.settings.reducedMotion ? 0 : B.time * 0.75,
+      false, false, this.previewFace);
+    A.restore();
+    return true;
+  }
   menuNoir(img) {
     const A = this.c,
       B = this.game,
@@ -13833,6 +13999,7 @@ class FC {
       E = innerWidth <= 600 && innerHeight > innerWidth,
       o = this.menuHome ? Ag(this.uiTheme).hero : { x: 0.79, y: 0.4, shade: "left" },
       nimg = this.menuHome && this.mnImage();
+    if (this.menuHome && this.menuWorkshop()) return;
     if (nimg) return this.menuNoir(nimg);
     const n2 = !this.menuHome && this.mnImage();
     if (n2) return this.menuNoir2(n2);
@@ -14304,12 +14471,12 @@ class wC {
       this.charMode === "run"
         ? this.header("Raus in die Nacht.", "Die Brücke · Einsatzvorbereitung")
         : this.header("Deine Nacht. Deine Regeln.", "Einsatzvorbereitung");
-    return `<section class="screen character-screen character2 ${this.charMode === "run" ? "char-run" : ""}">${E}<div class="left"><div class="section-title">01 / WÄHLE DEINEN HELDEN</div><div class="character-grid hero-roster">${J.map((o, i) => `<button class="char-card hero-tile ${A.character === i ? "selected" : ""}" data-action="character" data-id="${i}" aria-pressed="${A.character === i}" title="${o.name} · ${o.title}"><span class="tile-portrait"><img class="portrait" src="${d.thumb("hero" + i)}" alt=""></span><b>${o.name}</b></button>`).join("")}</div><div class="section-title">02 / WÄHLE DEINE ARENA</div><div class="map-grid">${IA.map((o, i) => `<button class="map-card ${A.map === i && !A.climb ? "selected" : ""} map-${i}" data-action="map" data-id="${i}" title="${o.desc}"><span class="map-art"><img src="${this.arenaThumb(i)}" alt=""></span><span><b>${o.name}</b><small>${o.mechanic}</small></span><i>${A.map === i && !A.climb ? "●" : "○"}</i></button>`).join("")}</div>${this.climbCards()}<div class="section-title">03 / DEINE ERSTE WAFFE <span>1 / 6 PLÄTZE</span></div><div class="loadout">${j.map((o) => `<button class="weapon-choice ${A.startWeapon === o.id ? "selected" : ""}" data-action="startWeapon" data-id="${o.id}" title="${o.desc}">${x(o.id, o.color)}<span><b>${o.name}</b><small>${o.tag.split(" · ")[0]}</small></span></button>`).join("")}</div><div class="weapon-description"><b>${B.name}</b><p>${B.desc}</p></div>${this.difficultySelect()}${A.save.data.checkpoint ? '<p class="notice">Ein neuer Lauf ersetzt deinen gespeicherten Wellenbeginn.</p>' : ""}<div class="row start-row">${this.button("start", x("play") + " Rein in die Nacht · " + gA[A.difficulty].name, "primary")}${this.button("talents", x("talents") + A.save.data.points + " Talentpunkte", "secondary")}</div></div><div class="character-info hero-sheet"><div class="eyebrow">${g.title}</div><h2>${g.name}</h2><p class="sub">${g.desc}</p><div class="sheet-chips">${g.perk
+    return `<section class="screen character-screen character2 ${this.charMode === "run" ? "char-run" : ""}">${E}<div class="left"><div class="section-title">01 / WÄHLE DEINEN HELDEN</div><div class="character-grid hero-roster">${J.map((o, i) => `<button class="char-card hero-tile ${A.character === i ? "selected" : ""}" data-action="character" data-id="${i}" aria-pressed="${A.character === i}" title="${o.name} · ${o.title}"><span class="tile-portrait"><img class="portrait" src="${d.thumb("hero" + i)}" alt=""></span><b>${o.name}</b></button>`).join("")}</div><div class="section-title">02 / WÄHLE DEINE ARENA</div><div class="map-grid">${IA.map((o, i) => `<button class="map-card ${A.map === i && !A.climb ? "selected" : ""} map-${i}" data-action="map" data-id="${i}" title="${o.desc}"><span class="map-art"><img src="${this.arenaThumb(i)}" alt=""></span><span><b>${o.name}</b><small>${o.mechanic}</small></span><i>${A.map === i && !A.climb ? "●" : "○"}</i></button>`).join("")}</div>${this.climbCards()}<div class="section-title">03 / DEINE ERSTE WAFFE <span>1 / 6 PLÄTZE</span></div><div class="loadout">${j.map((o) => `<button class="weapon-choice ${A.startWeapon === o.id ? "selected" : ""}" data-action="startWeapon" data-id="${o.id}" title="${o.desc}">${x(o.id, o.color)}<span><b>${o.name}</b><small>${o.tag.split(" · ")[0]}</small></span></button>`).join("")}</div><div class="weapon-description"><b>${B.name}</b><p>${B.desc}</p></div><p class="notice">20 Wellen mit Werkstattpausen · Elite in 5/10/15 · Abschlussboss in 20.<br>Schrottsturm in 4/8/12/16: Die sichere Fläche schrumpft vorübergehend. Rot verletzt nur Spieler, Gegner sind immun. Drei Sekunden Vorwarnung.</p>${this.difficultySelect()}${A.save.data.checkpoint ? '<p class="notice">Ein neuer Lauf ersetzt deinen gespeicherten Wellenbeginn.</p>' : ""}<div class="row start-row">${this.button("start", x("play") + " Rein in die Nacht · " + gA[A.difficulty].name, "primary")}${this.button("talents", x("talents") + A.save.data.points + " Talentpunkte", "secondary")}</div></div><div class="character-info hero-sheet"><div class="eyebrow">${g.title}</div><h2>${g.name}</h2><p class="sub">${g.desc}</p><div class="sheet-chips">${g.perk
       .split(" · ")
       .map((o) => `<span class="chip">${o}</span>`)
       .join(
         "",
-      )}</div><div class="sheet-ability"><span class="ability-badge">${Fg(A.character)}</span><span><b>${CA[A.character].name}</b><small>${CA[A.character].desc}</small></span></div><span class="pill">${A.climb ? GA[A.climb - 1].name + " · endlos · Endgegner alle 10 Wellen" : IA[A.map].name + " · 20 Wellen"}</span></div></section>`;
+      )}</div><div class="sheet-ability"><span class="ability-badge">${Fg(A.character)}</span><span><b>${CA[A.character].name}</b><small>${CA[A.character].desc}</small></span></div><span class="pill">${A.climb ? GA[A.climb - 1].name + " · endlos · Endgegner alle 10 Wellen" : IA[A.map].name + " · 20 Wellen · Elite 5/10/15 · Boss 20"}</span></div></section>`;
   }
   coopSetup() {
     const A = this.g,
@@ -14427,7 +14594,7 @@ class wC {
         ["economy", "Schrottertrag", `${Math.round(g.economy * 100)} %`],
         ["economy", "Kauf-/Würfelpreise", `+${rA(g.prices)} %`],
         ["hp", "Wellenheilung", `${Math.round(g.waveHeal * 100)} % max. LP`],
-        ["map", "Zange / Ring", `alle ${g.formationInterval} Sek. ab Welle 3`],
+        ["map", "Zange / Ring", `frühestens alle ${g.formationInterval} Sek. ab Welle 4`],
         [
           "ability",
           "Boss-Zusatzmuster",
@@ -14456,7 +14623,7 @@ class wC {
     const A = this.g;
     return A.coop
       ? this.coopHud()
-      : `<div class="hud nh hud-${A.save.data.settings.uiTheme}" id="hud"><i class="nh-ink" aria-hidden="true"></i><div class="nh-corner nh-tl"><div class="nh-panel hp-block nh-hp"><div class="nh-r1"><i class="nsi nh-heart" style="--i:3"></i><b id="hp-text"></b><span id="level-text" class="nh-lvl"></span></div><div class="nh-bar nh-red"><i id="hp-bar"></i></div><div class="nh-r2"><span>ERFAHRUNG</span><span id="xp-text"></span></div><div class="nh-bar nh-cream"><i id="xp-bar"></i></div><b id="level-num" hidden></b><span id="supply-text" class="supply-hud" hidden></span></div>${this.nhSlots(A.weapons)}</div><div class="nh-tc wave-block"><span class="nh-night">${A.climb ? GA[A.climb - 1].name.toUpperCase() : IA[A.map].name.toUpperCase()}</span><div id="wave-text" class="nh-wave"></div><div id="time-text" class="nh-time"></div>${A.climb ? '<span id="climb-text" class="nh-climb"></span>' : ""}</div><div class="nh-tr hud-right"><div class="nh-panel currency nh-money"><i class="nsi" style="--i:1"></i><b id="money-text"></b><small>SCHROTT</small></div>${this.button("pause", '<i class="nh-pz">II</i><small>PAUSE</small>', "pause-btn nh-round")}${this.button("fullscreen", x("fullscreen"), "pause-btn fullscreen-btn nh-round nh-fs")}</div><div class="boss-edge nh-edge" id="boss-edge" hidden aria-label="Richtung zum Boss"><i>➤</i><b>BOSS</b></div><div class="boss-panel nh-panel nh-boss" id="boss-panel" hidden><div class="nh-r1"><span id="boss-name"></span><small id="boss-phase"></small></div><div class="nh-bar nh-red"><i id="boss-hp"></i></div><span class="boss-pattern" id="boss-pattern"></span></div><div class="streak-panel nh-panel nh-streak" id="streak-panel" hidden><strong id="streak-count"></strong><span>ABSCHUSS-SERIE</span><i id="streak-bar"></i></div><div class="ability-dock nh-dock"><button data-action="dash" class="ability-button nh-ab" id="dash-button" aria-label="Ausweichsprint"><i class="cd-ring" aria-hidden="true"></i><i class="nsi" style="--i:2"></i><span id="dash-text">SPRINT</span><kbd>LEER</kbd></button><button data-action="ability" class="ability-button nh-ab" id="ability-button" aria-label="${CA[A.character].name}"><i class="cd-ring" aria-hidden="true"></i>${Fg(A.character)}<span id="ability-text">BEREIT</span><kbd>E</kbd></button></div>${!A.save.data.tutorialSeen && A.wave <= 2 && this.screen === "combat" ? `<aside class="onboarding nh-panel nh-guide"><strong>DEINE ERSTE NACHT</strong><p>${A.mobile ? "Links ziehen: laufen. Rechts: Sprint & Fähigkeit." : "WASD: laufen · LEER: Sprint · E: Fähigkeit."}<br>Angriffe zielen automatisch. Schrott & EP einsammeln.<br><b>ROT + ! = GEFAHR.</b> Seitlich ausweichen.<br>Schraubenknecht bleibt stehen; Ersatz kommt automatisch.</p>${this.button("dismissGuide", "Verstanden ✓", "nh-guidebtn")}</aside>` : ""}<div class="combat-tip nh-tip" ${A.wave > 1 || !A.save.data.tutorialSeen ? "hidden" : ""}><kbd>WASD</kbd> Bewegen &nbsp; <kbd>LEER</kbd> Sprint<br><kbd>E</kbd> Fähigkeit &nbsp; <kbd>Q</kbd> Zielmodus</div><div class="touch-hint nh-touch">LINKS ZIEHEN ZUM BEWEGEN</div></div>`;
+      : `<div class="hud nh hud-${A.save.data.settings.uiTheme}" id="hud"><i class="nh-ink" aria-hidden="true"></i><div class="nh-corner nh-tl"><div class="nh-panel hp-block nh-hp"><div class="nh-r1"><i class="nsi nh-heart" style="--i:3"></i><b id="hp-text"></b><span id="level-text" class="nh-lvl"></span></div><div class="nh-bar nh-red"><i id="hp-bar"></i></div><div class="nh-r2"><span>ERFAHRUNG</span><span id="xp-text"></span></div><div class="nh-bar nh-cream"><i id="xp-bar"></i></div><b id="level-num" hidden></b><span id="supply-text" class="supply-hud" hidden></span></div>${this.nhSlots(A.weapons)}</div><div class="nh-tc wave-block"><span class="nh-night">${A.climb ? GA[A.climb - 1].name.toUpperCase() : IA[A.map].name.toUpperCase()}</span><div id="wave-text" class="nh-wave"></div><div id="time-text" class="nh-time"></div>${A.climb ? '<span id="climb-text" class="nh-climb"></span>' : ""}</div><div class="nh-tr hud-right"><div class="nh-panel currency nh-money"><i class="nsi" style="--i:1"></i><b id="money-text"></b><small>SCHROTT</small></div>${this.button("pause", '<i class="nh-pz">II</i><small>PAUSE</small>', "pause-btn nh-round")}${this.button("fullscreen", x("fullscreen"), "pause-btn fullscreen-btn nh-round nh-fs")}</div><div class="boss-edge nh-edge" id="boss-edge" hidden aria-label="Richtung zum Boss"><i>➤</i><b>BOSS</b></div><div class="boss-panel nh-panel nh-boss" id="boss-panel" hidden><div class="nh-r1"><span id="boss-name"></span><small id="boss-phase"></small></div><div class="nh-bar nh-red"><i id="boss-hp"></i></div><span class="boss-pattern" id="boss-pattern"></span></div><div class="streak-panel nh-panel nh-streak" id="streak-panel" hidden><strong id="streak-count"></strong><span>ABSCHUSS-SERIE</span><i id="streak-bar"></i></div><div class="ability-dock nh-dock"><button data-action="dash" class="ability-button nh-ab" id="dash-button" aria-label="Ausweichsprint"><i class="cd-ring" aria-hidden="true"></i><i class="nsi" style="--i:2"></i><span id="dash-text">SPRINT</span><kbd>LEER</kbd></button><button data-action="ability" class="ability-button nh-ab" id="ability-button" aria-label="${CA[A.character].name}"><i class="cd-ring" aria-hidden="true"></i>${Fg(A.character)}<span id="ability-text">BEREIT</span><kbd>E</kbd></button></div>${!A.save.data.tutorialSeen && A.wave <= 2 && this.screen === "combat" ? `<aside class="onboarding nh-panel nh-guide"><strong>DEINE ERSTE NACHT</strong><p>${A.mobile ? "Links ziehen: laufen. Rechts: Sprint & Fähigkeit." : "WASD: laufen · LEER: Sprint · E: Fähigkeit."}<br>Angriffe zielen automatisch. Schrott & EP einsammeln.<br><b>ROT + ! = GEFAHR.</b> Seitlich ausweichen.<br>Schraubenknecht bleibt stehen; Ersatz kommt automatisch.</p>${this.button("dismissGuide", "Verstanden ✓", "nh-guidebtn")}</aside>` : ""}<div class="combat-tip nh-tip" ${A.wave > 1 || !A.save.data.tutorialSeen ? "hidden" : ""}><kbd>WASD</kbd> Bewegen &nbsp; <kbd>LEER</kbd> Sprint<br><kbd>E</kbd> Fähigkeit &nbsp; <kbd>Q</kbd> Zielmodus<br>Elite: 5 / 10 / 15 · Boss: 20</div><div class="touch-hint nh-touch">LINKS ZIEHEN ZUM BEWEGEN</div></div>`;
   }
   acquisition() {
     const A = this.g.showcase;
@@ -14506,6 +14673,21 @@ class wC {
       return;
     this.lastHud = performance.now();
     const E = this.g;
+    let eventLabel = this.root.querySelector(".night-event");
+    if (!eventLabel && this.screen === "combat") {
+      eventLabel = document.createElement("div");
+      eventLabel.className = "night-event";
+      eventLabel.setAttribute("role", "status");
+      this.root.appendChild(eventLabel);
+    }
+    if (eventLabel) {
+      const z = E.storm;
+      const msg = z ? z.age < 3 ? "SCHROTTSTURM IN " + Math.ceil(3 - z.age) + " · ZUR HELLEN MARKIERUNG"
+        : z.age < 17 ? "SCHROTTSTURM · ROTE FLÄCHE VERLETZT DICH · " + Math.ceil(17 - z.age) + " s"
+        : "SCHROTTSTURM ZIEHT AB" : "";
+      eventLabel.hidden = !msg;
+      if (eventLabel.textContent !== msg) eventLabel.textContent = msg;
+    }
     if (E.coop) {
       this.updateCoopHUD();
       return;
@@ -14795,7 +14977,7 @@ class wC {
             ? `<div class="nw-cols nw-tabbody">${all.map(st).join("")}</div>`
             : `<div class="nw-slots">${slots}</div><div class="nw-wax-row">${wax || '<p class="nw-none">Noch keine Gegenstände.</p>'}</div>`;
     const next = A.coop ? (A.actorIndex === 0 ? "BEREIT · WEITER ZU SPIELER 2" : `GEMEINSAM IN WELLE ${A.wave + 1}`) : `LOS · WELLE ${A.wave + 1} ▸`;
-    return `<section class="screen shop-screen nw nwa nw-t-${tab} ${fresh ? "nw-fresh" : ""} ${fresh && performance.now() - (globalThis.nsMomentAt ?? -1e9) < 1200 ? "nw-late" : ""}" id="nw-screen"><div class="nw-stage ns-stage"><div class="nw-box">${A.coop ? `<div class="nw-eyebrow">SPIELER ${(A.actorIndex ?? 0) + 1}</div>` : ""}<h1 class="nw-title">WERKSTATT</h1><i class="nw-hazard" aria-hidden="true"></i><p class="nw-tagline">WELLE ${A.wave} · ÜBERSTANDEN</p><div class="nw-money currency"><i class="nsi" style="--i:1"></i><b id="nw-money" data-from="${this.wsMoney ?? money}" data-to="${money}">${this.wsMoney ?? money}</b><span class="nw-chip">SCHROTT</span></div>${this.button("shopHelp", "? REGELN", "nw-help")}<div class="nw-tags shop-offers">${tags}</div>${this.button("reroll", `<span>⟳ NEU WÜRFELN</span><small><i class="nsi" aria-hidden="true"></i>${A.rerollCost}</small>`, "nw-reroll", "", A.money < A.rerollCost)}<p class="nw-odds" title="Waffen-Chancen"><span class="nw-odds-k">WAFFEN-CHANCEN</span> ${g.map((o, i) => iA[i + 1] + "\u00a0" + Math.round(o * 100) + "\u00a0%").join(" · ")}</p><section class="nw-arsenal inventory"><div class="nw-ahead" role="tablist">${tabBtn("w", `WAFFEN <b>${A.weapons.length} / 6</b>`)}${tabBtn("i", `GEGENSTÄNDE <b>${itemCount}</b>`)}${tabBtn("s", "WERTE")}</div>${panel}</section><aside class="nw-board owned-items"><h4>WERTE</h4>${board.map(st).join("")}${this.button("wsBuild", this.wsBuildOpen ? "ZU ×" : "ALLE ▸", "nw-more")}</aside>${this.button("next", next, A.coop ? "nw-next nw-long" : "nw-next")}<p class="nw-hint">KEIN ZEITLIMIT</p>${
+    return `<section class="screen shop-screen nw nwa nw-t-${tab} ${fresh ? "nw-fresh" : ""} ${fresh && performance.now() - (globalThis.nsMomentAt ?? -1e9) < 1200 ? "nw-late" : ""}" id="nw-screen"><div class="nw-stage ns-stage"><div class="nw-box">${A.coop ? `<div class="nw-eyebrow">SPIELER ${(A.actorIndex ?? 0) + 1}</div>` : ""}<h1 class="nw-title">WERKSTATT</h1><i class="nw-hazard" aria-hidden="true"></i><p class="nw-tagline">WELLE ${A.wave} · ÜBERSTANDEN</p><div class="nw-money currency"><i class="nsi" style="--i:1"></i><b id="nw-money" data-from="${this.wsMoney ?? money}" data-to="${money}">${this.wsMoney ?? money}</b><span class="nw-chip">SCHROTT</span></div>${this.button("shopHelp", "? REGELN", "nw-help")}<div class="nw-tags shop-offers">${tags}</div>${this.button("reroll", `<span>⟳ NEU WÜRFELN</span><small><i class="nsi" aria-hidden="true"></i>${A.rerollCost}</small>`, "nw-reroll", "", A.money < A.rerollCost)}<p class="nw-odds" title="Waffen-Chancen"><span class="nw-odds-k">WAFFEN-CHANCEN</span> ${g.map((o, i) => iA[i + 1] + "\u00a0" + Math.round(o * 100) + "\u00a0%").join(" · ")}</p><section class="nw-arsenal inventory"><div class="nw-ahead" role="tablist">${tabBtn("w", `WAFFEN <b>${A.weapons.length} / 6</b>`)}${tabBtn("i", `GEGENSTÄNDE <b>${itemCount}</b>`)}${tabBtn("s", "WERTE")}</div>${panel}</section><aside class="nw-board owned-items"><h4>WERTE</h4>${board.map(st).join("")}${this.button("wsBuild", this.wsBuildOpen ? "ZU ×" : "ALLE ▸", "nw-more")}</aside>${this.button("next", next, A.coop ? "nw-next nw-long" : "nw-next")}<p class="nw-hint">KEIN ZEITLIMIT · BAUE DEINEN WERKZEUGKASTEN</p>${
       this.wsBuildOpen
         ? `<div class="nw-sheet" role="dialog" aria-label="Dein Build"><h4>DEIN BUILD · ALLE WERTE</h4><div class="nw-cols">${all.map(st).join("")}</div><h5>GEGENSTÄNDE <small>ANTIPPEN: EIN EXEMPLAR VERKAUFEN</small></h5><div class="nw-items">${items || '<p class="nw-none">Noch keine Gegenstände.</p>'}</div><p class="nw-note">Doppelte Waffe = mindestens +1 Stufe, maximal IV. ${Math.round(A.rules.waveHeal * 100)} % Wellenheilung · Mutationen bleiben erhalten.<br>Mutationen ab III: Schraubenknecht ≥140 % Technik · Lichtgabel ≥2 Blitzsprünge</p>${this.button("wsBuild", "SCHLIESSEN ×", "nw-close")}</div>`
         : ""
@@ -14921,6 +15103,12 @@ class wC {
     us !== "auto" && !S.portrait && (hk *= us);
     hk = Math.min(hk * DV("ui", "hud"), S.portrait ? 9 : Math.max(0.5, fit * 1.6));
     const v = { "--nsq": S.q.toFixed(1), "--nhk": hk.toFixed(5), "--nk": S.k.toFixed(5), "--nsw": S.W.toFixed(1), "--nsh": S.H.toFixed(1), "--nox": S.ox.toFixed(1), "--noy": S.oy.toFixed(1) };
+    // Independent home layout: do not apply the compact HUD/menu multiplier.
+    const homeBgHeight = Math.max(S.vh, S.vw * 941 / 1672);
+    v["--home-bench"] = (((S.vh - homeBgHeight) / 2 + homeBgHeight * 0.78 - (S.vh - 720 * fit) / 2) / fit).toFixed(2) + "px";
+    v["--home-k"] = fit.toFixed(5);
+    v["--home-x"] = ((S.vw - 1280 * fit) / 2).toFixed(2) + "px";
+    v["--home-y"] = ((S.vh - 720 * fit) / 2).toFixed(2) + "px";
     for (const n in v) r.style.setProperty(n, v[n]);
     applyOverscan();
     document.body.dataset.ns = S.portrait ? "portrait" : S.flat ? "flat" : "wide";
@@ -15481,7 +15669,9 @@ class wC {
           this.render();
         break;
       case "map":
-        (E.map = Number(g)), (E.climb = 0), arkLoad(E.map), this.render();
+        (E.map = Number(g)), (E.climb = 0), arkLoad(E.map).then(() => {
+          if (E.map === Number(g) && E.phase !== "combat") arkActivate(E.map, E);
+        }), this.render();
         break;
       case "climb":
         (E.climb = Number(g) === 2 ? 2 : 1), this.render();
@@ -15909,6 +16099,15 @@ class wC {
   }
 }
 await Zo();
+// Yield between small batches so the loading screen stays responsive.
+for (let type = 0; type < 12; type++) {
+  for (let elite = 0; elite < (type === 7 ? 5 : 1); elite++)
+    for (let frame = 0; frame < 2; frame++) {
+      d.enemy(type, elite, frame, false);
+      d.enemy(type, elite, frame, true);
+    }
+  await new Promise(requestAnimationFrame);
+}
 tE();
 const eA = new JA(),
   T = new To(() => eA.data.settings),
@@ -15917,7 +16116,8 @@ const eA = new JA(),
   O = new wC(document.getElementById("ui"), K, OA),
   KC = OA;
 O.partnerRenderer = OA;
-arkLoad(V(K.map | 0, 0, IA.length - 1));
+await arkLoad(V(K.map | 0, 0, IA.length - 1));
+arkActivate(K.map, K);
 const RA = new Set();
 let jB = innerWidth / 2 + 100,
   uB = innerHeight / 2,
