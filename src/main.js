@@ -13729,6 +13729,39 @@ class FC {
     !B.save.data.settings.reducedMotion && B.save.data.settings.particles > 0 && this.menuFx(A, hero ? hx : dx + 0.731 * dw, hero ? hy : H * 0.45, phone, B);
     this.vignette && devVig(A, this.vignette, W, H);
   }
+  // Desktop workshop: one cover image, with the original animated hero on top.
+  menuWorkshop() {
+    const vw = innerWidth, vh = innerHeight;
+    if (vw <= 600 && vh > vw) return false;
+    if (!this.workshopMenuImg) {
+      this.workshopMenuImg = new Image();
+      this.workshopMenuImg.src = "assets/menu-workshop.webp";
+    }
+    const img = this.workshopMenuImg;
+    if (!img.complete || !img.naturalWidth) return false;
+    const A = this.c, B = this.game,
+      k = Math.min(vw / 1280, vh / 720),
+      ox = (vw - 1280 * k) / 2, oy = (vh - 720 * k) / 2,
+      cover = Math.max(vw / img.naturalWidth, vh / img.naturalHeight);
+    A.save();
+    A.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    A.drawImage(img, (vw - img.naturalWidth * cover) / 2,
+      (vh - img.naturalHeight * cover) / 2,
+      img.naturalWidth * cover, img.naturalHeight * cover);
+    const shade = A.createLinearGradient(0, 0, vw * 0.65, 0);
+    shade.addColorStop(0, "rgba(5,7,8,0.48)");
+    shade.addColorStop(1, "rgba(5,7,8,0)");
+    A.fillStyle = shade;
+    A.fillRect(0, 0, vw, vh);
+    const benchY = (vh - img.naturalHeight * cover) / 2 + img.naturalHeight * cover * 0.78;
+    A.translate(ox + 960 * k, benchY - 100 * k);
+    A.scale(3.05 * k, 3.05 * k);
+    this.player(0, 0, B.character,
+      B.save.data.settings.reducedMotion ? 0 : B.time * 0.75,
+      false, false, this.previewFace);
+    A.restore();
+    return true;
+  }
   menuNoir(img) {
     const A = this.c,
       B = this.game,
@@ -13833,6 +13866,7 @@ class FC {
       E = innerWidth <= 600 && innerHeight > innerWidth,
       o = this.menuHome ? Ag(this.uiTheme).hero : { x: 0.79, y: 0.4, shade: "left" },
       nimg = this.menuHome && this.mnImage();
+    if (this.menuHome && this.menuWorkshop()) return;
     if (nimg) return this.menuNoir(nimg);
     const n2 = !this.menuHome && this.mnImage();
     if (n2) return this.menuNoir2(n2);
@@ -14921,6 +14955,12 @@ class wC {
     us !== "auto" && !S.portrait && (hk *= us);
     hk = Math.min(hk * DV("ui", "hud"), S.portrait ? 9 : Math.max(0.5, fit * 1.6));
     const v = { "--nsq": S.q.toFixed(1), "--nhk": hk.toFixed(5), "--nk": S.k.toFixed(5), "--nsw": S.W.toFixed(1), "--nsh": S.H.toFixed(1), "--nox": S.ox.toFixed(1), "--noy": S.oy.toFixed(1) };
+    // Independent home layout: do not apply the compact HUD/menu multiplier.
+    const homeBgHeight = Math.max(S.vh, S.vw * 941 / 1672);
+    v["--home-bench"] = (((S.vh - homeBgHeight) / 2 + homeBgHeight * 0.78 - (S.vh - 720 * fit) / 2) / fit).toFixed(2) + "px";
+    v["--home-k"] = fit.toFixed(5);
+    v["--home-x"] = ((S.vw - 1280 * fit) / 2).toFixed(2) + "px";
+    v["--home-y"] = ((S.vh - 720 * fit) / 2).toFixed(2) + "px";
     for (const n in v) r.style.setProperty(n, v[n]);
     applyOverscan();
     document.body.dataset.ns = S.portrait ? "portrait" : S.flat ? "flat" : "wide";
