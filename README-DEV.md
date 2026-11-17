@@ -4,6 +4,7 @@ Der ursprüngliche Quellcode existiert nicht mehr; `index.html` ist ein Vite-Bui
 Damit man trotzdem sauber daran arbeiten kann, gibt es lesbare Quellen unter `src/`:
 
 - `src/main.js` – Spiel-Code (formatiert)
+- `src/vehicle.js` – opt-in Fahrzeugmodus, vor main.js eingebettet
 - `src/style.css` – Styles (formatiert)
 - `src/head.html`, `src/mid.html`, `src/tail.html` – HTML-Rahmen
 
@@ -94,3 +95,38 @@ pro Simulationssekunde, höchstens 3 LP/Sek. Statusschaden heilt weiterhin nicht
 Regeneration und Heilgegenstände bleiben eigenständige Quellen. Die Boss-Tests
 prüfen nun auch extremen Burst durch alle drei Phasen, begrenzte Levelskalierung
 und 1.000 gleichzeitige sowie 6.000 anhaltende Lebensraubtreffer.
+
+### Zwei spielbare Versionen
+
+`?mode=classic` (auch die URL ohne Parameter) bleibt der klassische Modus.
+`?mode=vehicle` startet Motor Nacht mit Bodo am Steuer und einer Montagepistole.
+Der Umschalter steht im Hauptmenü, Pause und Ergebnis. Ein Wechsel lädt eine
+neue Seite; Fortsetzen verwendet wie bisher den letzten Wellenbeginn.
+
+Klassisch behält `nachtschrott-v1` und `nachtschrott-dev-v1`. Der Fahrzeugmodus
+nutzt `nachtschrott-vehicle-v1` und `nachtschrott-vehicle-dev-v1`, jeweils mit
+eigener Sicherung. Es gibt keine automatische Migration zwischen den Modi.
+
+Fahrzeuge: 100 Start-LP als Ausgleich für größere Treffer-/Kollisionsfläche,
+kurze exponentielle Beschleunigung und Bremsung, drehbare Karosserie, sechs feste
+Waffenhalterungen, Boost in Bewegungs-/Blickrichtung. Überlastung: drei Sekunden
++20 % Fahrtgeschwindigkeit und +35 % Waffen-Abklingtempo, zwölf Sekunden Cooldown.
+Turbolader verlängert die Dauer bis maximal fünf Sekunden und verkürzt den
+Cooldown bis minimal sechs Sekunden. Fahrzeug-Shops und Kapseln bieten acht
+passende Anbauwaffen; reine Geschütz-Technikgegenstände werden ausgefiltert.
+Bestehende Wellen, Shop, Gegner und Bossmechaniken werden weiterverwendet.
+Weitere Waffen werden gekauft; Kopien verbessern die vorhandene Waffe.
+Rüstungswerte ab 3 ergänzen sichtbare Seitenplatten.
+
+Die neue Fahrzeugtextur `assets/vehicle-bodo.png` wurde für dieses Spiel anhand
+der vorhandenen Bodo-Referenz generiert. Federung, Reifen, Auspuff, Spuren,
+Scheinwerfer und Halterungen werden animiert. Spuren sind auf 100 begrenzt;
+reduzierte Bewegung deaktiviert Federbewegung, Rauch und Spuren. Der Motorsound
+ist eigene Web-Audio-Synthese mit zwei dauerhaft wiederverwendeten Oszillatoren;
+er läuft durch den vorhandenen Effektbus und verstummt in Pause/Hintergrund.
+Schuss-, Treffer- und Werkstattsounds nutzen die bestehenden lizenzierten Assets.
+
+Build: `python tools/build.py`. Tests: `node tools/tests/vehicles.cjs` plus
+`bosses.cjs` und `nightshift.cjs`, auch mit URL `http://localhost:5178/?mode=vehicle`.
+Die Fahrzeugtests prüfen reale Navigation, getrennte Spielstände, Fortsetzen,
+Eingaben, Bewegung, Boost, Montageplätze, Shop-Upgrades und Touch.

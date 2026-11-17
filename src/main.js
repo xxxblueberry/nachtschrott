@@ -1,5 +1,5 @@
 // ===== t118u: Dev-Menü (nur PC, F1 oder ^/`) – Optik-Regler mit Live-Vorschau, gespeichert in localStorage =====
-const DEV_KEY = "nachtschrott-dev-v1",
+const DEV_KEY = NS_DEV,
   DEV_PCT = (v) => Math.round(v * 100) + " %",
   DEV_SCHEMA = [
     { id: "menuFx", name: "Partikel · Hauptmenü", hint: "Glut und Staub im Lichtkegel des Menüs", items: [
@@ -2234,6 +2234,7 @@ const $A = [
   ],
   Lo =
     "Gleiche Werte addieren sich. Tempo und Schaden skalieren multiplikativ mit der Basis. Rüstung: Schaden × 100 / (100 + 5 × Rüstung). Kritisch: ×2. Lebensraub nur auf tatsächlich verursachten direkten Schaden: max. 1 LP pro Treffer; gemeinsam für alle Waffen max. 2 % der maximalen LP pro Sekunde (höchstens 3 LP/Sek., Puffer 1 LP). Blutung: max. 5 Stapel, 3 Sek.; Abpraller: max. 5, Blitzsprünge: max. 12, Projektile: max. 12. Explosionsketten: max. 2 Generationen, max. 90 ausgelöste Treffer pro Simulationsschritt. Statuseffekte lösen keinen Lebensraub, keine Krits und keine Blutung aus. Spieltempo und Kameraimpulse sind unabhängig voneinander.";
+if (NS_VEHICLE) j.unshift({id:"pistol",name:"Montagepistole",tag:"Anbau · Einzelschuss",desc:"Eine einfache Pistole auf einer drehbaren Halterung. Feuert automatisch; mit Q manuell zielen. Doppelte Käufe verbessern die Waffe bis Stufe VI.",damage:18,cooldown:.55,range:450,color:"#e4bf83",price:26,kind:"bullet"});
 j.push(
   {
     id: "poison",
@@ -2406,6 +2407,17 @@ Wg.push(
     benefits: "Mehr Kraft & kürzere Abklingzeit deiner aktiven Fähigkeit",
   },
 );
+if (NS_VEHICLE) {
+  const core = _.find(i => i.id === "core");
+  Object.assign(core, {name:"Turbolader",desc:"+25 % Turbokraft: längere Überlastung und kürzere Abklingzeit",benefits:"Überlastung · maximal 5 Sek., mindestens 6 Sek. Abklingzeit"});
+  const phase = _.find(i => i.id === "phase");
+  Object.assign(phase,{name:"Boost-Tank",desc:"+1 Boostladung (max. 3), +20 % Boost-Aufladung",benefits:"Fahrzeugboost"});
+  for (const option of Wg) {
+    if (option.stat === "speed") option.name = "Getriebe-Tuning";
+    if (option.stat === "hp") option.name = "Verstärkter Rahmen";
+    if (option.stat === "ability") {option.name="Turbo-Tuning";option.benefits="Längere Überlastung und kürzere Abklingzeit";}
+  }
+}
 z.push(
   { id: "furnace", name: "Ofenherz", color: "#ed9b6c", hp: 7900, speed: 22, radius: 86, damage: 24, xp: 100 },
   {
@@ -4131,7 +4143,7 @@ function Ug(e) {
       gone = 0;
     for (const a of C.weapons) {
       const t = tA(a);
-      WEG[t.id] && ((refund += WEG[t.id] * N(t.tier, 1, 1, 6)), gone++);
+      !j.some(w => w.id === t.id) && WEG[t.id] && ((refund += WEG[t.id] * N(t.tier, 1, 1, 6)), gone++);
     }
     for (const a of C.weapons) {
       const t = tA(a);
@@ -4197,13 +4209,13 @@ class JA {
   error = "";
   constructor() {
     try {
-      const A = localStorage.getItem("nachtschrott-v1");
+      const A = localStorage.getItem(NS_SAVE);
       if (A)
         try {
           this.data = JA.parse(A);
           return;
         } catch {}
-      const g = localStorage.getItem("nachtschrott-v1-backup");
+      const g = localStorage.getItem((NS_SAVE + "-backup"));
       if (g)
         try {
           (this.data = JA.parse(g)),
@@ -4226,13 +4238,13 @@ class JA {
   }
   write() {
     try {
-      const A = localStorage.getItem("nachtschrott-v1");
+      const A = localStorage.getItem(NS_SAVE);
       if (A)
         try {
           const g = JA.parse(A);
-          localStorage.setItem("nachtschrott-v1-backup", JSON.stringify(g));
+          localStorage.setItem((NS_SAVE + "-backup"), JSON.stringify(g));
         } catch {}
-      localStorage.setItem("nachtschrott-v1", JSON.stringify(Ug(this.data))), (this.error = "");
+      localStorage.setItem(NS_SAVE, JSON.stringify(Ug(this.data))), (this.error = "");
     } catch {
       this.error =
         "Speicher ist voll oder gesperrt. Fortschritt bleibt in dieser Sitzung. Bitte Sicherung exportieren.";
@@ -7287,6 +7299,7 @@ class mi {
   }
   recalc() {
     this.stats = bg(this.character, { ...this.save.data, talents: this.runTalents });
+    if (NS_VEHICLE) this.stats.hp += 20;
     for (const [A, g] of Object.entries(this.bonus)) this.stats[A] += g;
     for (const [A, g] of Object.entries(this.items)) {
       const B = _.find((E) => E.id === A);
@@ -7425,6 +7438,7 @@ class mi {
     );
   }
   start(A = this.character, g = this.startWeapon, B = this.difficulty) {
+    if (NS_VEHICLE) { A = 0; g = "pistol"; this.vehicleTracks = []; }
     this.eventWave = 0; this.storm = null;
     (this.coop = void 0),
       this.blades.clear(),
@@ -8173,6 +8187,7 @@ class mi {
     return 2.2 / (1 + this.stats.dash);
   }
   get abilityCooldown() {
+    if (NS_VEHICLE) return Math.max(6, 12 / Math.sqrt(this.stats.ability));
     return CA[this.character].cooldown / Math.sqrt(this.stats.ability);
   }
   dash() {
@@ -8183,7 +8198,7 @@ class mi {
     this.player.dashBuf = 0;
     let A = this.input.x,
       g = this.input.y;
-    Math.hypot(A, g) < 0.1 && ((A = this.player.face || 1), (g = 0));
+    Math.hypot(A, g) < 0.1 && ((A = NS_VEHICLE ? Math.cos(this.player.driveAngle ?? -Math.PI/2) : this.player.face || 1), (g = NS_VEHICLE ? Math.sin(this.player.driveAngle ?? -Math.PI/2) : 0));
     const B = Math.max(0.01, Math.hypot(A, g));
     return (
       (this.dashX = A / B),
@@ -8195,11 +8210,12 @@ class mi {
       (this.player.invuln = Math.max(this.player.invuln, 0.24)),
       this.dashRecharge <= 0 && (this.dashRecharge = this.dashCooldown),
       this.audio.sound("dash_" + this.character),
-      Ui(this.fx, this.character, this.dashCtx()),
+      !NS_VEHICLE && Ui(this.fx, this.character, this.dashCtx()),
       !0
     );
   }
   finishDash() {
+    if (NS_VEHICLE) { this.dashLand = 0; return; }
     this.dashLand = 1;
     const A = this.player;
     if ((Yi(this.fx, this.character, this.dashCtx()), this.character === 0 || this.character === 2)) {
@@ -8216,6 +8232,11 @@ class mi {
     }
   }
   ability() {
+    if (NS_VEHICLE) {
+      if (this.phase !== "combat" || this.player.hp <= 0 || this.abilityCd > 0) return false;
+      this.overdrive = Math.min(5, 3 * Math.sqrt(this.stats.ability)); this.abilityCd = this.abilityCooldown; this.abilityFlash = .5;
+      this.audio.sound("dash_0", .8); return true;
+    }
     return this.phase !== "combat" || this.player.hp <= 0 || this.abilityCd > 0
       ? !1
       : ((this.abilityCd = this.abilityCooldown),
@@ -8225,6 +8246,7 @@ class mi {
         !0);
   }
   weaponSlot(A, g = 0) {
+    if (NS_VEHICLE) return vehicleSlot(this, A);
     const B = this.weapons.filter((C) => C.id !== "turret" && C.id !== "summon"),
       E = Math.max(0, B.indexOf(A)),
       o = Math.max(1, B.length),
@@ -8941,7 +8963,7 @@ class mi {
           (this.dashCharges++,
           (this.dashRecharge = this.dashCharges < this.dashMax ? this.dashCooldown : 0)));
     const E = this.zones.some((Q) => Q.chill && Q.delay <= 0 && H(Q, this.player) < Q.r),
-      o = 335 * (DV("tempo", "spieler") ?? 1) * this.stats.speed * (E ? 0.75 : 1);
+      o = (NS_VEHICLE ? 310 * (this.overdrive > 0 ? 1.2 : 1) : 335) * (DV("tempo", "spieler") ?? 1) * this.stats.speed * (E ? 0.75 : 1);
     if (
       ((g.vx = this.input.x * o + (g.pullX || 0) + (g.recoilX || 0)),
       (g.vy = this.input.y * o + (g.pullY || 0) + (g.recoilY || 0)),
@@ -8953,13 +8975,14 @@ class mi {
     ) {
       (g.vx = this.dashX * 1050), (g.vy = this.dashY * 1050);
       const Q = this.dashStyle;
-      ri(this.fx, this.character, this.dashCtx(A), 1 - this.dashTime / this.dashDur),
+      !NS_VEHICLE && ri(this.fx, this.character, this.dashCtx(A), 1 - this.dashTime / this.dashDur),
         (this.ghostTimer -= A),
-        Q.ghost &&
+        !NS_VEHICLE && Q.ghost &&
           this.ghostTimer <= 0 &&
           ((this.ghostTimer = Q.ghostEvery), this.pushGhost(Q.ghostAlpha, Q.ghost));
     } else B && this.finishDash();
     // Saft: gepufferter Dash feuert, sobald der laufende vorbei ist und eine Ladung bereitsteht
+    if (NS_VEHICLE) vehicleMotion(this, A);
     g.dashBuf > 0 && ((g.dashBuf -= A), this.dashTime <= 0 && this.dashCharges > 0 && this.dash());
     const i = g.x,
       I = g.y;
@@ -8967,7 +8990,7 @@ class mi {
       ((g.face = rg(g.vx, g.face)),
       (this.climbState.active
         ? ((g.x = V(g.x + g.vx * A, -this.climbHalf(940), this.climbHalf(940))), (g.y = V(g.y + g.vy * A, this.yMid - 660, this.yMid + 660)))
-        : ((g.x += g.vx * A), (g.y += g.vy * A), arkClamp(g, 18))),
+        : ((g.x += g.vx * A), (g.y += g.vy * A), arkClamp(g, NS_VEHICLE ? 30 : 18))),
       this.coop)
     ) {
       const Q = this.coop.actors[1 - this.coop.current].player;
@@ -8976,7 +8999,7 @@ class mi {
         g.hp > 0 &&
         ((g.x = V(g.x, Q.x - XA.x, Q.x + XA.x)), (g.y = V(g.y, Q.y - XA.y, Q.y + XA.y)));
     }
-    Math.hypot(g.vx, g.vy) > 1 && (HA(g, 14.5, this.map), this.climbState.active || arkClamp(g, 18));
+    Math.hypot(g.vx, g.vy) > 1 && (HA(g, NS_VEHICLE ? 28 : 14.5, this.map), this.climbState.active || arkClamp(g, NS_VEHICLE ? 30 : 18));
     const C = Math.hypot(g.x - i, g.y - I);
     this.dashTime <= 0 && (g.walk = Yg(g.walk, C)),
       (g.vx = A > 0 ? (g.x - i) / A : 0),
@@ -8992,7 +9015,7 @@ class mi {
     for (let B = 0; B < this.weapons.length; B++) {
       const E = this.weapons[B];
       this.updateWeaponAim(E, B, rA),
-        (E.cd -= A),
+        (E.cd -= A * (NS_VEHICLE && this.overdrive > 0 ? 1.35 : 1)),
         (E.kick = Math.max(0, E.kick - A * 7)),
         (E.swing = Math.max(0, E.swing - A)),
         (E.glow = Math.max(0, E.glow - A)),
@@ -9255,8 +9278,8 @@ class mi {
       }
       if (C.enemy) {
         const t = this.coop
-          ? this.coop.actors.findIndex((h) => h.player.hp > 0 && H(C, h.player) < C.r + 14.5)
-          : H(C, o) < C.r + 14.5
+          ? this.coop.actors.findIndex((h) => h.player.hp > 0 && H(C, h.player) < C.r + (NS_VEHICLE ? 27 : 14.5))
+          : H(C, o) < C.r + (NS_VEHICLE ? 27 : 14.5)
             ? 0
             : -1;
         t >= 0 && (this.hurtActor(t, C.damage, C.px, C.py), (C.active = !1));
@@ -9323,7 +9346,7 @@ class mi {
         }
         if (C.enemy)
           this.forActors(() => {
-            H(C, this.player) < C.r + 10.5 && this.hurt(C.damage, C.x, C.y);
+            H(C, this.player) < C.r + (NS_VEHICLE ? 25 : 10.5) && this.hurt(C.damage, C.x, C.y);
           });
         else if (C.damage > 0)
           for (const a of this.grid.query(C.x, C.y, C.r + this.maxEnemyRadius, []))
@@ -9558,7 +9581,7 @@ class mi {
       (A.vy *= Math.exp(-g * 9)),
       A.spawn <= 0 &&
         this.forActors(() => {
-          H(A, this.player) < A.r + 12.75 &&
+          H(A, this.player) < A.r + (NS_VEHICLE ? 27 : 12.75) &&
             this.hurt(
               A.foe >= 0 && !(A.state === pA && $[A.foe].attack === "charge") ? A.damage * 0.5 : A.damage,
               A.x,
@@ -9876,10 +9899,12 @@ class mi {
       this.shopOffers.push(this.newOffer());
   }
   newOffer() {
+    const weapons = NS_VEHICLE ? j.filter(w => vehicleWeaponIds.includes(w.id)) : j;
+    const items = NS_VEHICLE ? _.filter(i => !i.stats.engineering && i.id !== "repair") : _;
     const A = Math.random() < 0.45;
     return {
       kind: A ? "weapon" : "item",
-      id: A ? j[Math.floor(p(0, j.length))].id : _[Math.floor(p(0, _.length))].id,
+      id: A ? weapons[Math.floor(p(0, weapons.length))].id : items[Math.floor(p(0, items.length))].id,
       locked: !1,
       sold: !1,
       tier: A ? Ri(this.wave) : 1,
@@ -9933,7 +9958,7 @@ class mi {
   }
   collectCapsule() {
     const A = this.weapons.filter((B) => B.tier < 4).sort((B, E) => B.tier - E.tier),
-      g = j.filter((B) => !this.weapons.some((E) => E.id === B.id));
+      g = j.filter((B) => (!NS_VEHICLE || vehicleWeaponIds.includes(B.id)) && !this.weapons.some((E) => E.id === B.id));
     if (this.weapons.length < 6 && g.length)
       return this.grantWeapon(g[Math.floor(Math.random() * g.length)].id, 2);
     if (A.length) return this.grantWeapon(A[0].id, 2, 4);
@@ -10269,7 +10294,7 @@ class mi {
       (this.player.hp = V(g.hp, 1, this.stats.hp)),
       (this.player.x = g.x),
       (this.player.y = g.y),
-      HA(this.player, 16, this.map);
+      HA(this.player, NS_VEHICLE ? 28 : 16, this.map);
     for (const B of [
       "wave",
       "money",
@@ -11669,6 +11694,7 @@ class FC {
   }
   previewFace = 1;
   player(A, g, B, E, o = !1, i = !1, I = 1, C = o ? 1 : 0) {
+    if (NS_VEHICLE && this.mode === "menu") return;
     const Q = this.c,
       a = new X(Q);
     if ((Q.save(), Q.translate(A, g), this.game.phase === "defeat")) {
@@ -13062,6 +13088,7 @@ class FC {
   silhouetteCache = new Map();
   ghostSilhouette = !1;
   occludedSilhouette(A) {
+    if (NS_VEHICLE) return;
     const g = this.game,
       B = g.player,
       E = this.c;
@@ -13289,6 +13316,7 @@ class FC {
       i.restore();
   }
   drawActor(A) {
+    if (NS_VEHICLE) { drawVehicle(this); return; }
     const g = this.game,
       B = this.c,
       E = new X(B),
@@ -13345,6 +13373,7 @@ class FC {
         B.fillText(`P${A + 1}`, o.x, o.y - 69));
   }
   render(A) {
+    if (NS_VEHICLE) vehicleAudio(this.game);
     const g = this.viewport;
     [g.x, g.y, g.width, g.height, this.mode].join(":") !== this.viewportKey && this.resize();
     const E = this.targetDpr;
@@ -13445,6 +13474,7 @@ class FC {
       (i.translate(this.viewWidth / 2 - this.camX + p(-Y, Y), this.viewHeight / 2 - this.camY + p(-Y, Y)),
       this.floor(),
       this.nightGround(),
+      NS_VEHICLE && vehicleGround(this),
       this.prepareCircles(),
       !I.save.data.settings.reducedMotion && I.save.data.settings.particles > 0)
     ) {
@@ -13559,7 +13589,7 @@ class FC {
           i.restore();
       }
     }
-    this.drawGhosts();
+    if (NS_VEHICLE) vehicleTracks(this); else this.drawGhosts();
     const R = !!I.climb && I.climbState?.def.id === "down";
     for (const l of FA(I.map)) {
       if (l.kind === 5 || !l.light) continue;
@@ -13586,7 +13616,7 @@ class FC {
             ...I.weapons
               .filter((l) => l.id !== "turret" && l.id !== "summon")
               .map((l) => ({
-                y: I.weaponPosition(l, I.weapons.indexOf(l)).y + 16,
+                y: NS_VEHICLE ? I.player.y + 1 : I.weaponPosition(l, I.weapons.indexOf(l)).y + 16,
                 draw: () => this.heldWeapon(l, I.weapons.indexOf(l)),
               })),
           ]),
@@ -13902,6 +13932,12 @@ class FC {
     return this.wsImg.complete && this.wsImg.naturalWidth ? this.wsImg : null;
   }
   // t115u: Werkstatt nach Konzept B – Werkzeugwand mit Glühbirne (flackert), NS-Stempel, Werkbank; der Held steht auf der Bank.
+  vehicleWorkshopPreview() {
+    const p=this.game.player, oldX=p.x, oldY=p.y, oldAngle=p.driveAngle;
+    try { p.x=0;p.y=0;p.driveAngle=-Math.PI/2;drawVehicle(this);
+      this.game.weapons.forEach((w,i)=>this.heldWeapon(w,i));
+    } finally {p.x=oldX;p.y=oldY;p.driveAngle=oldAngle;}
+  }
   wsNoir(img) {
     const A = this.c,
       B = this.game,
@@ -13924,7 +13960,7 @@ class FC {
       const ch = B.coop ? (B.coop.snapshot()[B.actorIndex ?? 0]?.character ?? B.character) : B.character,
         [hx, hy] = map(this.wsHX ?? 940, this.wsHY ?? 527),
         hs = (this.wsHS ?? 2.1) * k;
-      A.save(), A.translate(hx, hy), A.scale(hs, hs), this.player(0, 0, ch, B.time * 0.75 + performance.now() / 1e3, !1, !1, 1), A.restore();
+      A.save(), A.translate(hx, hy), A.scale(hs, hs), NS_VEHICLE ? this.vehicleWorkshopPreview() : this.player(0, 0, ch, B.time * 0.75 + performance.now() / 1e3, !1, !1, 1), A.restore();
     }
     const now = performance.now() / 1e3,
       F = this.wfl || (this.wfl = { next: now + 2.2 + Math.random() * 2.5, t0: -9, kind: 0 });
@@ -14011,7 +14047,7 @@ class FC {
     const benchY = (vh - img.naturalHeight * cover) / 2 + img.naturalHeight * cover * 0.78;
     A.translate(ox + 960 * k, benchY - 100 * k);
     A.scale(3.05 * k, 3.05 * k);
-    this.player(0, 0, B.character,
+    !NS_VEHICLE && this.player(0, 0, B.character,
       B.save.data.settings.reducedMotion ? 0 : B.time * 0.75,
       false, false, this.previewFace);
     A.restore();
@@ -14451,6 +14487,11 @@ class wC {
         g = `<section class="screen dim"><div class="quit panel" style="padding:40px"><div class="eyebrow">BIS ZUR NÄCHSTEN NACHT</div><h2 style="margin:15px 0">Feierabend.</h2><p class="muted">Dein Fortschritt ist gespeichert. Du kannst diesen Tab jetzt schließen.</p><div style="margin-top:25px">${this.button("home", "Doch noch eine Runde", "primary")}</div></div></section>`;
         break;
     }
+    if (["home", "pause", "victory", "defeat"].includes(this.screen)) g += `<nav class="mode-switch" aria-label="Spielversion"><a href="?mode=classic" ${!NS_VEHICLE?'aria-current="page"':''}>KLASSISCH</a><a href="?mode=vehicle" ${NS_VEHICLE?'aria-current="page"':''}>FAHRZEUGE</a></nav>`;
+    if (NS_VEHICLE) {
+      g = g.replaceAll("E: Fähigkeit", "E: Überlastung").replaceAll("WASD: laufen", "WASD: fahren").replaceAll("Links ziehen: laufen", "Links ziehen: fahren").replaceAll("Schraubenknecht bleibt stehen; Ersatz kommt automatisch.", "E: 3 Sekunden schneller fahren und feuern. 12 Sekunden Abklingzeit.").replaceAll("Ausweichsprint", "Fahrzeugboost").replaceAll("SPRINT", "BOOST").replaceAll("Sprint", "Boost").replaceAll("Bewegen", "Fahren").replaceAll("KEIN ZEITLIMIT · BAUE DEINEN WERKZEUGKASTEN", "KEIN ZEITLIMIT · BAUE DEINE SCHROTTKARRE");
+      if (this.screen === "combat") g += `<div class="vehicle-driving"><b id="vehicle-speed">MOTOR NACHT</b><span>WASD · FAHREN / LEER · BOOST / E · ÜBERLASTUNG</span></div>`;
+    }
     const B = document.activeElement,
       E = B?.dataset.action,
       o = B?.dataset.id,
@@ -14518,6 +14559,7 @@ class wC {
       .join("")}</div></section>`;
   }
   home() {
+    if (NS_VEHICLE) return vehicleHome(this);
     // t105u: Hauptmenü 1:1 nach Konzept A (Noir-Kreide). Hintergrund, Lichtkegel, Held und Glut zeichnet der Renderer (menuNoir).
     const A = this.g,
       g = J[A.character],
@@ -14745,7 +14787,7 @@ class wC {
     const A = this.g;
     return A.coop
       ? this.coopHud()
-      : `<div class="hud nh hud-${A.save.data.settings.uiTheme}" id="hud"><i class="nh-ink" aria-hidden="true"></i><div class="nh-corner nh-tl"><div class="nh-panel hp-block nh-hp"><div class="nh-r1"><i class="nsi nh-heart" style="--i:3"></i><b id="hp-text"></b><span id="level-text" class="nh-lvl"></span></div><div class="nh-bar nh-red"><i id="hp-bar"></i></div><div class="nh-r2"><span>ERFAHRUNG</span><span id="xp-text"></span></div><div class="nh-bar nh-cream"><i id="xp-bar"></i></div><b id="level-num" hidden></b><span id="supply-text" class="supply-hud" hidden></span></div>${this.nhSlots(A.weapons)}</div><div class="nh-tc wave-block"><span class="nh-night">${A.climb ? GA[A.climb - 1].name.toUpperCase() : IA[A.map].name.toUpperCase()}</span><div id="wave-text" class="nh-wave"></div><div id="time-text" class="nh-time"></div>${A.climb ? '<span id="climb-text" class="nh-climb"></span>' : ""}</div><div class="nh-tr hud-right"><div class="nh-panel currency nh-money"><i class="nsi" style="--i:1"></i><b id="money-text"></b><small>SCHROTT</small></div>${this.button("pause", '<i class="nh-pz">II</i><small>PAUSE</small>', "pause-btn nh-round")}${this.button("fullscreen", x("fullscreen"), "pause-btn fullscreen-btn nh-round nh-fs")}</div><div class="boss-edge nh-edge" id="boss-edge" hidden aria-label="Richtung zum Boss"><i>➤</i><b>BOSS</b></div><div class="boss-panel nh-panel nh-boss" id="boss-panel" hidden><div class="nh-r1"><span id="boss-name"></span><small id="boss-phase"></small></div><div class="nh-bar nh-red"><i id="boss-hp"></i></div><span class="boss-pattern" id="boss-pattern"></span></div><div class="streak-panel nh-panel nh-streak" id="streak-panel" hidden><strong id="streak-count"></strong><span>ABSCHUSS-SERIE</span><i id="streak-bar"></i></div><div class="ability-dock nh-dock"><button data-action="dash" class="ability-button nh-ab" id="dash-button" aria-label="Ausweichsprint"><i class="cd-ring" aria-hidden="true"></i><i class="nsi" style="--i:2"></i><span id="dash-text">SPRINT</span><kbd>LEER</kbd></button><button data-action="ability" class="ability-button nh-ab" id="ability-button" aria-label="${CA[A.character].name}"><i class="cd-ring" aria-hidden="true"></i>${Fg(A.character)}<span id="ability-text">BEREIT</span><kbd>E</kbd></button></div>${!A.save.data.tutorialSeen && A.wave <= 2 && this.screen === "combat" ? `<aside class="onboarding nh-panel nh-guide"><strong>DEINE ERSTE NACHT</strong><p>${A.mobile ? "Links ziehen: laufen. Rechts: Sprint & Fähigkeit." : "WASD: laufen · LEER: Sprint · E: Fähigkeit."}<br>Angriffe zielen automatisch. Schrott & EP einsammeln.<br><b>ROT + ! = GEFAHR.</b> Seitlich ausweichen.<br>Schraubenknecht bleibt stehen; Ersatz kommt automatisch.</p>${this.button("dismissGuide", "Verstanden ✓", "nh-guidebtn")}</aside>` : ""}<div class="combat-tip nh-tip" ${A.wave > 1 || !A.save.data.tutorialSeen ? "hidden" : ""}><kbd>WASD</kbd> Bewegen &nbsp; <kbd>LEER</kbd> Sprint<br><kbd>E</kbd> Fähigkeit &nbsp; <kbd>Q</kbd> Zielmodus<br>Elite: 5 / 10 / 15 · Boss: 20</div><div class="touch-hint nh-touch">LINKS ZIEHEN ZUM BEWEGEN</div></div>`;
+      : `<div class="hud nh hud-${A.save.data.settings.uiTheme}" id="hud"><i class="nh-ink" aria-hidden="true"></i><div class="nh-corner nh-tl"><div class="nh-panel hp-block nh-hp"><div class="nh-r1"><i class="nsi nh-heart" style="--i:3"></i><b id="hp-text"></b><span id="level-text" class="nh-lvl"></span></div><div class="nh-bar nh-red"><i id="hp-bar"></i></div><div class="nh-r2"><span>ERFAHRUNG</span><span id="xp-text"></span></div><div class="nh-bar nh-cream"><i id="xp-bar"></i></div><b id="level-num" hidden></b><span id="supply-text" class="supply-hud" hidden></span></div>${this.nhSlots(A.weapons)}</div><div class="nh-tc wave-block"><span class="nh-night">${A.climb ? GA[A.climb - 1].name.toUpperCase() : IA[A.map].name.toUpperCase()}</span><div id="wave-text" class="nh-wave"></div><div id="time-text" class="nh-time"></div>${A.climb ? '<span id="climb-text" class="nh-climb"></span>' : ""}</div><div class="nh-tr hud-right"><div class="nh-panel currency nh-money"><i class="nsi" style="--i:1"></i><b id="money-text"></b><small>SCHROTT</small></div>${this.button("pause", '<i class="nh-pz">II</i><small>PAUSE</small>', "pause-btn nh-round")}${this.button("fullscreen", x("fullscreen"), "pause-btn fullscreen-btn nh-round nh-fs")}</div><div class="boss-edge nh-edge" id="boss-edge" hidden aria-label="Richtung zum Boss"><i>➤</i><b>BOSS</b></div><div class="boss-panel nh-panel nh-boss" id="boss-panel" hidden><div class="nh-r1"><span id="boss-name"></span><small id="boss-phase"></small></div><div class="nh-bar nh-red"><i id="boss-hp"></i></div><span class="boss-pattern" id="boss-pattern"></span></div><div class="streak-panel nh-panel nh-streak" id="streak-panel" hidden><strong id="streak-count"></strong><span>ABSCHUSS-SERIE</span><i id="streak-bar"></i></div><div class="ability-dock nh-dock"><button data-action="dash" class="ability-button nh-ab" id="dash-button" aria-label="Ausweichsprint"><i class="cd-ring" aria-hidden="true"></i><i class="nsi" style="--i:2"></i><span id="dash-text">SPRINT</span><kbd>LEER</kbd></button><button data-action="ability" class="ability-button nh-ab" id="ability-button" aria-label="${NS_VEHICLE ? "Überlastung" : CA[A.character].name}"><i class="cd-ring" aria-hidden="true"></i>${Fg(A.character)}<span id="ability-text">BEREIT</span><kbd>E</kbd></button></div>${!A.save.data.tutorialSeen && A.wave <= 2 && this.screen === "combat" ? `<aside class="onboarding nh-panel nh-guide"><strong>DEINE ERSTE NACHT</strong><p>${A.mobile ? "Links ziehen: laufen. Rechts: Sprint & Fähigkeit." : "WASD: laufen · LEER: Sprint · E: Fähigkeit."}<br>Angriffe zielen automatisch. Schrott & EP einsammeln.<br><b>ROT + ! = GEFAHR.</b> Seitlich ausweichen.<br>Schraubenknecht bleibt stehen; Ersatz kommt automatisch.</p>${this.button("dismissGuide", "Verstanden ✓", "nh-guidebtn")}</aside>` : ""}<div class="combat-tip nh-tip" ${A.wave > 1 || !A.save.data.tutorialSeen ? "hidden" : ""}><kbd>WASD</kbd> Bewegen &nbsp; <kbd>LEER</kbd> Sprint<br><kbd>E</kbd> Fähigkeit &nbsp; <kbd>Q</kbd> Zielmodus<br>Elite: 5 / 10 / 15 · Boss: 20</div><div class="touch-hint nh-touch">LINKS ZIEHEN ZUM BEWEGEN</div></div>`;
   }
   acquisition() {
     const A = this.g.showcase;
@@ -14818,6 +14860,7 @@ class wC {
       const R = document.getElementById(Y);
       R && (R.textContent = c);
     };
+    if (NS_VEHICLE) o("vehicle-speed", (E.overdrive > 0 ? "ÜBERLASTUNG · " : "TEMPO · ") + Math.round((E.player.driveSpeed || 0) * .16));
     E.weapons.forEach((Y, c) => {
       if (Y.id !== "turret") return;
       const R = this.root.querySelector(`[data-weapon-slot="${c}"] .ground-tag`);
@@ -14890,10 +14933,10 @@ class wC {
       E.dashCharges > 0
         ? E.dashMax > 1
           ? E.dashCharges + " / " + E.dashMax
-          : "SPRINT"
+          : NS_VEHICLE ? "BOOST" : "SPRINT"
         : E.dashRecharge.toFixed(1) + " s",
     ),
-      o("ability-text", E.abilityCd > 0 ? Math.ceil(E.abilityCd) + " s" : "BEREIT"),
+      o("ability-text", NS_VEHICLE && E.overdrive > 0 ? "VOLLGAS" : E.abilityCd > 0 ? Math.ceil(E.abilityCd) + " s" : NS_VEHICLE ? "TURBO" : "BEREIT"),
       t && t.classList.toggle("on-cooldown", E.dashCharges === 0),
       h && h.classList.toggle("on-cooldown", E.abilityCd > 0);
     const s = document.getElementById("streak-panel");
@@ -15836,6 +15879,8 @@ class wC {
       case "back":
         this.back();
         break;
+      case "vehicleStart":
+        E.climb = 0; E.map = 0; this.r.camX = this.r.camY = 0; E.start(0,"pistol",0); break;
       case "enterHub":
         (this.r.camX = this.r.camY = 0), E.enterHub(), (this.r.camX = E.player.x), (this.r.camY = E.player.y);
         break;
@@ -15895,7 +15940,7 @@ class wC {
           i = URL.createObjectURL(o),
           I = document.createElement("a");
         (I.href = i),
-          (I.download = "nachtschrott-sicherung.json"),
+          (I.download = NS_VEHICLE ? "nachtschrott-fahrzeuge-sicherung.json" : "nachtschrott-sicherung.json"),
           I.click(),
           setTimeout(() => URL.revokeObjectURL(i), 1e3),
           this.toast("Sicherung exportiert.");
