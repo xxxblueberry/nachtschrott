@@ -1,4 +1,4 @@
-const CACHE = "nachtschrott-workshop-menu-v1";
+const CACHE = "nachtschrott-nightshift-v2";
 self.addEventListener("install", (event) =>
   event.waitUntil(
     caches

@@ -2407,3 +2407,13 @@ body #ui:not(#_):not(#__):not(#___) .nw .nw-slot[class*="lv"] small { color: var
 @media (prefers-reduced-motion: reduce) {
   html body[data-screen="home"]:not([data-ns="portrait"]) #ui:not(#_):not(#__) .nm * { animation: none !important; transition: none !important; }
 }
+
+.night-event {
+  position: fixed; top: 22%; left: 50%; transform: translateX(-50%);
+  max-width: min(620px, 86vw); padding: 10px 18px; box-sizing: border-box;
+  color: #ffe5cc; background: #35181ce8; border: 1px solid #dd8b69;
+  font: 700 17px/1.4 "Barlow Condensed", sans-serif; letter-spacing: .07em;
+  text-align: center; pointer-events: none; z-index: 30;
+}
+.night-event[hidden] { display: none; }
+@media (max-width: 600px) { .night-event { top: 21%; font-size: 14px; padding: 7px 10px; } }
